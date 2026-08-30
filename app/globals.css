@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-paper text-ink-900 font-body antialiased;
+  }
+  ::selection {
+    @apply bg-dawn-200 text-ink-900;
+  }
+  :focus-visible {
+    outline: 2px solid #E29B3D;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer utilities {
+  .container-portal {
+    @apply mx-auto w-full max-w-[440px] px-5 sm:max-w-[520px] lg:max-w-[560px];
+  }
+  .grain {
+    background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 3px 3px;
+  }
+}
