@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { MemberLayout } from "@/components/layout/memberLayout";
 import { Card } from "@/components/card";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/button";
 import { TextInput } from "@/components/input";
 
 interface PasswordForm {
