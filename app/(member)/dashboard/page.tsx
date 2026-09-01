@@ -6,32 +6,27 @@ import { Card } from "@/components/card";
 import { mockMembers } from "@/components/mock/data";
 
 export default function DashboardPage() {
-  // For demo, pick the first member
   const member = mockMembers[0];
 
-  // Quick stats
   const stats = [
     { label: "My Chapter", value: member.chapter, icon: "🏛️" },
     { label: "Tier", value: member.tier, icon: "🎯" },
     { label: "Member ID", value: member.memberNumber, icon: "🆔" },
   ];
 
-  // Quick action links
   const quickActions = [
     { href: "/chapter", icon: "🏛️", label: "View Chapter" },
-    { href: "/learning/courses", icon: "📚", label: "Browse Courses" },
+    { href: "/learning/courses", icon: "📚", label: "Browse Courses" },  // ✅ now works
     { href: "/community/directory", icon: "👥", label: "Member Directory" },
-    { href: "/events", icon: "📅", label: "Upcoming Events" },
+    { href: "/events", icon: "📅", label: "Upcoming Events" }, // ⚠️ still 404 – create or remove
   ];
 
-  // Recent activity (mock data)
   const activities = [
     { id: 1, type: "enrollment", message: "You enrolled in 'Marketplace Ethics 101'", time: "2 days ago" },
     { id: 2, type: "event", message: "Chapter meeting tomorrow at 5 PM", time: "1 day ago" },
     { id: 3, type: "certificate", message: "You completed 'Foundations of Leadership'", time: "3 days ago" },
   ];
 
-  // Pillar progress (placeholder)
   const pillars = [
     { label: "Marketplace", percent: 65, barClass: "bg-dawn-400" },
     { label: "Governance", percent: 30, barClass: "bg-sky-400" },
@@ -41,9 +36,6 @@ export default function DashboardPage() {
   return (
     <MemberLayout>
       <div className="space-y-6">
-        {/* ------------------------------------------------------------- */}
-        {/* Welcome                                                       */}
-        {/* ------------------------------------------------------------- */}
         <div>
           <h1 className="font-display text-2xl font-semibold text-ink-900">
             Welcome back, {member.firstName} 👋
@@ -53,9 +45,6 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* ------------------------------------------------------------- */}
-        {/* Quick stats                                                   */}
-        {/* ------------------------------------------------------------- */}
         <div className="grid grid-cols-3 gap-3">
           {stats.map((stat) => (
             <Card key={stat.label} className="p-4 text-center">
@@ -68,14 +57,10 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* ------------------------------------------------------------- */}
-        {/* Quick actions                                                 */}
-        {/* ------------------------------------------------------------- */}
         <Card>
           <h3 className="font-display text-sm font-semibold text-ink-900">
             Quick Actions
           </h3>
-
           <div className="mt-3 grid grid-cols-2 gap-2">
             {quickActions.map((action) => (
               <Link
@@ -90,14 +75,10 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {/* ------------------------------------------------------------- */}
-        {/* Recent activity                                               */}
-        {/* ------------------------------------------------------------- */}
         <Card>
           <h3 className="font-display text-sm font-semibold text-ink-900">
             Recent Activity
           </h3>
-
           <ul className="mt-3 space-y-3">
             {activities.map((activity) => (
               <li key={activity.id} className="flex items-start gap-3">
@@ -109,7 +90,6 @@ export default function DashboardPage() {
               </li>
             ))}
           </ul>
-
           <Link
             href="/activity"
             className="mt-2 inline-block text-sm font-medium text-sky-600 hover:underline"
@@ -118,14 +98,10 @@ export default function DashboardPage() {
           </Link>
         </Card>
 
-        {/* ------------------------------------------------------------- */}
-        {/* Pillar progress                                               */}
-        {/* ------------------------------------------------------------- */}
         <Card>
           <h3 className="font-display text-sm font-semibold text-ink-900">
             Your Pillar Progress
           </h3>
-
           <div className="mt-3 space-y-2">
             {pillars.map((pillar) => (
               <div key={pillar.label}>
