@@ -92,6 +92,19 @@ export interface Event {
   registrationDeadline?: string;
 }
 
+// ===== NEW: Product Interface =====
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number; // in KES
+  category: 'merchandise' | 'resources' | 'learning' | 'other';
+  image?: string;
+  inStock: boolean;
+  sku?: string;
+  createdAt: string;
+}
+
 // ---- Mock Data ----
 
 export const mockMembers: Member[] = [
@@ -608,5 +621,69 @@ export const mockEvents: Event[] = [
     registered: 120,
     price: 0,
     status: 'past',
+  },
+];
+
+// ===== NEW: Mock Products =====
+export const mockProducts: Product[] = [
+  {
+    id: 'prod-001',
+    name: 'Eagle Generation T-Shirt',
+    description: '100% cotton, unisex. Available in S, M, L, XL.',
+    price: 1500,
+    category: 'merchandise',
+    inStock: true,
+    sku: 'TEG-TSHIRT-001',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'prod-002',
+    name: 'Kingdom Leaders Handbook',
+    description: 'A comprehensive guide to leadership from a Kingdom perspective.',
+    price: 3500,
+    category: 'resources',
+    inStock: true,
+    sku: 'TEG-BOOK-001',
+    createdAt: '2026-01-15T00:00:00Z',
+  },
+  {
+    id: 'prod-003',
+    name: 'Eagle Generation Cap',
+    description: 'Stylish cap with the Eagle Generation logo. Adjustable fit.',
+    price: 1200,
+    category: 'merchandise',
+    inStock: true,
+    sku: 'TEG-CAP-001',
+    createdAt: '2026-02-01T00:00:00Z',
+  },
+  {
+    id: 'prod-004',
+    name: 'Digital Leadership Course Bundle',
+    description: 'Access all three pillar courses (Marketplace, Governance, Technology) at a discounted price.',
+    price: 15000,
+    category: 'learning',
+    inStock: true,
+    sku: 'TEG-BUNDLE-001',
+    createdAt: '2026-02-15T00:00:00Z',
+  },
+  {
+    id: 'prod-005',
+    name: 'Eagle Generation Journal',
+    description: 'A premium leather-bound journal for notes and reflections.',
+    price: 2000,
+    category: 'merchandise',
+    inStock: false,
+    sku: 'TEG-JOURNAL-001',
+    createdAt: '2026-01-20T00:00:00Z',
+  },
+  {
+    id: 'prod-006',
+    name: 'Mentorship Guidebook',
+    description: 'A guide for mentors and mentees on building effective relationships.',
+    price: 2800,
+    category: 'resources',
+    inStock: true,
+    sku: 'TEG-GUIDE-001',
+    createdAt: '2026-02-10T00:00:00Z',
   },
 ];

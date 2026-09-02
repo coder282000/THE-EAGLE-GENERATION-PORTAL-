@@ -111,7 +111,7 @@ export default function EventDetailPage() {
                 <h3 className="font-display text-lg font-semibold text-green-700">You're Registered!</h3>
                 <p className="text-sm text-green-600">Check your email for confirmation and event details.</p>
                 <Link href="/events/my-tickets" className="mt-3 inline-block">
-                  <Button variant="secondary" size="sm">View My Tickets</Button>
+                  <Button variant="secondary">View My Tickets</Button>
                 </Link>
               </div>
             ) : isPast ? (
@@ -122,7 +122,7 @@ export default function EventDetailPage() {
               <div className="bg-dawn-50 rounded-lg p-4 text-center">
                 <p className="text-dawn-700 font-medium">Fully Booked</p>
                 <p className="text-sm text-dawn-600">Join the waitlist to be notified if a spot opens.</p>
-                <Button variant="secondary" size="sm" className="mt-2">Join Waitlist</Button>
+                <Button variant="secondary"className="mt-2">Join Waitlist</Button>
               </div>
             ) : (
               <Button variant="primary" size="lg" fullWidth onClick={handleRegister} disabled={isLoading}>

@@ -19,6 +19,7 @@ export default function DashboardPage() {
     { href: "/learning/courses", icon: "📚", label: "Browse Courses" },
     { href: "/community/directory", icon: "👥", label: "Member Directory" },
     { href: "/events", icon: "📅", label: "Upcoming Events" },
+    { href: "/shop", icon: "🛍️", label: "Shop" }, // NEW
     { href: "/learning/certificates", icon: "🎓", label: "My Certificates" },
   ];
 
