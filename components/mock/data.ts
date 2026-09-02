@@ -75,6 +75,23 @@ export interface ChapterActivity {
   timestamp: string;
 }
 
+// ===== NEW: Event Interface =====
+export interface Event {
+  id: string;
+  title: string;
+  description: string;
+  date: string; // ISO
+  endDate?: string;
+  location: string;
+  type: 'summit' | 'workshop' | 'networking' | 'training' | 'other';
+  capacity: number;
+  registered: number;
+  price: number; // in KES, 0 for free
+  image?: string;
+  status: 'upcoming' | 'past' | 'cancelled';
+  registrationDeadline?: string;
+}
+
 // ---- Mock Data ----
 
 export const mockMembers: Member[] = [
@@ -321,7 +338,6 @@ export const mockAnnouncements: Announcement[] = [
     createdAt: '2026-02-15T11:00:00Z',
     author: 'Admin',
   },
-  // ===== NEW ANNOUNCEMENTS (added for richer testing) =====
   {
     id: '6',
     title: 'Eagle Generation Podcast Launches',
@@ -524,5 +540,73 @@ export const chapterActivities: ChapterActivity[] = [
     description: 'Partnering with local schools to offer leadership training.',
     actor: 'Peter Odhiambo',
     timestamp: '2026-02-18T07:45:00Z',
+  },
+];
+
+// ===== NEW: Mock Events =====
+export const mockEvents: Event[] = [
+  {
+    id: 'evt-001',
+    title: 'Annual Leadership Summit 2026',
+    description: 'Join us for the annual gathering of Eagles from across East Africa. Keynote speakers, workshops, and networking.',
+    date: '2026-06-15T09:00:00Z',
+    endDate: '2026-06-17T17:00:00Z',
+    location: 'Nairobi, Kenya',
+    type: 'summit',
+    capacity: 500,
+    registered: 312,
+    price: 2500,
+    status: 'upcoming',
+  },
+  {
+    id: 'evt-002',
+    title: 'Tech Workshop: AI for Good',
+    description: 'Free hands-on workshop exploring AI applications for social impact. No prior experience required.',
+    date: '2026-03-12T14:00:00Z',
+    endDate: '2026-03-12T17:00:00Z',
+    location: 'Online (Zoom)',
+    type: 'workshop',
+    capacity: 100,
+    registered: 78,
+    price: 0,
+    status: 'upcoming',
+  },
+  {
+    id: 'evt-003',
+    title: 'Networking Mixer – Nairobi Professional',
+    description: 'Professional networking event for members in the Nairobi area. Connect with peers and mentors.',
+    date: '2026-03-20T18:00:00Z',
+    endDate: '2026-03-20T21:00:00Z',
+    location: 'Sarova Panafric, Nairobi',
+    type: 'networking',
+    capacity: 80,
+    registered: 54,
+    price: 1500,
+    status: 'upcoming',
+  },
+  {
+    id: 'evt-004',
+    title: 'Chapter Leaders Training',
+    description: 'Training session for all chapter leaders. Learn best practices, platform updates, and leadership skills.',
+    date: '2026-04-05T10:00:00Z',
+    endDate: '2026-04-05T16:00:00Z',
+    location: 'Online (Zoom)',
+    type: 'training',
+    capacity: 200,
+    registered: 143,
+    price: 0,
+    status: 'upcoming',
+  },
+  {
+    id: 'evt-005',
+    title: 'Annual General Meeting 2025',
+    description: 'Review of the year\'s achievements and planning for the next year.',
+    date: '2025-12-10T14:00:00Z',
+    location: 'Nairobi, Kenya',
+    type: 'other',
+    capacity: 150,
+    registered: 120,
+    price: 0,
+    status: 'past',
   },
 ];

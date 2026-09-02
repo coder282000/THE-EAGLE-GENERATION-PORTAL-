@@ -16,9 +16,9 @@ export default function DashboardPage() {
 
   const quickActions = [
     { href: "/chapter", icon: "🏛️", label: "View Chapter" },
-    { href: "/learning/courses", icon: "📚", label: "Browse Courses" },  // ✅ now works
+    { href: "/learning/courses", icon: "📚", label: "Browse Courses" },
     { href: "/community/directory", icon: "👥", label: "Member Directory" },
-    { href: "/events", icon: "📅", label: "Upcoming Events" }, // ⚠️ still 404 – create or remove
+    { href: "/events", icon: "📅", label: "Upcoming Events" },
     { href: "/learning/certificates", icon: "🎓", label: "My Certificates" },
   ];
 
@@ -46,6 +46,7 @@ export default function DashboardPage() {
           </p>
         </div>
 
+        {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           {stats.map((stat) => (
             <Card key={stat.label} className="p-4 text-center">
@@ -58,6 +59,7 @@ export default function DashboardPage() {
           ))}
         </div>
 
+        {/* Quick Actions */}
         <Card>
           <h3 className="font-display text-sm font-semibold text-ink-900">
             Quick Actions
@@ -76,6 +78,60 @@ export default function DashboardPage() {
           </div>
         </Card>
 
+        {/* Upcoming Events Preview */}
+        <Card>
+          <div className="flex items-center justify-between">
+            <h3 className="font-display text-sm font-semibold text-ink-900">
+              Upcoming Events
+            </h3>
+            <Link
+              href="/events"
+              className="text-sm font-medium text-sky-600 hover:underline"
+            >
+              View all →
+            </Link>
+          </div>
+          <div className="mt-3 space-y-2">
+            <div className="flex items-center justify-between border-b border-ink-100 pb-2">
+              <div>
+                <p className="font-medium text-ink-900">Annual Leadership Summit 2026</p>
+                <p className="text-xs text-ink-400">Jun 15-17, 2026 · Nairobi, Kenya</p>
+              </div>
+              <Link
+                href="/events/evt-001"
+                className="text-xs font-medium text-sky-600 hover:underline"
+              >
+                View
+              </Link>
+            </div>
+            <div className="flex items-center justify-between border-b border-ink-100 pb-2">
+              <div>
+                <p className="font-medium text-ink-900">Tech Workshop: AI for Good</p>
+                <p className="text-xs text-ink-400">Mar 12, 2026 · Online (Zoom)</p>
+              </div>
+              <Link
+                href="/events/evt-002"
+                className="text-xs font-medium text-sky-600 hover:underline"
+              >
+                View
+              </Link>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-ink-900">Networking Mixer – Nairobi Professional</p>
+                <p className="text-xs text-ink-400">Mar 20, 2026 · Sarova Panafric</p>
+              </div>
+              <Link
+                href="/events/evt-003"
+                className="text-xs font-medium text-sky-600 hover:underline"
+              >
+                View
+              </Link>
+            </div>
+          </div>
+        </Card>
+
+        {/* Recent Activity */}
         <Card>
           <h3 className="font-display text-sm font-semibold text-ink-900">
             Recent Activity
@@ -99,6 +155,7 @@ export default function DashboardPage() {
           </Link>
         </Card>
 
+        {/* Pillar Progress */}
         <Card>
           <h3 className="font-display text-sm font-semibold text-ink-900">
             Your Pillar Progress

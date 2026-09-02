@@ -106,6 +106,12 @@ export default function HomePage() {
             </Link>
           </p>
           <p className="text-center text-[13.5px] text-ink-400">
+            Explore events?{" "}
+            <Link href="/events" className="text-ink-900 font-medium underline underline-offset-2">
+              Upcoming Events
+            </Link>
+          </p>
+          <p className="text-center text-[13.5px] text-ink-400">
             Verify a certificate?{" "}
             <Link href="/verify/example-id" className="text-ink-900 font-medium underline underline-offset-2">
               Verify Certificate
