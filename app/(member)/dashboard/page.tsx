@@ -21,6 +21,7 @@ export default function DashboardPage() {
     { href: "/events", icon: "📅", label: "Upcoming Events" },
     { href: "/shop", icon: "🛍️", label: "Shop" }, // NEW
     { href: "/learning/certificates", icon: "🎓", label: "My Certificates" },
+    { href: "/give", icon: "🤝", label: "Give" },
   ];
 
   const activities = [

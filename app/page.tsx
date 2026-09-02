@@ -123,6 +123,12 @@ export default function HomePage() {
               Verify Certificate
             </Link>
           </p>
+          <p className="text-center text-[13.5px] text-ink-400">
+  Support the movement?{" "}
+  <Link href="/give" className="text-ink-900 font-medium underline underline-offset-2">
+    Give Now
+  </Link>
+</p>
         </div>
       </section>
     </div>
