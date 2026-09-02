@@ -91,18 +91,27 @@ export default function HomePage() {
           </Button>
         </Link>
 
-        <p className="text-center text-[13.5px] text-ink-400 mt-4">
-          Already applied?{" "}
-          <Link href="/apply/status" className="text-ink-900 font-medium underline underline-offset-2">
-            Check your status
-          </Link>
-        </p>
-        <p className="text-center text-[13.5px] text-ink-400 mt-2">
-          Already a member?{" "}
-          <Link href="/login" className="text-ink-900 font-medium underline underline-offset-2">
-            Log in
-          </Link>
-        </p>
+        {/* Footer Links */}
+        <div className="mt-8 pt-6 border-t border-ink-100 space-y-3">
+          <p className="text-center text-[13.5px] text-ink-400">
+            Already applied?{" "}
+            <Link href="/apply/status" className="text-ink-900 font-medium underline underline-offset-2">
+              Check your status
+            </Link>
+          </p>
+          <p className="text-center text-[13.5px] text-ink-400">
+            Already a member?{" "}
+            <Link href="/login" className="text-ink-900 font-medium underline underline-offset-2">
+              Log in
+            </Link>
+          </p>
+          <p className="text-center text-[13.5px] text-ink-400">
+            Verify a certificate?{" "}
+            <Link href="/verify/example-id" className="text-ink-900 font-medium underline underline-offset-2">
+              Verify Certificate
+            </Link>
+          </p>
+        </div>
       </section>
     </div>
   );

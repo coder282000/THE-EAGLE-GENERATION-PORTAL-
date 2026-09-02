@@ -17,6 +17,22 @@ const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
 };
 
+// Mock certificates for the current user
+const userCertificates = [
+  {
+    id: "cert-001",
+    name: "Foundations of Leadership",
+    pillar: "Governance",
+    issuedAt: "2026-08-15T10:00:00Z",
+  },
+  {
+    id: "cert-002",
+    name: "Marketplace Ethics 101",
+    pillar: "Marketplace",
+    issuedAt: "2026-07-20T14:30:00Z",
+  },
+];
+
 export default function ProfilePage() {
   const member = CURRENT_USER;
 
@@ -126,6 +142,47 @@ export default function ProfilePage() {
               </dd>
             </div>
           </dl>
+        </Card>
+
+        {/* Certificates Section - NEW */}
+        <Card className="p-5">
+          <div className="flex items-center justify-between">
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-ink-400">
+              My Certificates
+            </h3>
+            <Link
+              href="/learning/certificates"
+              className="text-xs font-medium text-sky-600 hover:underline"
+            >
+              View all
+            </Link>
+          </div>
+          <div className="mt-3 space-y-2">
+            {userCertificates.length === 0 ? (
+              <p className="text-sm text-ink-400">No certificates yet. Complete a course to earn one.</p>
+            ) : (
+              userCertificates.map((cert) => (
+                <div key={cert.id} className="flex items-center justify-between border-b border-ink-100 pb-2 last:border-0 last:pb-0">
+                  <div>
+                    <p className="font-medium text-ink-900">{cert.name}</p>
+                    <p className="text-xs text-ink-400">
+                      {cert.pillar} · Issued: {new Date(cert.issuedAt).toLocaleDateString("en-KE", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/verify/${cert.id}`}
+                    className="text-sm font-medium text-sky-600 hover:underline"
+                  >
+                    Verify
+                  </Link>
+                </div>
+              ))
+            )}
+          </div>
         </Card>
 
         {/* Quick Action Links – connects to Settings, Security, Privacy */}

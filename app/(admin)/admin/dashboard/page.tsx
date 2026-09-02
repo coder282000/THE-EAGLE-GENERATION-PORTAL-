@@ -70,17 +70,22 @@ export default function AdminDashboardPage() {
       label: "Manage Chapters",
       count: totalChapters,
     },
-    // UPDATED: Two announcement actions
     {
       href: "/admin/announcements",
       icon: "📢",
       label: "Manage Announcements",
-      count: 8, // Hardcoded from mockAnnouncements length
+      count: 8,
     },
     {
       href: "/admin/announcements/new",
       icon: "✏️",
       label: "Post Announcement",
+    },
+    // NEW: Certificates quick action
+    {
+      href: "/admin/learning/certificates",
+      icon: "🎓",
+      label: "Manage Certificates",
     },
   ];
 
@@ -179,7 +184,7 @@ export default function AdminDashboardPage() {
           <h2 className="font-display text-sm font-semibold text-ink-900">
             Quick Actions
           </h2>
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {quickActions.map((action) => (
               <Link
                 key={action.href}

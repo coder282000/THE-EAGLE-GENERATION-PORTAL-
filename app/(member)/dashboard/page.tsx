@@ -19,6 +19,7 @@ export default function DashboardPage() {
     { href: "/learning/courses", icon: "📚", label: "Browse Courses" },  // ✅ now works
     { href: "/community/directory", icon: "👥", label: "Member Directory" },
     { href: "/events", icon: "📅", label: "Upcoming Events" }, // ⚠️ still 404 – create or remove
+    { href: "/learning/certificates", icon: "🎓", label: "My Certificates" },
   ];
 
   const activities = [
