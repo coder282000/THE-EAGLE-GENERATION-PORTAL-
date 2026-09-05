@@ -14,14 +14,14 @@ export default function DashboardPage() {
     { label: "Member ID", value: member.memberNumber, icon: "🆔" },
   ];
 
+  // 🧹 Clean, curated quick actions – only the most frequent & time‑sensitive
   const quickActions = [
-    { href: "/chapter", icon: "🏛️", label: "View Chapter" },
+    { href: "/community/feed", icon: "📰", label: "Feed" },
     { href: "/learning/courses", icon: "📚", label: "Browse Courses" },
-    { href: "/community/directory", icon: "👥", label: "Member Directory" },
-    { href: "/events", icon: "📅", label: "Upcoming Events" },
-    { href: "/shop", icon: "🛍️", label: "Shop" }, // NEW
-    { href: "/learning/certificates", icon: "🎓", label: "My Certificates" },
-    { href: "/give", icon: "🤝", label: "Give" },
+    { href: "/events", icon: "📅", label: "Events" },
+    { href: "/notifications", icon: "🔔", label: "Notifications" },
+    { href: "/announcements", icon: "📢", label: "Announcements" },
+    { href: "/mentorship/find", icon: "🧑‍🏫", label: "Find a Mentor" },
   ];
 
   const activities = [
@@ -39,6 +39,7 @@ export default function DashboardPage() {
   return (
     <MemberLayout>
       <div className="space-y-6">
+        {/* Welcome */}
         <div>
           <h1 className="font-display text-2xl font-semibold text-ink-900">
             Welcome back, {member.firstName} 👋
@@ -61,12 +62,12 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions – clean 6‑button grid */}
         <Card>
           <h3 className="font-display text-sm font-semibold text-ink-900">
             Quick Actions
           </h3>
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
             {quickActions.map((action) => (
               <Link
                 key={action.href}

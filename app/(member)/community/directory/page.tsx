@@ -1,190 +1,301 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import Link from "next/link";
+import { useState, useEffect, useMemo } from "react";
 import { MemberLayout } from "@/components/layout/memberLayout";
-import { Card } from "@/components/card";
+import { TextInput } from "@/components/input";
+import { Select } from "@/components/select";
 import { Button } from "@/components/button";
-import { PillarTag } from "@/components/pillarTag";
-import { mockMembers } from "@/components/mock/data";
+import { mockMembers, type Member } from "@/components/mock/data";
 
-// Tier filter options
-const TIER_FILTERS = [
-  { value: "all", label: "All" },
-  { value: "Eagle", label: "🦅 Eagle" },
-  { value: "Rising", label: "⬆️ Rising" },
-  { value: "Nestling", label: "🐣 Nestling" },
-] as const;
+type FilterState = {
+  search: string;
+  chapter: string;
+  tier: string;
+  pillarInterest: string;
+  status: string;
+};
 
-export default function DirectoryPage() {
-  const [search, setSearch] = useState("");
-  const [activeTier, setActiveTier] = useState<"all" | "Eagle" | "Rising" | "Nestling">("all");
-  const [isLoading] = useState(false);
+export default function MemberDirectoryPage() {
+  const [members, setMembers] = useState<Member[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Filter members based on search + tier
+  // Filter state
+  const [filters, setFilters] = useState<FilterState>({
+    search: "",
+    chapter: "",
+    tier: "",
+    pillarInterest: "",
+    status: "",
+  });
+
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMembers(mockMembers);
+      setIsLoading(false);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Extract unique filter options from members
+  const filterOptions = useMemo(() => {
+    const chapters = Array.from(new Set(mockMembers.map((m) => m.chapter))).sort();
+    const tiers = Array.from(new Set(mockMembers.map((m) => m.tier))).sort();
+    const pillarInterests = Array.from(
+      new Set(mockMembers.flatMap((m) => m.pillarInterest))
+    ).sort();
+    const statuses = Array.from(new Set(mockMembers.map((m) => m.status))).sort();
+    return { chapters, tiers, pillarInterests, statuses };
+  }, []);
+
+  // Filter members
   const filteredMembers = useMemo(() => {
-    let result = mockMembers;
+    let result = members;
 
-    if (activeTier !== "all") {
-      result = result.filter((m) => m.tier === activeTier);
-    }
-
-    if (search.trim()) {
-      const query = search.toLowerCase().trim();
+    // Search
+    if (filters.search.trim()) {
+      const q = filters.search.toLowerCase().trim();
       result = result.filter(
         (m) =>
-          m.firstName.toLowerCase().includes(query) ||
-          m.lastName.toLowerCase().includes(query) ||
-          m.email.toLowerCase().includes(query) ||
-          m.memberNumber.toLowerCase().includes(query) ||
-          m.chapter.toLowerCase().includes(query)
+          m.firstName.toLowerCase().includes(q) ||
+          m.lastName.toLowerCase().includes(q) ||
+          m.email.toLowerCase().includes(q) ||
+          m.memberNumber.toLowerCase().includes(q)
       );
     }
 
-    return result;
-  }, [search, activeTier]);
+    // Chapter
+    if (filters.chapter) {
+      result = result.filter((m) => m.chapter === filters.chapter);
+    }
 
-  if (isLoading) {
-    return (
-      <MemberLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-dawn-400 border-t-transparent mx-auto" />
-            <p className="mt-4 text-sm text-ink-500">Loading members...</p>
-          </div>
-        </div>
-      </MemberLayout>
-    );
-  }
+    // Tier
+    if (filters.tier) {
+      result = result.filter((m) => m.tier === filters.tier);
+    }
+
+    // Pillar Interest
+    if (filters.pillarInterest) {
+      result = result.filter((m) =>
+        m.pillarInterest.includes(filters.pillarInterest as any)
+      );
+    }
+
+    // Status
+    if (filters.status) {
+      result = result.filter((m) => m.status === filters.status);
+    }
+
+    return result;
+  }, [members, filters]);
+
+  // Reset filters
+  const handleReset = () => {
+    setFilters({
+      search: "",
+      chapter: "",
+      tier: "",
+      pillarInterest: "",
+      status: "",
+    });
+  };
+
+  // Update a single filter
+  const updateFilter = (key: keyof FilterState, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
 
   return (
     <MemberLayout>
-      <div className="space-y-6">
+      <div className="container-portal py-6 max-w-4xl mx-auto">
         {/* Header */}
-        <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-ink-900">
+        <div className="mb-6">
+          <h1 className="font-display text-3xl font-bold text-ink-900">
             Member Directory
           </h1>
-          <p className="mt-1 text-sm text-ink-500">
-            Connect with fellow Eagles across East Africa.
+          <p className="text-ink-500 mt-1">
+            Connect with fellow Eagles across chapters and pillars.
           </p>
         </div>
 
-        {/* Search + Filters */}
-        <div className="space-y-4">
-          {/* Custom Search Input with icon */}
-          <div>
-            <label htmlFor="search" className="block text-sm font-medium text-ink-700">
-              Search
-            </label>
-            <div className="relative mt-1">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg className="h-5 w-5 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                id="search"
-                type="text"
-                placeholder="Search by name, email, member number, or chapter"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-md border border-ink-200 py-2 pl-10 pr-4 text-sm outline-none transition-colors placeholder:text-ink-300 focus:border-sky-500"
-              />
+        {/* Filters */}
+        <div className="bg-paper border border-ink-100 rounded-lg p-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Search */}
+            <TextInput
+              id="directory-search"
+              label="Search"
+              placeholder="Name, email, or member number..."
+              value={filters.search}
+              onChange={(e) => updateFilter("search", e.target.value)}
+              className="w-full"
+            />
+
+            {/* Chapter */}
+            <Select
+              id="filter-chapter"
+              label="Chapter"
+              value={filters.chapter}
+              onChange={(e) => updateFilter("chapter", e.target.value)}
+              options={[
+                { value: "", label: "All Chapters" },
+                ...filterOptions.chapters.map((ch) => ({ value: ch, label: ch })),
+              ]}
+            />
+
+            {/* Tier */}
+            <Select
+              id="filter-tier"
+              label="Tier"
+              value={filters.tier}
+              onChange={(e) => updateFilter("tier", e.target.value)}
+              options={[
+                { value: "", label: "All Tiers" },
+                ...filterOptions.tiers.map((t) => ({ value: t, label: t })),
+              ]}
+            />
+
+            {/* Pillar Interest */}
+            <Select
+              id="filter-pillar"
+              label="Pillar Interest"
+              value={filters.pillarInterest}
+              onChange={(e) => updateFilter("pillarInterest", e.target.value)}
+              options={[
+                { value: "", label: "All Pillars" },
+                ...filterOptions.pillarInterests.map((p) => ({ value: p, label: p })),
+              ]}
+            />
+
+            {/* Status */}
+            <Select
+              id="filter-status"
+              label="Status"
+              value={filters.status}
+              onChange={(e) => updateFilter("status", e.target.value)}
+              options={[
+                { value: "", label: "All Statuses" },
+                ...filterOptions.statuses.map((s) => ({ value: s, label: s.charAt(0).toUpperCase() + s.slice(1) })),
+              ]}
+            />
+
+            {/* Reset Button */}
+            <div className="flex items-end">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleReset}
+                className="w-full"
+              >
+                Reset Filters
+              </Button>
             </div>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium uppercase tracking-wider text-ink-400 mr-1">
-              Tier:
-            </span>
-            {TIER_FILTERS.map((filter) => (
-              <button
-                key={filter.value}
-                onClick={() => setActiveTier(filter.value)}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
-                  activeTier === filter.value
-                    ? "bg-ink-900 text-white shadow-sm"
-                    : "bg-ink-100 text-ink-700 hover:bg-ink-200"
-                }`}
-                aria-pressed={activeTier === filter.value}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-
-          <p className="text-sm text-ink-400">
-            {filteredMembers.length} member{filteredMembers.length !== 1 ? "s" : ""} found
-          </p>
         </div>
 
-        {/* Member Grid */}
-        {filteredMembers.length === 0 ? (
-          <Card className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-4xl mb-3">🔍</p>
-            <h3 className="font-display text-lg font-semibold text-ink-900">
-              No members found
-            </h3>
-            <p className="mt-1 text-sm text-ink-500">
+        {/* Results count */}
+        {!isLoading && (
+          <p className="text-sm text-ink-500 mb-4">
+            {filteredMembers.length} member{filteredMembers.length !== 1 ? "s" : ""} found
+          </p>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4" aria-live="polite">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="border border-ink-100 rounded-lg p-4 animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-ink-200 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-ink-200 rounded w-3/4" />
+                    <div className="h-3 bg-ink-100 rounded w-1/2" />
+                  </div>
+                </div>
+                <div className="mt-3 space-y-1">
+                  <div className="h-3 bg-ink-100 rounded w-full" />
+                  <div className="h-3 bg-ink-100 rounded w-2/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-12">
+            <p className="text-clay-600">Something went wrong loading members.</p>
+            <Button variant="secondary" size="sm" onClick={() => window.location.reload()} className="mt-4">
+              Retry
+            </Button>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && filteredMembers.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-5xl mb-4">🔍</div>
+            <p className="text-ink-500 text-lg">No members match your filters.</p>
+            <p className="text-sm text-ink-400 mt-2">
               Try adjusting your search or filter criteria.
             </p>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <Button variant="secondary" size="sm" onClick={handleReset} className="mt-4">
+              Reset Filters
+            </Button>
+          </div>
+        )}
+
+        {/* Populated State */}
+        {!isLoading && !error && filteredMembers.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredMembers.map((member) => (
-              <Link
+              <div
                 key={member.id}
-                href={`/profile/${member.id}`}
-                className="group block transition-all duration-200 hover:-translate-y-1"
+                className="border border-ink-100 rounded-lg p-4 hover:shadow-md transition-shadow"
               >
-                <Card className="h-full p-5 transition-shadow group-hover:shadow-lg">
-                  <div className="flex items-start gap-4">
-                    {/* Avatar */}
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-dawn-100 text-lg font-bold text-dawn-700">
-                      {member.firstName[0]}
-                      {member.lastName[0]}
-                    </div>
-
-                    {/* Details */}
-                    <div className="min-w-0 flex-1">
-                      <p className="font-display font-semibold text-ink-900">
-                        {member.firstName} {member.lastName}
-                      </p>
-                      <p className="text-xs text-ink-500">{member.memberNumber}</p>
-                      <p className="mt-0.5 text-sm truncate text-ink-600">
-                        {member.email}
-                      </p>
-                      <p className="mt-1 text-xs text-ink-400">
-                        🏛️ {member.chapter}
-                      </p>
-
-                      {/* Badges */}
-                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                        <span className="inline-block rounded-full bg-ink-100 px-2 py-0.5 text-xs font-medium text-ink-700">
-                          {member.tier}
-                        </span>
-                        {member.pillarInterest.map((pillar) => (
-                          <PillarTag 
-                            key={pillar} 
-                            pillar={pillar.toLowerCase() as "marketplace" | "governance" | "technology"} 
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Chevron hint */}
-                    <svg
-                      className="mt-1 h-4 w-4 shrink-0 text-ink-300 transition-transform group-hover:translate-x-0.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                <div className="flex items-start gap-3">
+                  {/* Avatar */}
+                  <div className="w-12 h-12 rounded-full bg-dawn-200 flex items-center justify-center text-ink-700 font-semibold flex-shrink-0">
+                    {member.firstName[0]}{member.lastName[0]}
                   </div>
-                </Card>
-              </Link>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-ink-900 truncate">
+                      {member.firstName} {member.lastName}
+                    </p>
+                    <p className="text-sm text-ink-500 truncate">{member.memberNumber}</p>
+                    <p className="text-xs text-ink-400 truncate">{member.email}</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      <span className="text-xs bg-paper text-ink-600 px-2 py-0.5 rounded border border-ink-100">
+                        {member.chapter}
+                      </span>
+                      <span className="text-xs bg-paper text-ink-600 px-2 py-0.5 rounded border border-ink-100">
+                        {member.tier}
+                      </span>
+                      {member.pillarInterest.slice(0, 2).map((pillar) => (
+                        <span key={pillar} className="text-xs bg-dawn-100 text-ink-700 px-2 py-0.5 rounded">
+                          {pillar}
+                        </span>
+                      ))}
+                      {member.pillarInterest.length > 2 && (
+                        <span className="text-xs text-ink-400">+{member.pillarInterest.length - 2}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {member.bio && (
+                  <p className="text-sm text-ink-600 mt-2 line-clamp-2">{member.bio}</p>
+                )}
+                <div className="mt-3 flex justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => window.location.href = `/profile/${member.id}`}
+                  >
+                    View Profile →
+                  </Button>
+                </div>
+              </div>
             ))}
           </div>
         )}

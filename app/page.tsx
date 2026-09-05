@@ -91,7 +91,7 @@ export default function HomePage() {
           </Button>
         </Link>
 
-        {/* Footer Links */}
+        {/* Footer Links – updated with all public routes */}
         <div className="mt-8 pt-6 border-t border-ink-100 space-y-3">
           <p className="text-center text-[13.5px] text-ink-400">
             Already applied?{" "}
@@ -124,11 +124,17 @@ export default function HomePage() {
             </Link>
           </p>
           <p className="text-center text-[13.5px] text-ink-400">
-  Support the movement?{" "}
-  <Link href="/give" className="text-ink-900 font-medium underline underline-offset-2">
-    Give Now
-  </Link>
-</p>
+            Support the movement?{" "}
+            <Link href="/give" className="text-ink-900 font-medium underline underline-offset-2">
+              Give Now
+            </Link>
+          </p>
+          <p className="text-center text-[13.5px] text-ink-400">
+            Need help?{" "}
+            <Link href="/help" className="text-ink-900 font-medium underline underline-offset-2">
+              Help Centre
+            </Link>
+          </p>
         </div>
       </section>
     </div>

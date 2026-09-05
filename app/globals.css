@@ -28,3 +28,95 @@
     background-size: 3px 3px;
   }
 }
+
+@layer components {
+  /* Print styles for legal pages and certificates */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+
+    .container-portal {
+      max-width: 100% !important;
+      padding: 0 !important;
+    }
+
+    .bg-white {
+      background: white !important;
+      box-shadow: none !important;
+      border: none !important;
+      padding: 1.5rem !important;
+    }
+
+    /* Hide navigation and interactive elements */
+    a[href*="/dashboard"],
+    a[href*="/help"],
+    button:not(.print-button) {
+      display: none !important;
+    }
+
+    /* Ensure text is readable */
+    body {
+      background: white !important;
+      color: black !important;
+      font-size: 12pt !important;
+    }
+
+    .text-ink-900 {
+      color: black !important;
+    }
+
+    .text-ink-700 {
+      color: #333 !important;
+    }
+
+    .text-ink-500 {
+      color: #666 !important;
+    }
+
+    /* Preserve link visibility */
+    a {
+      text-decoration: underline !important;
+      color: #000 !important;
+    }
+
+    /* Ensure borders and dividers print */
+    .border-b {
+      border-bottom: 1px solid #ddd !important;
+    }
+
+    .border-t {
+      border-top: 1px solid #ddd !important;
+    }
+
+    .border-ink-100 {
+      border-color: #e5e7eb !important;
+    }
+
+    /* Remove shadows */
+    .shadow-sm {
+      box-shadow: none !important;
+    }
+
+    /* Page breaks */
+    .page-break-before {
+      page-break-before: always;
+    }
+
+    .page-break-after {
+      page-break-after: always;
+    }
+
+    /* Ensure images don't overflow */
+    img {
+      max-width: 100% !important;
+    }
+
+    /* Show URLs after links (optional) */
+    a[href]:not([href^="#"]):not([href^="/"]):after {
+      content: " (" attr(href) ")";
+      font-size: 10pt;
+      color: #666;
+    }
+  }
+}

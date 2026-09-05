@@ -23,6 +23,25 @@ function FieldWrap({ label, htmlFor, error, hint, required, children }: FieldWra
   );
 }
 
+// ─── Input (simple, unlabeled) ────────────────────────────────
+
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {}
+
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ className = "", ...props }, ref) => (
+    <input
+      ref={ref}
+      className={`h-10 w-full rounded-md border border-ink-200 bg-white px-3 py-2 text-sm
+        text-ink-900 placeholder:text-ink-400 outline-none transition-colors
+        focus:border-sky-500
+        disabled:cursor-not-allowed disabled:opacity-50
+        ${className}`}
+      {...props}
+    />
+  )
+);
+Input.displayName = "Input";
+
 // ─── TextInput ───────────────────────────────────────────────
 
 interface TextInputProps

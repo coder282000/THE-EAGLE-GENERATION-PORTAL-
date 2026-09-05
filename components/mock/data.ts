@@ -1,5 +1,9 @@
 // components/mock/data.ts
 
+// ============================================================
+// 1. INTERFACES
+// ============================================================
+
 export interface Member {
   id: string;
   memberNumber: string;
@@ -44,6 +48,7 @@ export interface Announcement {
   priority: 'HIGH' | 'MEDIUM' | 'LOW';
   createdAt: string;
   author: string;
+  readBy?: string[];
 }
 
 export interface Notification {
@@ -75,29 +80,27 @@ export interface ChapterActivity {
   timestamp: string;
 }
 
-// ===== NEW: Event Interface =====
 export interface Event {
   id: string;
   title: string;
   description: string;
-  date: string; // ISO
+  date: string;
   endDate?: string;
   location: string;
   type: 'summit' | 'workshop' | 'networking' | 'training' | 'other';
   capacity: number;
   registered: number;
-  price: number; // in KES, 0 for free
+  price: number;
   image?: string;
   status: 'upcoming' | 'past' | 'cancelled';
   registrationDeadline?: string;
 }
 
-// ===== NEW: Product Interface =====
 export interface Product {
   id: string;
   name: string;
   description: string;
-  price: number; // in KES
+  price: number;
   category: 'merchandise' | 'resources' | 'learning' | 'other';
   image?: string;
   inStock: boolean;
@@ -105,8 +108,314 @@ export interface Product {
   createdAt: string;
 }
 
-// ---- Mock Data ----
+export interface FAQItem {
+  id: string;
+  category: 'Membership' | 'Learning' | 'Payments' | 'Technical' | 'General';
+  question: string;
+  answer: string;
+}
 
+export interface SupportPack {
+  id: string;
+  name: string;
+  amount: number;
+  description: string;
+  color: string;
+  icon: string;
+}
+
+export interface BlockedUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar?: string;
+  blockedAt: string;
+  reason?: string;
+}
+
+// ============================================================
+// R2 – Community, Mentorship, Messaging
+// ============================================================
+
+export interface Post {
+  id: string;
+  author: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+    chapterId?: string;
+    chapterName?: string;
+  };
+  content: string;
+  pillar: 'MARKETPLACE' | 'GOVERNANCE' | 'TECHNOLOGY';
+  createdAt: string;
+  likes: number;
+  comments: number;
+  likedByUser: boolean;
+  isPinned?: boolean;
+  images?: string[];
+}
+
+export interface Comment {
+  id: string;
+  postId: string;
+  author: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+  };
+  content: string;
+  createdAt: string;
+  parentId?: string;
+  likes: number;
+  likedByUser: boolean;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  description: string;
+  type: 'STUDY' | 'CHAPTER' | 'MENTORSHIP' | 'INTEREST';
+  visibility: 'OPEN' | 'CLOSED' | 'SECRET';
+  chapterId?: string;
+  createdBy: string;
+  createdAt: string;
+  memberCount: number;
+  coverImage?: string;
+  tags: string[];
+}
+
+export interface GroupMember {
+  userId: string;
+  groupId: string;
+  role: 'MEMBER' | 'MODERATOR' | 'ADMIN';
+  joinedAt: string;
+}
+
+export interface GroupPost {
+  id: string;
+  groupId: string;
+  author: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+  };
+  content: string;
+  createdAt: string;
+  likes: number;
+  comments: number;
+  likedByUser: boolean;
+  isPinned?: boolean;
+}
+
+export interface Conversation {
+  id: string;
+  participants: string[];
+  lastMessage?: Message;
+  updatedAt: string;
+  isGroup: boolean;
+  groupName?: string;
+  groupAvatar?: string;
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  sentAt: string;
+  readAt?: string;
+  attachments?: string[];
+  type: 'text' | 'image' | 'file';
+}
+
+export interface MentorProfile {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  avatar?: string;
+  focusCategories: string[];
+  expertise: string[];
+  availability: string;
+  bio: string;
+  isActive: boolean;
+  capacity: number;
+  currentMentees: number;
+  rating?: number;
+  reviewCount?: number;
+}
+
+export interface MentorshipRequest {
+  id: string;
+  mentorId: string;
+  menteeId: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED';
+  focusArea: string;
+  message: string;
+  requestedAt: string;
+  respondedAt?: string;
+}
+
+export interface MentorshipSession {
+  id: string;
+  requestId: string;
+  mentorId: string;
+  menteeId: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'MISSED';
+  notes?: string;
+  feedback?: string;
+  meetingLink?: string;
+}
+
+export interface Meeting {
+  id: string;
+  title: string;
+  description: string;
+  scheduledFor: string;
+  durationMinutes: number;
+  meetingLink: string;
+  createdBy: string;
+  createdAt: string;
+  audience: 'ALL' | 'CHAPTER' | 'COHORT' | 'MENTORSHIP';
+  recordingUrl?: string;
+  isRecurring: boolean;
+  recurrenceRule?: string;
+  status: 'UPCOMING' | 'LIVE' | 'ENDED' | 'CANCELLED';
+}
+
+// ============================================================
+// R2 – E‑Learning (All Data Added)
+// ============================================================
+
+export interface Course {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  pillar: 'MARKETPLACE' | 'GOVERNANCE' | 'TECHNOLOGY';
+  instructorId: string;
+  instructorName: string;
+  enrolledCount: number;
+  rating: number;
+  reviewCount: number;
+  image?: string;
+  durationHours: number;
+  lessonsCount: number;
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+}
+
+export interface Cohort {
+  id: string;
+  courseId: string;
+  name: string;
+  startsOn: string;
+  endsOn: string;
+  capacity: number;
+  enrolled: number;
+  status: 'PLANNED' | 'OPEN' | 'FULL' | 'IN_PROGRESS' | 'COMPLETED';
+  facilitators: string[];
+}
+
+export interface Enrollment {
+  courseId: string;
+  userId: string;
+  progress: number;
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+  enrolledAt: string;
+  completedAt?: string;
+  lastAccessedAt?: string;
+}
+
+export interface CohortMember {
+  userId: string;
+  cohortId: string;
+  progress: number;
+  status: 'ACTIVE' | 'COMPLETED' | 'DROPPED';
+  enrolledAt: string;
+  completedAt?: string;
+}
+
+export interface Lesson {
+  id: string;
+  courseId: string;
+  title: string;
+  content: string;
+  type: 'video' | 'text' | 'quiz' | 'assignment';
+  order: number;
+  durationMinutes: number;
+  videoUrl?: string;
+  attachmentUrl?: string;
+  isPreview?: boolean;
+}
+
+export interface LessonProgress {
+  userId: string;
+  lessonId: string;
+  completed: boolean;
+  completedAt?: string;
+  quizScore?: number;
+  assignmentSubmitted?: boolean;
+}
+
+// ---- NEW: Quiz Interfaces ----
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number; // index of correct option
+  explanation?: string;
+}
+
+export interface Quiz {
+  id: string;
+  lessonId: string;
+  title: string;
+  description?: string;
+  questions: QuizQuestion[];
+  timeLimitMinutes?: number;
+  passingScore: number;
+}
+
+// ---- NEW: Assignment Interfaces ----
+export interface Assignment {
+  id: string;
+  lessonId: string;
+  title: string;
+  description: string;
+  instructions: string;
+  dueDate: string;
+  maxScore: number;
+  isSubmitted: boolean;
+  submittedAt?: string;
+  submissionText?: string;
+  submissionFileUrl?: string;
+  grade?: number;
+  feedback?: string;
+}
+
+// ---- NEW: Certificate Interfaces ----
+export interface Certificate {
+  id: string;
+  certificateNumber: string;
+  userId: string;
+  courseId: string;
+  issuedAt: string;
+  expiresAt?: string;
+  status: 'issued' | 'revoked';
+}
+
+// ============================================================
+// 2. MOCK DATA
+// ============================================================
+
+// ---- Members ----
 export const mockMembers: Member[] = [
   {
     id: '1',
@@ -222,6 +531,7 @@ export const mockMembers: Member[] = [
   },
 ];
 
+// ---- Chapters ----
 export const mockChapters: Chapter[] = [
   {
     code: 'KU',
@@ -270,6 +580,7 @@ export const mockChapters: Chapter[] = [
   },
 ];
 
+// ---- Applications ----
 export const mockApplications: Application[] = [
   {
     reference: 'TEG-2026-001',
@@ -310,6 +621,7 @@ export const mockApplications: Application[] = [
   },
 ];
 
+// ---- Announcements ----
 export const mockAnnouncements: Announcement[] = [
   {
     id: '1',
@@ -318,6 +630,7 @@ export const mockAnnouncements: Announcement[] = [
     priority: 'HIGH',
     createdAt: '2026-02-28T10:00:00Z',
     author: 'Admin',
+    readBy: ['1'],
   },
   {
     id: '2',
@@ -326,6 +639,7 @@ export const mockAnnouncements: Announcement[] = [
     priority: 'MEDIUM',
     createdAt: '2026-02-25T14:30:00Z',
     author: 'Admin',
+    readBy: [],
   },
   {
     id: '3',
@@ -334,6 +648,7 @@ export const mockAnnouncements: Announcement[] = [
     priority: 'HIGH',
     createdAt: '2026-02-20T09:15:00Z',
     author: 'Admin',
+    readBy: ['1'],
   },
   {
     id: '4',
@@ -342,6 +657,7 @@ export const mockAnnouncements: Announcement[] = [
     priority: 'MEDIUM',
     createdAt: '2026-02-18T16:45:00Z',
     author: 'Admin',
+    readBy: [],
   },
   {
     id: '5',
@@ -350,33 +666,38 @@ export const mockAnnouncements: Announcement[] = [
     priority: 'HIGH',
     createdAt: '2026-02-15T11:00:00Z',
     author: 'Admin',
+    readBy: [],
   },
   {
     id: '6',
     title: 'Eagle Generation Podcast Launches',
-    content: 'Our new podcast featuring interviews with Kingdom leaders is now live on all platforms. Tune in to Spotify, Apple Podcasts, and YouTube.',
+    content: 'Our new podcast featuring interviews with Kingdom leaders is now live on all platforms.',
     priority: 'MEDIUM',
     createdAt: '2026-02-10T08:30:00Z',
     author: 'Admin',
+    readBy: ['1'],
   },
   {
     id: '7',
     title: 'Call for Proposals: Annual Conference 2026',
-    content: 'We invite members to submit proposals for workshops, panel discussions, and talks at the annual conference. Submission deadline: March 31.',
+    content: 'We invite members to submit proposals for workshops, panel discussions, and talks.',
     priority: 'LOW',
     createdAt: '2026-02-05T13:00:00Z',
     author: 'Admin',
+    readBy: [],
   },
   {
     id: '8',
     title: 'Volunteer Opportunity: Community Outreach',
-    content: 'We are looking for volunteers to lead community outreach programs in Nairobi and Kisumu. Training provided. Sign up by March 15.',
+    content: 'We are looking for volunteers to lead community outreach programs in Nairobi and Kisumu.',
     priority: 'HIGH',
     createdAt: '2026-01-28T10:00:00Z',
     author: 'Admin',
+    readBy: ['1'],
   },
 ];
 
+// ---- Notifications ----
 export const mockNotifications: Notification[] = [
   {
     id: 'n1',
@@ -416,6 +737,7 @@ export const mockNotifications: Notification[] = [
   },
 ];
 
+// ---- Audit Logs ----
 export const mockAuditLogs: AuditLog[] = [
   {
     id: 'a1',
@@ -463,6 +785,7 @@ export const mockAuditLogs: AuditLog[] = [
   },
 ];
 
+// ---- Chapter Activities ----
 export const chapterActivities: ChapterActivity[] = [
   {
     id: 'act1',
@@ -556,12 +879,12 @@ export const chapterActivities: ChapterActivity[] = [
   },
 ];
 
-// ===== NEW: Mock Events =====
+// ---- Events ----
 export const mockEvents: Event[] = [
   {
     id: 'evt-001',
     title: 'Annual Leadership Summit 2026',
-    description: 'Join us for the annual gathering of Eagles from across East Africa. Keynote speakers, workshops, and networking.',
+    description: 'Join us for the annual gathering of Eagles from across East Africa.',
     date: '2026-06-15T09:00:00Z',
     endDate: '2026-06-17T17:00:00Z',
     location: 'Nairobi, Kenya',
@@ -574,7 +897,7 @@ export const mockEvents: Event[] = [
   {
     id: 'evt-002',
     title: 'Tech Workshop: AI for Good',
-    description: 'Free hands-on workshop exploring AI applications for social impact. No prior experience required.',
+    description: 'Free hands-on workshop exploring AI applications for social impact.',
     date: '2026-03-12T14:00:00Z',
     endDate: '2026-03-12T17:00:00Z',
     location: 'Online (Zoom)',
@@ -587,7 +910,7 @@ export const mockEvents: Event[] = [
   {
     id: 'evt-003',
     title: 'Networking Mixer – Nairobi Professional',
-    description: 'Professional networking event for members in the Nairobi area. Connect with peers and mentors.',
+    description: 'Professional networking event for members in the Nairobi area.',
     date: '2026-03-20T18:00:00Z',
     endDate: '2026-03-20T21:00:00Z',
     location: 'Sarova Panafric, Nairobi',
@@ -600,7 +923,7 @@ export const mockEvents: Event[] = [
   {
     id: 'evt-004',
     title: 'Chapter Leaders Training',
-    description: 'Training session for all chapter leaders. Learn best practices, platform updates, and leadership skills.',
+    description: 'Training session for all chapter leaders.',
     date: '2026-04-05T10:00:00Z',
     endDate: '2026-04-05T16:00:00Z',
     location: 'Online (Zoom)',
@@ -624,7 +947,7 @@ export const mockEvents: Event[] = [
   },
 ];
 
-// ===== NEW: Mock Products =====
+// ---- Products ----
 export const mockProducts: Product[] = [
   {
     id: 'prod-001',
@@ -659,7 +982,7 @@ export const mockProducts: Product[] = [
   {
     id: 'prod-004',
     name: 'Digital Leadership Course Bundle',
-    description: 'Access all three pillar courses (Marketplace, Governance, Technology) at a discounted price.',
+    description: 'Access all three pillar courses at a discounted price.',
     price: 15000,
     category: 'learning',
     inStock: true,
@@ -687,3 +1010,1100 @@ export const mockProducts: Product[] = [
     createdAt: '2026-02-10T00:00:00Z',
   },
 ];
+
+// ---- FAQ ----
+export const mockFAQ: FAQItem[] = [
+  {
+    id: 'faq-1',
+    category: 'Membership',
+    question: 'How do I renew my membership?',
+    answer: 'You can renew your membership by visiting your profile settings and selecting "Subscription".',
+  },
+  {
+    id: 'faq-2',
+    category: 'Membership',
+    question: 'What are the different membership tiers?',
+    answer: 'We offer three tiers: Eagle, Rising, and Nestling. Each provides different levels of access.',
+  },
+  {
+    id: 'faq-3',
+    category: 'Learning',
+    question: 'How do I access my enrolled courses?',
+    answer: 'Go to the "My Learning" section from the sidebar. There you will see all your active and completed courses.',
+  },
+  {
+    id: 'faq-4',
+    category: 'Learning',
+    question: 'Can I download course materials?',
+    answer: 'Yes, instructors may provide downloadable resources. Look for the "Resources" tab within each lesson.',
+  },
+  {
+    id: 'faq-5',
+    category: 'Payments',
+    question: 'What payment methods do you accept?',
+    answer: 'We accept M‑Pesa, bank transfers, and credit/debit cards through our secure payment gateway.',
+  },
+  {
+    id: 'faq-6',
+    category: 'Payments',
+    question: 'How do I get a receipt for my payment?',
+    answer: 'After a successful payment, a receipt will be emailed to you. You can also find it in your order history.',
+  },
+  {
+    id: 'faq-7',
+    category: 'Technical',
+    question: 'What browsers are supported?',
+    answer: 'We support the latest versions of Chrome, Firefox, Safari, and Edge.',
+  },
+  {
+    id: 'faq-8',
+    category: 'General',
+    question: 'How do I contact support?',
+    answer: 'If you cannot find an answer here, you can submit a support ticket from the "Contact Support" page.',
+  },
+];
+
+// ---- Support Packs ----
+export const mockSupportPacks: SupportPack[] = [
+  {
+    id: 'bronze',
+    name: 'Bronze',
+    amount: 2500,
+    description: 'Support a scholar for one month',
+    color: 'border-amber-300 bg-amber-50',
+    icon: '🥉',
+  },
+  {
+    id: 'silver',
+    name: 'Silver',
+    amount: 5000,
+    description: 'Support a scholar for two months',
+    color: 'border-gray-300 bg-gray-50',
+    icon: '🥈',
+  },
+  {
+    id: 'gold',
+    name: 'Gold',
+    amount: 10000,
+    description: 'Support a scholar for a full programme',
+    color: 'border-yellow-300 bg-yellow-50',
+    icon: '🥇',
+  },
+  {
+    id: 'platinum',
+    name: 'Platinum',
+    amount: 25000,
+    description: 'Sponsor a chapter for a year',
+    color: 'border-sky-300 bg-sky-50',
+    icon: '💎',
+  },
+];
+
+// ---- Blocked Users ----
+export const mockBlockedUsers: BlockedUser[] = [
+  {
+    id: '2',
+    firstName: 'David',
+    lastName: 'Ochieng',
+    email: 'david@example.com',
+    blockedAt: '2026-02-15T10:30:00Z',
+    reason: 'Spam messages',
+  },
+  {
+    id: '4',
+    firstName: 'James',
+    lastName: 'Kariuki',
+    email: 'james@example.com',
+    blockedAt: '2026-03-01T14:20:00Z',
+    reason: 'Harassment',
+  },
+];
+
+// ============================================================
+// R2 MOCK DATA
+// ============================================================
+
+// ---- Posts ----
+export const mockPosts: Post[] = [
+  {
+    id: 'post-1',
+    author: {
+      id: '1',
+      firstName: 'Grace',
+      lastName: 'Mwangi',
+      avatar: '',
+      chapterId: 'chap-001',
+      chapterName: 'Kenyatta University',
+    },
+    content:
+      'Excited to start the Governance pillar course! This will transform how we approach public service and ethical leadership in our communities. Who else is joining? 🦅',
+    pillar: 'GOVERNANCE',
+    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    likes: 12,
+    comments: 4,
+    likedByUser: false,
+    isPinned: true,
+  },
+  {
+    id: 'post-2',
+    author: {
+      id: '2',
+      firstName: 'Daniel',
+      lastName: 'Omondi',
+      avatar: '',
+      chapterId: 'chap-002',
+      chapterName: 'Strathmore University',
+    },
+    content:
+      'Who else is joining the Marketplace cohort this quarter? Let\'s connect and share insights on ethical business practices in Kenya.',
+    pillar: 'MARKETPLACE',
+    createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+    likes: 8,
+    comments: 2,
+    likedByUser: true,
+  },
+  {
+    id: 'post-3',
+    author: {
+      id: '3',
+      firstName: 'Faith',
+      lastName: 'Akinyi',
+      avatar: '',
+      chapterId: 'chap-001',
+      chapterName: 'Kenyatta University',
+    },
+    content:
+      'Just completed the "Foundations of Technology" module. The content on AI ethics and data sovereignty was eye-opening! Highly recommend to anyone in the Tech pillar. 🚀',
+    pillar: 'TECHNOLOGY',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+    likes: 24,
+    comments: 7,
+    likedByUser: false,
+  },
+  {
+    id: 'post-4',
+    author: {
+      id: '4',
+      firstName: 'James',
+      lastName: 'Kariuki',
+      avatar: '',
+      chapterId: 'chap-003',
+      chapterName: 'UoN – Main Campus',
+    },
+    content:
+      'Our chapter is hosting a networking mixer this Friday at 5 PM. All members are welcome! Come connect with fellow Eagles and share your journey. See you there!',
+    pillar: 'GOVERNANCE',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    likes: 15,
+    comments: 5,
+    likedByUser: false,
+  },
+  {
+    id: 'post-5',
+    author: {
+      id: '5',
+      firstName: 'Mary',
+      lastName: 'Wanjiru',
+      avatar: '',
+      chapterId: 'chap-002',
+      chapterName: 'Strathmore University',
+    },
+    content:
+      'The mentorship programme has been incredible. Shoutout to my mentor for guiding me through the Marketplace curriculum. I\'ve grown so much in just two months! 🙌',
+    pillar: 'MARKETPLACE',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+    likes: 31,
+    comments: 9,
+    likedByUser: true,
+  },
+];
+
+// ---- Comments ----
+export const mockComments: Comment[] = [
+  {
+    id: 'comment-1',
+    postId: 'post-1',
+    author: { id: '2', firstName: 'Daniel', lastName: 'Omondi', avatar: '' },
+    content: 'Count me in! I\'ve been looking forward to this. When does it start?',
+    createdAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+    likes: 3,
+    likedByUser: false,
+  },
+  {
+    id: 'comment-2',
+    postId: 'post-1',
+    author: { id: '4', firstName: 'James', lastName: 'Kariuki', avatar: '' },
+    content: 'This is exactly what our nation needs. Proud of you Grace!',
+    createdAt: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
+    likes: 5,
+    likedByUser: true,
+  },
+  {
+    id: 'comment-3',
+    postId: 'post-1',
+    author: { id: '5', firstName: 'Mary', lastName: 'Wanjiru', avatar: '' },
+    content: 'I\'m already enrolled! See you in the first session.',
+    createdAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+    likes: 2,
+    likedByUser: false,
+  },
+  {
+    id: 'comment-4',
+    postId: 'post-3',
+    author: { id: '6', firstName: 'Peter', lastName: 'Odhiambo', avatar: '' },
+    content: 'This module changed my perspective on tech ethics. Highly recommended!',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+    likes: 7,
+    likedByUser: false,
+  },
+  {
+    id: 'comment-5',
+    postId: 'post-5',
+    author: { id: '1', firstName: 'Grace', lastName: 'Mwangi', avatar: '' },
+    content: 'So proud of you Mary! Keep soaring! 🦅',
+    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    likes: 4,
+    likedByUser: false,
+  },
+];
+
+// ---- Groups ----
+export const mockGroups: Group[] = [
+  {
+    id: 'group-1',
+    name: 'Governance Leaders Circle',
+    description: 'A group for members passionate about good governance, public policy, and ethical leadership.',
+    type: 'STUDY',
+    visibility: 'OPEN',
+    chapterId: 'chap-001',
+    createdBy: '1',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+    memberCount: 34,
+    tags: ['Governance', 'Policy', 'Leadership'],
+  },
+  {
+    id: 'group-2',
+    name: 'Tech Innovators Hub',
+    description: 'Discuss the latest in technology, AI, and digital transformation with fellow Eagles.',
+    type: 'INTEREST',
+    visibility: 'OPEN',
+    createdBy: '3',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(),
+    memberCount: 56,
+    tags: ['Technology', 'AI', 'Innovation'],
+  },
+  {
+    id: 'group-3',
+    name: 'Marketplace Mentorship Cohort',
+    description: 'A closed mentorship group for Rising members in the Marketplace pillar.',
+    type: 'MENTORSHIP',
+    visibility: 'CLOSED',
+    createdBy: '5',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
+    memberCount: 18,
+    tags: ['Marketplace', 'Mentorship', 'Business'],
+  },
+  {
+    id: 'group-4',
+    name: 'Kenyatta University Eagles',
+    description: 'The official group for KU chapter members. Share events, announcements, and connect.',
+    type: 'CHAPTER',
+    visibility: 'CLOSED',
+    chapterId: 'chap-001',
+    createdBy: '1',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 60).toISOString(),
+    memberCount: 45,
+    tags: ['KU', 'Chapter', 'Community'],
+  },
+  {
+    id: 'group-5',
+    name: 'Faith & Work Integration',
+    description: 'Exploring how faith intersects with professional life across all three pillars.',
+    type: 'STUDY',
+    visibility: 'OPEN',
+    createdBy: '5',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
+    memberCount: 22,
+    tags: ['Faith', 'Work', 'Integration'],
+  },
+];
+
+// ---- Group Members ----
+export let mockGroupMembers: GroupMember[] = [
+  // Governance Leaders Circle
+  { userId: '1', groupId: 'group-1', role: 'ADMIN', joinedAt: '2026-01-10T08:00:00Z' },
+  { userId: '2', groupId: 'group-1', role: 'MEMBER', joinedAt: '2026-01-12T09:00:00Z' },
+  { userId: '4', groupId: 'group-1', role: 'MEMBER', joinedAt: '2026-01-15T10:00:00Z' },
+  { userId: '5', groupId: 'group-1', role: 'MODERATOR', joinedAt: '2026-01-18T11:00:00Z' },
+  { userId: '6', groupId: 'group-1', role: 'MEMBER', joinedAt: '2026-01-20T12:00:00Z' },
+  // Tech Innovators Hub
+  { userId: '3', groupId: 'group-2', role: 'ADMIN', joinedAt: '2026-01-15T08:00:00Z' },
+  { userId: '1', groupId: 'group-2', role: 'MEMBER', joinedAt: '2026-01-16T09:00:00Z' },
+  { userId: '6', groupId: 'group-2', role: 'MEMBER', joinedAt: '2026-01-17T10:00:00Z' },
+  { userId: '8', groupId: 'group-2', role: 'MEMBER', joinedAt: '2026-01-18T11:00:00Z' },
+  // Marketplace Mentorship Cohort
+  { userId: '5', groupId: 'group-3', role: 'ADMIN', joinedAt: '2026-01-20T08:00:00Z' },
+  { userId: '2', groupId: 'group-3', role: 'MEMBER', joinedAt: '2026-01-21T09:00:00Z' },
+  { userId: '4', groupId: 'group-3', role: 'MEMBER', joinedAt: '2026-01-22T10:00:00Z' },
+  // Kenyatta University Eagles
+  { userId: '1', groupId: 'group-4', role: 'ADMIN', joinedAt: '2025-11-01T08:00:00Z' },
+  { userId: '4', groupId: 'group-4', role: 'MEMBER', joinedAt: '2025-11-02T09:00:00Z' },
+  { userId: '5', groupId: 'group-4', role: 'MODERATOR', joinedAt: '2025-11-03T10:00:00Z' },
+  // Faith & Work Integration
+  { userId: '5', groupId: 'group-5', role: 'ADMIN', joinedAt: '2026-02-01T08:00:00Z' },
+  { userId: '1', groupId: 'group-5', role: 'MEMBER', joinedAt: '2026-02-02T09:00:00Z' },
+  { userId: '3', groupId: 'group-5', role: 'MEMBER', joinedAt: '2026-02-03T10:00:00Z' },
+  { userId: '7', groupId: 'group-5', role: 'MEMBER', joinedAt: '2026-02-04T11:00:00Z' },
+];
+
+// ---- Group Posts ----
+export const mockGroupPosts: GroupPost[] = [
+  {
+    id: 'gpost-1',
+    groupId: 'group-1',
+    author: { id: '1', firstName: 'Grace', lastName: 'Mwangi', avatar: '' },
+    content: 'Welcome everyone to the Governance Leaders Circle! I\'m excited to dive into our first topic: "Ethical Leadership in the Public Sector." Please introduce yourselves and share what you hope to learn.',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+    likes: 15,
+    comments: 8,
+    likedByUser: false,
+    isPinned: true,
+  },
+  {
+    id: 'gpost-2',
+    groupId: 'group-1',
+    author: { id: '5', firstName: 'Mary', lastName: 'Wanjiru', avatar: '' },
+    content: 'I just read an article on participatory governance in Kenya. Would love to discuss this in our next meeting!',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
+    likes: 6,
+    comments: 3,
+    likedByUser: false,
+  },
+  {
+    id: 'gpost-3',
+    groupId: 'group-2',
+    author: { id: '3', firstName: 'Faith', lastName: 'Akinyi', avatar: '' },
+    content: 'Tech Innovators – our first project is building an AI ethics framework for East Africa. Who\'s interested in leading this effort?',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 36).toISOString(),
+    likes: 22,
+    comments: 12,
+    likedByUser: true,
+  },
+  {
+    id: 'gpost-4',
+    groupId: 'group-4',
+    author: { id: '1', firstName: 'Grace', lastName: 'Mwangi', avatar: '' },
+    content: 'KU Eagles! Our chapter meeting is tomorrow at 5 PM in the Education Building. Please bring your course materials and questions.',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
+    likes: 18,
+    comments: 5,
+    likedByUser: false,
+  },
+];
+
+// ---- Conversations & Messages ----
+export const mockConversations: Conversation[] = [
+  {
+    id: 'conv-1',
+    participants: ['1', '2'],
+    updatedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    isGroup: false,
+  },
+  {
+    id: 'conv-2',
+    participants: ['1', '3', '5'],
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    isGroup: true,
+    groupName: 'Governance Study Group',
+  },
+  {
+    id: 'conv-3',
+    participants: ['1', '4'],
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    isGroup: false,
+  },
+];
+
+export const mockMessages: Message[] = [
+  {
+    id: 'msg-1',
+    conversationId: 'conv-1',
+    senderId: '2',
+    content: 'Hey Grace, are you joining the Governance course?',
+    sentAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    readAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+    type: 'text',
+  },
+  {
+    id: 'msg-2',
+    conversationId: 'conv-1',
+    senderId: '1',
+    content: 'Yes, I already enrolled! Excited to dive in.',
+    sentAt: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
+    readAt: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
+    type: 'text',
+  },
+  {
+    id: 'msg-3',
+    conversationId: 'conv-1',
+    senderId: '2',
+    content: 'Awesome! Let me know if you want to study together.',
+    sentAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    readAt: undefined,
+    type: 'text',
+  },
+  {
+    id: 'msg-4',
+    conversationId: 'conv-2',
+    senderId: '3',
+    content: 'Everyone, let\'s meet on Thursday at 5 PM to discuss the reading.',
+    sentAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    readAt: undefined,
+    type: 'text',
+  },
+  {
+    id: 'msg-5',
+    conversationId: 'conv-2',
+    senderId: '5',
+    content: 'I\'ll be there! Looking forward to it.',
+    sentAt: new Date(Date.now() - 1000 * 60 * 60 * 1).toISOString(),
+    readAt: undefined,
+    type: 'text',
+  },
+];
+
+// ---- Mentorship ----
+export const mockMentors: MentorProfile[] = [
+  {
+    userId: '1',
+    firstName: 'Grace',
+    lastName: 'Mwangi',
+    avatar: '',
+    focusCategories: ['Leadership', 'Governance', 'Public Policy'],
+    expertise: ['Policy Analysis', 'Public Administration', 'Ethical Leadership'],
+    availability: 'Weekends and Tuesday evenings',
+    bio: 'I\'m passionate about mentoring the next generation of leaders in governance. I have 8 years of experience in public policy and am currently leading a digital transformation initiative.',
+    isActive: true,
+    capacity: 5,
+    currentMentees: 2,
+    rating: 4.8,
+    reviewCount: 12,
+  },
+  {
+    userId: '2',
+    firstName: 'Daniel',
+    lastName: 'Omondi',
+    avatar: '',
+    focusCategories: ['Entrepreneurship', 'Technology', 'Marketplace'],
+    expertise: ['Business Development', 'AI Strategy', 'Product Management'],
+    availability: 'Weekdays after 6 PM',
+    bio: 'I\'m an AI entrepreneur with a passion for building products that solve African challenges. I mentor on business strategy, product development, and tech ethics.',
+    isActive: true,
+    capacity: 3,
+    currentMentees: 1,
+    rating: 4.9,
+    reviewCount: 8,
+  },
+  {
+    userId: '3',
+    firstName: 'Faith',
+    lastName: 'Akinyi',
+    avatar: '',
+    focusCategories: ['Technology', 'Software Engineering', 'Career Growth'],
+    expertise: ['Full Stack Development', 'Mentoring Women in Tech', 'Cloud Architecture'],
+    availability: 'Saturdays 10 AM – 2 PM',
+    bio: 'I\'ve been a software engineer for over 6 years and now lead a team. I love mentoring women in tech and helping people navigate their career paths.',
+    isActive: true,
+    capacity: 4,
+    currentMentees: 3,
+    rating: 4.7,
+    reviewCount: 15,
+  },
+  {
+    userId: '6',
+    firstName: 'Peter',
+    lastName: 'Odhiambo',
+    avatar: '',
+    focusCategories: ['Cloud Computing', 'DevOps', 'Infrastructure'],
+    expertise: ['AWS', 'Kubernetes', 'CI/CD', 'Site Reliability'],
+    availability: 'Monday – Thursday evenings',
+    bio: 'I\'m a cloud architect with experience at a major tech company. I can help you understand cloud infrastructure, DevOps practices, and how to build scalable systems.',
+    isActive: true,
+    capacity: 3,
+    currentMentees: 0,
+    rating: 4.6,
+    reviewCount: 6,
+  },
+];
+
+export const mockMentorshipRequests: MentorshipRequest[] = [
+  {
+    id: 'req-1',
+    mentorId: '1',
+    menteeId: '4',
+    status: 'ACCEPTED',
+    focusArea: 'Public Policy',
+    message: 'I\'m interested in learning more about how to get involved in public policy as a young leader.',
+    requestedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+    respondedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
+  },
+  {
+    id: 'req-2',
+    mentorId: '2',
+    menteeId: '5',
+    status: 'PENDING',
+    focusArea: 'Entrepreneurship',
+    message: 'I\'m launching a startup and would love your guidance on product-market fit.',
+    requestedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+  },
+  {
+    id: 'req-3',
+    mentorId: '3',
+    menteeId: '8',
+    status: 'PENDING',
+    focusArea: 'Software Engineering',
+    message: 'I\'m looking to transition into tech. Can you help me figure out where to start?',
+    requestedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+  },
+];
+
+export const mockMentorshipSessions: MentorshipSession[] = [
+  {
+    id: 'sess-1',
+    requestId: 'req-1',
+    mentorId: '1',
+    menteeId: '4',
+    scheduledAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3).toISOString(),
+    durationMinutes: 60,
+    status: 'SCHEDULED',
+    meetingLink: 'https://meet.google.com/abc-defg-hij',
+  },
+  {
+    id: 'sess-2',
+    requestId: 'req-1',
+    mentorId: '1',
+    menteeId: '4',
+    scheduledAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+    durationMinutes: 45,
+    status: 'COMPLETED',
+    notes: 'Discussed policy frameworks and career paths.',
+    feedback: 'Very helpful! Great insights.',
+  },
+];
+
+// ---- Meetings ----
+export const mockMeetings: Meeting[] = [
+  {
+    id: 'mtg-1',
+    title: 'Chapter Leaders Orientation',
+    description: 'All chapter leaders must attend this orientation to learn about platform updates and leadership best practices.',
+    scheduledFor: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2).toISOString(),
+    durationMinutes: 90,
+    meetingLink: 'https://meet.google.com/xyz-abc-def',
+    createdBy: '1',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+    audience: 'CHAPTER',
+    isRecurring: false,
+    status: 'UPCOMING',
+  },
+  {
+    id: 'mtg-2',
+    title: 'Governance Pillar Study Group',
+    description: 'Weekly discussion on the current reading: "Ethical Leadership in Public Service".',
+    scheduledFor: new Date(Date.now() + 1000 * 60 * 60 * 12).toISOString(),
+    durationMinutes: 60,
+    meetingLink: 'https://meet.google.com/jkl-mno-pqr',
+    createdBy: '3',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
+    audience: 'COHORT',
+    isRecurring: true,
+    recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH',
+    status: 'UPCOMING',
+  },
+  {
+    id: 'mtg-3',
+    title: 'Mentorship Session – Grace & James',
+    description: 'One-on-one mentorship session to discuss policy career pathways.',
+    scheduledFor: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
+    durationMinutes: 45,
+    meetingLink: 'https://meet.google.com/stu-vwx-yz',
+    createdBy: '1',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+    audience: 'MENTORSHIP',
+    isRecurring: false,
+    status: 'ENDED',
+    recordingUrl: 'https://drive.google.com/file/d/abc123',
+  },
+];
+
+// ---- E‑Learning ----
+export const mockCourses: Course[] = [
+  {
+    id: 'course-1',
+    title: 'Foundations of Governance',
+    slug: 'foundations-of-governance',
+    description: 'An introduction to good governance, ethics, and public policy for emerging leaders.',
+    pillar: 'GOVERNANCE',
+    instructorId: '1',
+    instructorName: 'Grace Mwangi',
+    enrolledCount: 156,
+    rating: 4.7,
+    reviewCount: 89,
+    durationHours: 12,
+    lessonsCount: 24,
+    level: 'BEGINNER',
+    status: 'PUBLISHED',
+  },
+  {
+    id: 'course-2',
+    title: 'Marketplace Ethics & Entrepreneurship',
+    slug: 'marketplace-ethics-entrepreneurship',
+    description: 'Learn how to build ethical businesses and transform the marketplace.',
+    pillar: 'MARKETPLACE',
+    instructorId: '2',
+    instructorName: 'Daniel Ochieng',
+    enrolledCount: 98,
+    rating: 4.9,
+    reviewCount: 45,
+    durationHours: 15,
+    lessonsCount: 30,
+    level: 'INTERMEDIATE',
+    status: 'PUBLISHED',
+  },
+  {
+    id: 'course-3',
+    title: 'Technology & Society',
+    slug: 'technology-society',
+    description: 'Explore the intersection of technology, ethics, and social impact.',
+    pillar: 'TECHNOLOGY',
+    instructorId: '3',
+    instructorName: 'Faith Akinyi',
+    enrolledCount: 210,
+    rating: 4.8,
+    reviewCount: 112,
+    durationHours: 10,
+    lessonsCount: 20,
+    level: 'BEGINNER',
+    status: 'PUBLISHED',
+  },
+];
+
+export const mockCohorts: Cohort[] = [
+  {
+    id: 'cohort-1',
+    courseId: 'course-1',
+    name: 'Governance Cohort Q1 2026',
+    startsOn: '2026-01-15',
+    endsOn: '2026-03-15',
+    capacity: 50,
+    enrolled: 48,
+    status: 'IN_PROGRESS',
+    facilitators: ['Grace Mwangi', 'James Kariuki'],
+  },
+  {
+    id: 'cohort-2',
+    courseId: 'course-2',
+    name: 'Marketplace Cohort Q1 2026',
+    startsOn: '2026-02-01',
+    endsOn: '2026-04-01',
+    capacity: 40,
+    enrolled: 38,
+    status: 'IN_PROGRESS',
+    facilitators: ['Daniel Ochieng'],
+  },
+  {
+    id: 'cohort-3',
+    courseId: 'course-3',
+    name: 'Tech Cohort Q1 2026',
+    startsOn: '2026-01-20',
+    endsOn: '2026-03-20',
+    capacity: 60,
+    enrolled: 60,
+    status: 'FULL',
+    facilitators: ['Faith Akinyi', 'Peter Odhiambo'],
+  },
+];
+
+export const mockEnrollments: Enrollment[] = [
+  {
+    courseId: 'course-1',
+    userId: '1',
+    progress: 45,
+    status: 'IN_PROGRESS',
+    enrolledAt: '2026-01-20T10:00:00Z',
+    lastAccessedAt: '2026-02-28T14:30:00Z',
+  },
+  {
+    courseId: 'course-2',
+    userId: '1',
+    progress: 0,
+    status: 'NOT_STARTED',
+    enrolledAt: '2026-02-01T10:00:00Z',
+  },
+  {
+    courseId: 'course-3',
+    userId: '1',
+    progress: 100,
+    status: 'COMPLETED',
+    enrolledAt: '2025-12-15T10:00:00Z',
+    completedAt: '2026-01-10T10:00:00Z',
+  },
+];
+
+export const mockCohortMembers: CohortMember[] = [
+  // Governance Cohort Q1 2026 (cohort-1)
+  { userId: '1', cohortId: 'cohort-1', progress: 65, status: 'ACTIVE', enrolledAt: '2026-01-15T08:00:00Z' },
+  { userId: '2', cohortId: 'cohort-1', progress: 80, status: 'ACTIVE', enrolledAt: '2026-01-15T08:30:00Z' },
+  { userId: '4', cohortId: 'cohort-1', progress: 45, status: 'ACTIVE', enrolledAt: '2026-01-16T09:00:00Z' },
+  { userId: '5', cohortId: 'cohort-1', progress: 100, status: 'COMPLETED', enrolledAt: '2026-01-15T10:00:00Z', completedAt: '2026-03-10T10:00:00Z' },
+  { userId: '6', cohortId: 'cohort-1', progress: 20, status: 'ACTIVE', enrolledAt: '2026-01-17T11:00:00Z' },
+  // Marketplace Cohort Q1 2026 (cohort-2)
+  { userId: '3', cohortId: 'cohort-2', progress: 70, status: 'ACTIVE', enrolledAt: '2026-02-01T08:00:00Z' },
+  { userId: '2', cohortId: 'cohort-2', progress: 90, status: 'ACTIVE', enrolledAt: '2026-02-01T08:30:00Z' },
+  { userId: '8', cohortId: 'cohort-2', progress: 35, status: 'ACTIVE', enrolledAt: '2026-02-02T09:00:00Z' },
+  { userId: '5', cohortId: 'cohort-2', progress: 55, status: 'ACTIVE', enrolledAt: '2026-02-03T10:00:00Z' },
+  // Tech Cohort Q1 2026 (cohort-3)
+  { userId: '7', cohortId: 'cohort-3', progress: 95, status: 'ACTIVE', enrolledAt: '2026-01-20T08:00:00Z' },
+  { userId: '3', cohortId: 'cohort-3', progress: 100, status: 'COMPLETED', enrolledAt: '2026-01-20T08:30:00Z', completedAt: '2026-03-18T10:00:00Z' },
+  { userId: '1', cohortId: 'cohort-3', progress: 85, status: 'ACTIVE', enrolledAt: '2026-01-21T09:00:00Z' },
+  { userId: '6', cohortId: 'cohort-3', progress: 60, status: 'ACTIVE', enrolledAt: '2026-01-22T10:00:00Z' },
+];
+
+export const mockLessons: Lesson[] = [
+  // Course 1: Foundations of Governance
+  { id: 'lesson-1-1', courseId: 'course-1', title: 'Introduction to Governance', content: 'This lesson introduces the core concepts of governance, including definitions, key principles, and the role of ethical leadership in public service. We will explore the historical context and modern challenges facing governance in Africa.', type: 'text', order: 1, durationMinutes: 15 },
+  { id: 'lesson-1-2', courseId: 'course-1', title: 'Ethical Leadership Frameworks', content: 'In this lesson, we dive into various ethical leadership frameworks, including servant leadership, transformational leadership, and the biblical foundations of leadership. We will examine case studies from African leaders.', type: 'text', order: 2, durationMinutes: 20 },
+  { id: 'lesson-1-3', courseId: 'course-1', title: 'Public Policy & Governance', content: 'This lesson covers the policy-making process, stakeholder analysis, and the importance of evidence-based policy. We will also discuss the role of civil society and citizen participation.', type: 'video', order: 3, durationMinutes: 25, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+  { id: 'lesson-1-4', courseId: 'course-1', title: 'Governance Quiz', content: 'Test your understanding of the governance principles covered in this module.', type: 'quiz', order: 4, durationMinutes: 10 },
+  { id: 'lesson-1-5', courseId: 'course-1', title: 'Assignment: Governance Case Study', content: 'Write a 500-word analysis of a governance challenge in your community or country.', type: 'assignment', order: 5, durationMinutes: 60 },
+  // Course 2: Marketplace Ethics & Entrepreneurship
+  { id: 'lesson-2-1', courseId: 'course-2', title: 'Introduction to Marketplace Ethics', content: 'This lesson defines marketplace ethics, explores the difference between legal and ethical compliance, and introduces the concept of business as a force for good.', type: 'text', order: 1, durationMinutes: 15 },
+  { id: 'lesson-2-2', courseId: 'course-2', title: 'Entrepreneurial Mindset', content: 'Learn about the key traits of successful entrepreneurs, opportunity recognition, and the role of innovation in creating value. We will also discuss social entrepreneurship.', type: 'text', order: 2, durationMinutes: 20 },
+  { id: 'lesson-2-3', courseId: 'course-2', title: 'Financial Stewardship in Business', content: 'This lesson covers financial management principles, budgeting, cash flow, and the importance of ethical financial practices. We will also discuss the concept of "stewardship" as a business owner.', type: 'video', order: 3, durationMinutes: 25, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+  { id: 'lesson-2-4', courseId: 'course-2', title: 'Marketplace Ethics Quiz', content: 'Test your understanding of ethical business practices.', type: 'quiz', order: 4, durationMinutes: 10 },
+  { id: 'lesson-2-5', courseId: 'course-2', title: 'Assignment: Business Plan', content: 'Develop a one-page business plan for a socially responsible venture.', type: 'assignment', order: 5, durationMinutes: 60 },
+  // Course 3: Technology & Society
+  { id: 'lesson-3-1', courseId: 'course-3', title: 'Technology and Social Impact', content: 'This lesson explores the dual nature of technology as a tool for empowerment and a source of ethical challenges. We will examine case studies in AI, data privacy, and digital inclusion.', type: 'text', order: 1, durationMinutes: 15 },
+  { id: 'lesson-3-2', courseId: 'course-3', title: 'AI Ethics and Governance', content: 'Dive into the ethical considerations around artificial intelligence, including bias, transparency, and accountability. We will also discuss regulatory frameworks and the role of AI in Africa.', type: 'text', order: 2, durationMinutes: 20 },
+  { id: 'lesson-3-3', courseId: 'course-3', title: 'Data Sovereignty and Privacy', content: 'This lesson covers the importance of data protection, the Kenya Data Protection Act, and the concept of data sovereignty. We will also explore practical steps for protecting personal data.', type: 'video', order: 3, durationMinutes: 25, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+  { id: 'lesson-3-4', courseId: 'course-3', title: 'Technology & Society Quiz', content: 'Test your understanding of technology ethics and social impact.', type: 'quiz', order: 4, durationMinutes: 10 },
+  { id: 'lesson-3-5', courseId: 'course-3', title: 'Assignment: Tech Ethics Case Study', content: 'Analyze a real-world tech ethics issue and propose a solution.', type: 'assignment', order: 5, durationMinutes: 60 },
+];
+
+export const mockLessonProgress: LessonProgress[] = [
+  { userId: '1', lessonId: 'lesson-1-1', completed: true, completedAt: '2026-02-20T10:00:00Z' },
+  { userId: '1', lessonId: 'lesson-1-2', completed: true, completedAt: '2026-02-22T14:30:00Z' },
+  { userId: '1', lessonId: 'lesson-1-3', completed: false },
+  { userId: '1', lessonId: 'lesson-2-1', completed: false },
+];
+
+// ============================================================
+// NEW: Quiz, Assignment, Certificate Mock Data
+// ============================================================
+
+// ---- Quizzes ----
+export const mockQuizzes: Quiz[] = [
+  {
+    id: 'quiz-1',
+    lessonId: 'lesson-1-4',
+    title: 'Governance Principles Quiz',
+    description: 'Test your understanding of governance, ethics, and public policy.',
+    questions: [
+      {
+        id: 'q1',
+        question: 'What is the primary purpose of governance?',
+        options: [
+          'To control people',
+          'To ensure effective decision-making and accountability',
+          'To generate profit',
+          'To enforce laws'
+        ],
+        correctAnswer: 1,
+        explanation: 'Governance is about decision-making, accountability, and ensuring that organizations or societies function effectively.'
+      },
+      {
+        id: 'q2',
+        question: 'Which of the following is a key principle of ethical leadership?',
+        options: [
+          'Maximizing personal gain',
+          'Transparency and integrity',
+          'Maintaining the status quo',
+          'Avoiding difficult decisions'
+        ],
+        correctAnswer: 1,
+        explanation: 'Ethical leadership requires transparency, integrity, and a commitment to doing what is right, even when difficult.'
+      },
+      {
+        id: 'q3',
+        question: 'What is the role of civil society in governance?',
+        options: [
+          'To replace government functions',
+          'To advocate for citizen interests and hold leaders accountable',
+          'To enforce laws',
+          'To provide funding for political campaigns'
+        ],
+        correctAnswer: 1,
+        explanation: 'Civil society plays a watchdog role, ensuring that leaders are accountable and that citizens have a voice in decision-making.'
+      },
+      {
+        id: 'q4',
+        question: 'Which of the following is NOT a pillar of the Eagle Generation?',
+        options: [
+          'Marketplace',
+          'Governance',
+          'Technology',
+          'Education'
+        ],
+        correctAnswer: 3,
+        explanation: 'The three pillars are Marketplace, Governance, and Technology. Education is not a pillar but is supported by the platform.'
+      },
+      {
+        id: 'q5',
+        question: 'What does the term "policy-making" involve?',
+        options: [
+          'Ignoring public input',
+          'Developing strategies to address public issues',
+          'Enacting laws without debate',
+          'Focusing only on economic growth'
+        ],
+        correctAnswer: 1,
+        explanation: 'Policy-making is the process of developing strategies and solutions to address public issues, often involving stakeholder input and analysis.'
+      }
+    ],
+    timeLimitMinutes: 10,
+    passingScore: 70
+  },
+  {
+    id: 'quiz-2',
+    lessonId: 'lesson-2-4',
+    title: 'Marketplace Ethics Quiz',
+    description: 'Test your knowledge of ethical business practices and entrepreneurship.',
+    questions: [
+      {
+        id: 'q1',
+        question: 'What is the difference between legal compliance and ethical behavior?',
+        options: [
+          'There is no difference',
+          'Ethical behavior goes beyond what is legally required',
+          'Legal compliance is always ethical',
+          'Ethical behavior is optional'
+        ],
+        correctAnswer: 1,
+        explanation: 'Ethical behavior extends beyond legal requirements, focusing on what is morally right even if not mandated by law.'
+      },
+      {
+        id: 'q2',
+        question: 'Which of the following is a trait of an entrepreneurial mindset?',
+        options: [
+          'Avoiding risk',
+          'Resistance to change',
+          'Opportunity recognition',
+          'Comfort with the status quo'
+        ],
+        correctAnswer: 2,
+        explanation: 'Entrepreneurs are skilled at recognizing opportunities and taking calculated risks to create value.'
+      },
+      {
+        id: 'q3',
+        question: 'What is "stewardship" in business?',
+        options: [
+          'Maximizing shareholder profits',
+          'Responsibly managing resources for the benefit of all stakeholders',
+          'Avoiding taxes',
+          'Focusing only on short-term gains'
+        ],
+        correctAnswer: 1,
+        explanation: 'Stewardship involves managing resources responsibly, considering the impact on employees, communities, and the environment.'
+      },
+      {
+        id: 'q4',
+        question: 'What is the primary purpose of a business from a Kingdom perspective?',
+        options: [
+          'To generate maximum profit',
+          'To serve the community and glorify God',
+          'To dominate the market',
+          'To compete aggressively'
+        ],
+        correctAnswer: 1,
+        explanation: 'From a Kingdom perspective, business is seen as a vehicle for service, community impact, and honoring God.'
+      }
+    ],
+    timeLimitMinutes: 8,
+    passingScore: 75
+  },
+  {
+    id: 'quiz-3',
+    lessonId: 'lesson-3-4',
+    title: 'Technology & Society Quiz',
+    description: 'Assess your understanding of technology ethics, AI, and data sovereignty.',
+    questions: [
+      {
+        id: 'q1',
+        question: 'What is AI ethics primarily concerned with?',
+        options: [
+          'Improving AI speed',
+          'Ensuring AI systems are fair, transparent, and accountable',
+          'Maximizing AI profits',
+          'Reducing AI development costs'
+        ],
+        correctAnswer: 1,
+        explanation: 'AI ethics focuses on fairness, transparency, accountability, and preventing harm from AI systems.'
+      },
+      {
+        id: 'q2',
+        question: 'What is data sovereignty?',
+        options: [
+          'The right of countries to control data within their borders',
+          'The right of companies to collect data freely',
+          'The right of individuals to delete their data',
+          'The right of governments to access all data'
+        ],
+        correctAnswer: 0,
+        explanation: 'Data sovereignty is the concept that data is subject to the laws and governance of the country where it is collected or stored.'
+      },
+      {
+        id: 'q3',
+        question: 'What is the "digital divide"?',
+        options: [
+          'The gap between different operating systems',
+          'The gap between those who have access to technology and those who do not',
+          'The gap between tech companies and governments',
+          'The gap between online and offline shopping'
+        ],
+        correctAnswer: 1,
+        explanation: 'The digital divide refers to the disparity in access to technology and digital skills, often along socioeconomic lines.'
+      },
+      {
+        id: 'q4',
+        question: 'What is the Kenya Data Protection Act primarily designed to protect?',
+        options: [
+          'Government data',
+          'Corporate trade secrets',
+          'Personal data of individuals',
+          'International data transfers'
+        ],
+        correctAnswer: 2,
+        explanation: 'The Kenya Data Protection Act aims to protect the personal data of individuals and ensure responsible data processing.'
+      }
+    ],
+    timeLimitMinutes: 8,
+    passingScore: 70
+  }
+];
+
+// ---- Assignments ----
+export const mockAssignments: Assignment[] = [
+  {
+    id: 'assignment-1',
+    lessonId: 'lesson-1-5',
+    title: 'Governance Case Study',
+    description: 'Analyze a governance challenge in your community or country.',
+    instructions: 'Write a 500-word analysis of a governance challenge in your community or country. Identify the root causes, stakeholders involved, and propose actionable solutions. Use at least 3 references from course materials.',
+    dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
+    maxScore: 100,
+    isSubmitted: false,
+  },
+  {
+    id: 'assignment-2',
+    lessonId: 'lesson-2-5',
+    title: 'Business Plan',
+    description: 'Develop a one-page business plan for a socially responsible venture.',
+    instructions: 'Create a one-page business plan for a venture that addresses a social or environmental challenge. Include: Problem, Solution, Target Market, Revenue Model, and Social Impact. Format: PDF or Word document.',
+    dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 10).toISOString(),
+    maxScore: 100,
+    isSubmitted: false,
+  },
+  {
+    id: 'assignment-3',
+    lessonId: 'lesson-3-5',
+    title: 'Tech Ethics Case Study',
+    description: 'Analyze a real-world tech ethics issue and propose a solution.',
+    instructions: 'Choose a real-world tech ethics issue (e.g., AI bias, data privacy breach, algorithm transparency). Analyze the issue, its impacts, and propose a solution or framework to address it. Use at least 2 course concepts.',
+    dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5).toISOString(),
+    maxScore: 100,
+    isSubmitted: false,
+  },
+  {
+    id: 'assignment-4',
+    lessonId: 'lesson-1-5',
+    title: 'Governance Case Study (Submitted)',
+    description: 'Analyze a governance challenge in your community or country.',
+    instructions: 'Write a 500-word analysis...',
+    dueDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+    maxScore: 100,
+    isSubmitted: true,
+    submittedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+    submissionText: 'The governance challenge in my community is the lack of transparency in local government procurement. This leads to corruption and inefficient use of public funds. Stakeholders include the county government, local businesses, and citizens. To address this, I propose implementing a public procurement portal that publishes all tenders and awards, along with citizen oversight committees.',
+    grade: 85,
+    feedback: 'Great analysis! You identified the key stakeholders and proposed a practical solution. Consider elaborating on how the oversight committee would be structured to avoid capture by vested interests.',
+  }
+];
+
+// ---- Certificates ----
+export const mockCertificates: Certificate[] = [
+  {
+    id: 'cert-1',
+    certificateNumber: 'TEG-CERT-2026-001',
+    userId: '1',
+    courseId: 'course-3',
+    issuedAt: '2026-01-10T10:00:00Z',
+    status: 'issued',
+  },
+  {
+    id: 'cert-2',
+    certificateNumber: 'TEG-CERT-2026-002',
+    userId: '1',
+    courseId: 'course-1',
+    issuedAt: '2025-12-15T10:00:00Z',
+    status: 'issued',
+  },
+  {
+    id: 'cert-3',
+    certificateNumber: 'TEG-CERT-2026-003',
+    userId: '2',
+    courseId: 'course-2',
+    issuedAt: '2026-02-20T10:00:00Z',
+    status: 'issued',
+  },
+];
+
+// ============================================================
+// 3. EXPORT ALL (for convenience)
+// ============================================================
+
+export const mockData = {
+  members: mockMembers,
+  chapters: mockChapters,
+  applications: mockApplications,
+  announcements: mockAnnouncements,
+  notifications: mockNotifications,
+  auditLogs: mockAuditLogs,
+  chapterActivities,
+  events: mockEvents,
+  products: mockProducts,
+  faq: mockFAQ,
+  supportPacks: mockSupportPacks,
+  blockedUsers: mockBlockedUsers,
+  // R2
+  posts: mockPosts,
+  comments: mockComments,
+  groups: mockGroups,
+  groupMembers: mockGroupMembers,
+  groupPosts: mockGroupPosts,
+  conversations: mockConversations,
+  messages: mockMessages,
+  mentors: mockMentors,
+  mentorshipRequests: mockMentorshipRequests,
+  mentorshipSessions: mockMentorshipSessions,
+  meetings: mockMeetings,
+  courses: mockCourses,
+  cohorts: mockCohorts,
+  enrollments: mockEnrollments,
+  cohortMembers: mockCohortMembers,
+  lessons: mockLessons,
+  lessonProgress: mockLessonProgress,
+  // NEW
+  quizzes: mockQuizzes,
+  assignments: mockAssignments,
+  certificates: mockCertificates,
+};

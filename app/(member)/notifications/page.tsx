@@ -1,80 +1,101 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { MemberLayout } from "@/components/layout/memberLayout";
-import { Card } from "@/components/card";
 import { Button } from "@/components/button";
-import { mockNotifications } from "@/components/mock/data";
+import { NotificationItem } from "@/components/notification/notificationitem";
+import { mockNotifications, type Notification } from "@/components/mock/data";
 
-interface Notification {
-  id: string;
-  userId: string;
-  title: string;
-  message: string;
-  read: boolean;
-  createdAt: string;
-  link?: string;
-}
+type FilterType = "all" | "unread" | "read";
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [filter, setFilter] = useState<FilterType>("all");
+  const [isLoading, setIsLoading] = useState(true);
   const [isMarkingAll, setIsMarkingAll] = useState(false);
 
-  // Filter notifications for the current user (Grace – userId: '1')
-  const userNotifications = useMemo(() => {
-    return notifications.filter((n) => n.userId === "1");
-  }, [notifications]);
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setNotifications(mockNotifications);
+      setIsLoading(false);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const unreadCount = userNotifications.filter((n) => !n.read).length;
+  // Filter notifications
+  const filteredNotifications = useMemo(() => {
+    switch (filter) {
+      case "unread":
+        return notifications.filter((n) => !n.read);
+      case "read":
+        return notifications.filter((n) => n.read);
+      default:
+        return notifications;
+    }
+  }, [notifications, filter]);
 
   // Group notifications by date
   const groupedNotifications = useMemo(() => {
     const groups: Record<string, Notification[]> = {};
     
-    userNotifications.forEach((notif) => {
-      const date = new Date(notif.createdAt);
+    filteredNotifications.forEach((notification) => {
+      const date = new Date(notification.createdAt);
       const today = new Date();
-      let key = "";
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      let groupKey: string;
       
       if (date.toDateString() === today.toDateString()) {
-        key = "Today";
+        groupKey = "Today";
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        groupKey = "Yesterday";
       } else {
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        if (date.toDateString() === yesterday.toDateString()) {
-          key = "Yesterday";
+        // Check if within the last 7 days
+        const daysAgo = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysAgo <= 7) {
+          groupKey = "This Week";
+        } else if (daysAgo <= 30) {
+          groupKey = "This Month";
         } else {
-          key = date.toLocaleDateString("en-KE", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          });
+          groupKey = "Older";
         }
       }
       
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(notif);
-    });
-    
-    // Sort each group by newest first
-    Object.keys(groups).forEach((key) => {
-      groups[key].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(notification);
     });
     
     return groups;
-  }, [userNotifications]);
+  }, [filteredNotifications]);
+
+  // Counts for filter tabs
+  const counts = useMemo(() => {
+    const total = notifications.length;
+    const unread = notifications.filter((n) => !n.read).length;
+    const read = notifications.filter((n) => n.read).length;
+    return { total, unread, read };
+  }, [notifications]);
 
   // Mark a single notification as read
-  const markAsRead = (id: string) => {
+  const handleMarkAsRead = (id: string) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
   };
 
-  // Mark all notifications as read
-  const markAllAsRead = () => {
+  // Mark a single notification as unread
+  const handleMarkAsUnread = (id: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: false } : n))
+    );
+  };
+
+  // Mark all as read
+  const handleMarkAllAsRead = () => {
     setIsMarkingAll(true);
     setTimeout(() => {
       setNotifications((prev) =>
@@ -84,118 +105,108 @@ export default function NotificationsPage() {
     }, 400);
   };
 
-  // Format timestamp
-  const formatTime = (isoString: string) => {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString("en-KE", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  // Filter tabs
+  const tabs: { label: string; value: FilterType }[] = [
+    { label: `All (${counts.total})`, value: "all" },
+    { label: `Unread (${counts.unread})`, value: "unread" },
+    { label: `Read (${counts.read})`, value: "read" },
+  ];
 
   return (
     <MemberLayout>
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="container-portal py-6 max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight text-ink-900">
+            <h1 className="font-display text-3xl font-bold text-ink-900">
               Notifications
             </h1>
-            <p className="mt-1 text-sm text-ink-500">
-              {unreadCount === 0
-                ? "You're all caught up! 🎉"
-                : `You have ${unreadCount} unread notification${unreadCount > 1 ? "s" : ""}`}
+            <p className="text-ink-500 mt-1">
+              Stay updated with the latest activity
             </p>
           </div>
-          {unreadCount > 0 && (
+          {notifications.length > 0 && counts.unread > 0 && (
             <Button
               variant="secondary"
-              onClick={markAllAsRead}
+              size="sm"
+              onClick={handleMarkAllAsRead}
               disabled={isMarkingAll}
-              className="gap-1.5"
             >
-              {isMarkingAll ? (
-                <>
-                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-ink-400 border-t-transparent" />
-                  Marking...
-                </>
-              ) : (
-                <>✓ Mark all read</>
-              )}
+              {isMarkingAll ? "Marking..." : "Mark all as read"}
             </Button>
           )}
         </div>
 
-        {/* Notifications List */}
-        {userNotifications.length === 0 ? (
-          <Card className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="text-5xl mb-4">🔔</div>
-            <h3 className="font-display text-lg font-semibold text-ink-900">
-              No notifications yet
-            </h3>
-            <p className="mt-1 text-sm text-ink-500">
-              We'll notify you when there's something important.
+        {/* Filter Tabs */}
+        <div className="flex gap-1 border-b border-ink-100 mb-6">
+          {tabs.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setFilter(tab.value)}
+              className={`px-4 py-2 text-sm font-medium transition border-b-2 ${
+                filter === tab.value
+                  ? "border-sky-500 text-sky-600"
+                  : "border-transparent text-ink-500 hover:text-ink-700 hover:border-ink-200"
+              }`}
+              aria-current={filter === tab.value ? "page" : undefined}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="space-y-4" aria-live="polite">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="p-4 border border-ink-100 rounded-lg animate-pulse">
+                <div className="flex items-start gap-3">
+                  <div className="w-2.5 h-2.5 rounded-full bg-ink-200 flex-shrink-0 mt-1" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-ink-200 rounded w-3/4" />
+                    <div className="h-3 bg-ink-100 rounded w-full" />
+                    <div className="h-3 bg-ink-100 rounded w-1/3" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && filteredNotifications.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-5xl mb-4">📭</div>
+            <p className="text-ink-500 text-lg">
+              {filter === "all" && "No notifications yet."}
+              {filter === "unread" && "All caught up! No unread notifications."}
+              {filter === "read" && "No read notifications."}
             </p>
-          </Card>
-        ) : (
+            <p className="text-sm text-ink-400 mt-2">
+              {filter === "all" && "When you receive notifications, they'll appear here."}
+              {filter === "unread" && "New notifications will appear here when you receive them."}
+              {filter === "read" && "As you read notifications, they'll appear here."}
+            </p>
+          </div>
+        )}
+
+        {/* Populated State */}
+        {!isLoading && filteredNotifications.length > 0 && (
           <div className="space-y-6">
-            {Object.entries(groupedNotifications).map(([groupDate, groupItems]) => (
-              <div key={groupDate}>
-                <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-400">
-                  {groupDate}
+            {Object.entries(groupedNotifications).map(([group, items]) => (
+              <div key={group}>
+                <h2 className="text-sm font-semibold text-ink-500 uppercase tracking-wider mb-3">
+                  {group}
                 </h2>
                 <div className="space-y-2">
-                  {groupItems.map((notification) => {
-                    const isUnread = !notification.read;
-                    return (
-                      <Card
-                        key={notification.id}
-                        className={`p-4 transition-all ${
-                          isUnread
-                            ? "border-l-4 border-l-dawn-400 bg-white"
-                            : "opacity-70 hover:opacity-90"
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-start justify-between gap-2">
-                              <div>
-                                <p className="font-medium text-ink-900">
-                                  {notification.title}
-                                  {isUnread && (
-                                    <span className="ml-2 inline-block h-2 w-2 rounded-full bg-dawn-400" />
-                                  )}
-                                </p>
-                              </div>
-                              <span className="shrink-0 text-xs text-ink-400">
-                                {formatTime(notification.createdAt)}
-                              </span>
-                            </div>
-                            <p className="mt-1 text-sm text-ink-600 leading-relaxed">
-                              {notification.message}
-                            </p>
-                            {notification.link && (
-                              <a
-                                href={notification.link}
-                                className="mt-2 inline-block text-sm font-medium text-sky-600 hover:underline"
-                              >
-                                View details →
-                              </a>
-                            )}
-                          </div>
-                          {isUnread && (
-                            <button
-                              onClick={() => markAsRead(notification.id)}
-                              className="shrink-0 rounded-md px-3 py-1.5 text-xs font-medium text-ink-500 hover:bg-ink-50 hover:text-ink-700 transition-colors"
-                            >
-                              Mark read
-                            </button>
-                          )}
-                        </div>
-                      </Card>
-                    );
-                  })}
+                  {items.map((notification) => (
+                    <NotificationItem
+                      key={notification.id}
+                      notification={notification}
+                      onMarkAsRead={handleMarkAsRead}
+                      onMarkAsUnread={handleMarkAsUnread}
+                    />
+                  ))}
                 </div>
               </div>
             ))}
