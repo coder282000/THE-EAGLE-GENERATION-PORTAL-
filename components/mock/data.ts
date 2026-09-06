@@ -412,6 +412,108 @@ export interface Certificate {
 }
 
 // ============================================================
+// PHASE 1 – COMMERCE & KYC DATA MODELS (R3)
+// ============================================================
+
+// ---------- Orders ----------
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;        // minor units (e.g., 1000 = KES 10.00)
+  total: number;        // price * quantity
+  variant?: string;     // e.g., "Large", "Blue"
+}
+
+export interface Order {
+  id: string;
+  userId: string;                     // reference to mockMembers
+  items: OrderItem[];
+  subtotal: number;                  // minor units
+  tax: number;                       // minor units
+  shipping: number;                  // minor units
+  total: number;                     // minor units
+  currency: string;                  // "KES", "USD", etc.
+  status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+  paymentMethod: 'mpesa' | 'card' | 'bank_transfer' | 'wallet';
+  paymentReference?: string;
+  shippingAddress: {
+    line1: string;
+    line2?: string;
+    city: string;
+    county: string;
+    postalCode: string;
+    country: string;
+  };
+  createdAt: string;                 // ISO date
+  updatedAt: string;
+}
+
+// ---------- Subscriptions ----------
+export interface Subscription {
+  id: string;
+  userId: string;
+  plan: 'standard' | 'premium' | 'enterprise';
+  status: 'active' | 'paused' | 'cancelled' | 'expired';
+  startDate: string;
+  renewalDate: string;
+  price: number;                     // minor units per billing cycle
+  currency: string;
+  billingCycle: 'monthly' | 'annually';
+  autoRenew: boolean;
+}
+
+// ---------- Donations ----------
+export interface Donation {
+  id: string;
+  userId: string;
+  supportPackId?: string;           // if a predefined pack was chosen
+  amount: number;                   // minor units
+  currency: string;
+  message?: string;
+  isAnonymous: boolean;
+  status: 'pending' | 'success' | 'failed';
+  receiptUrl?: string;              // mock PDF link
+  createdAt: string;
+}
+
+// ---------- KYC Submissions ----------
+export interface KYCDocument {
+  type: 'national_id' | 'passport' | 'drivers_license' | 'proof_of_address' | 'selfie';
+  url: string;                      // mock CDN URL
+  status: 'pending' | 'verified' | 'rejected';
+  rejectionReason?: string;
+  uploadedAt: string;
+}
+
+export interface KYCSubmission {
+  id: string;
+  userId: string;
+  tier: 'basic' | 'enhanced';       // verification level requested
+  status: 'not_started' | 'pending' | 'approved' | 'rejected';
+  documents: KYCDocument[];
+  submittedAt?: string;
+  reviewedAt?: string;
+  rejectionReason?: string;         // overall rejection reason
+}
+
+// ---------- Payment Transactions (for ledger) ----------
+export interface PaymentTransaction {
+  id: string;
+  userId: string;
+  orderId?: string;                 // link to Order if applicable
+  donationId?: string;              // link to Donation if applicable
+  amount: number;                   // minor units
+  currency: string;
+  type: 'debit' | 'credit';
+  method: 'mpesa' | 'card' | 'bank_transfer' | 'wallet' | 'refund';
+  status: 'initiated' | 'pending' | 'success' | 'failed' | 'reversed';
+  reference: string;                // external reference (M-Pesa transaction ID, etc.)
+  metadata?: Record<string, any>;   // extra info (e.g., STK push request ID)
+  createdAt: string;
+}
+
+// ============================================================
 // 2. MOCK DATA
 // ============================================================
 
@@ -2068,6 +2170,515 @@ export const mockCertificates: Certificate[] = [
 ];
 
 // ============================================================
+// PHASE 1 – MOCK DATA (Commerce & KYC)
+// ============================================================
+
+// ---- Mock Orders ----
+export const mockOrders: Order[] = [
+  {
+    id: 'ord_001',
+    userId: '1', // Grace Muthoni
+    items: [
+      {
+        productId: 'prod-001',
+        productName: 'Eagle Generation T-Shirt',
+        quantity: 2,
+        price: 1500,    // KES 15.00
+        total: 3000,
+        variant: 'Large / Black',
+      },
+      {
+        productId: 'prod-002',
+        productName: 'Kingdom Leaders Handbook',
+        quantity: 1,
+        price: 3500,
+        total: 3500,
+      },
+    ],
+    subtotal: 6500,
+    tax: 780,   // 12% VAT
+    shipping: 350,
+    total: 7630, // 6500 + 780 + 350 = 7630
+    currency: 'KES',
+    status: 'delivered',
+    paymentMethod: 'mpesa',
+    paymentReference: 'MPESA_TXN_98765',
+    shippingAddress: {
+      line1: '123 Ngong Road',
+      city: 'Nairobi',
+      county: 'Nairobi',
+      postalCode: '00100',
+      country: 'Kenya',
+    },
+    createdAt: '2026-08-15T10:30:00Z',
+    updatedAt: '2026-08-20T14:20:00Z',
+  },
+  {
+    id: 'ord_002',
+    userId: '2', // David Ochieng
+    items: [
+      {
+        productId: 'prod-004',
+        productName: 'Digital Leadership Course Bundle',
+        quantity: 1,
+        price: 15000,
+        total: 15000,
+      },
+    ],
+    subtotal: 15000,
+    tax: 0,
+    shipping: 0,
+    total: 15000,
+    currency: 'KES',
+    status: 'paid',
+    paymentMethod: 'card',
+    paymentReference: 'CARD_AUTH_12345',
+    shippingAddress: {
+      line1: '45 Moi Avenue',
+      city: 'Mombasa',
+      county: 'Mombasa',
+      postalCode: '80100',
+      country: 'Kenya',
+    },
+    createdAt: '2026-08-28T09:15:00Z',
+    updatedAt: '2026-08-28T09:16:00Z',
+  },
+  {
+    id: 'ord_003',
+    userId: '3', // Faith Akinyi
+    items: [
+      {
+        productId: 'prod-003',
+        productName: 'Eagle Generation Cap',
+        quantity: 3,
+        price: 1200,
+        total: 3600,
+      },
+      {
+        productId: 'prod-004',
+        productName: 'Digital Leadership Course Bundle',
+        quantity: 1,
+        price: 15000,
+        total: 15000,
+      },
+    ],
+    subtotal: 18600,
+    tax: 2232,
+    shipping: 500,
+    total: 21332,
+    currency: 'KES',
+    status: 'shipped',
+    paymentMethod: 'bank_transfer',
+    paymentReference: 'BANK_REF_56789',
+    shippingAddress: {
+      line1: '78 Kenyatta Avenue',
+      city: 'Kisumu',
+      county: 'Kisumu',
+      postalCode: '40100',
+      country: 'Kenya',
+    },
+    createdAt: '2026-09-01T12:00:00Z',
+    updatedAt: '2026-09-02T08:30:00Z',
+  },
+  {
+    id: 'ord_004',
+    userId: '4', // James Kariuki
+    items: [
+      {
+        productId: 'prod-006',
+        productName: 'Mentorship Guidebook',
+        quantity: 2,
+        price: 2800,
+        total: 5600,
+      },
+    ],
+    subtotal: 5600,
+    tax: 672,
+    shipping: 0,
+    total: 6272,
+    currency: 'KES',
+    status: 'pending',
+    paymentMethod: 'mpesa',
+    paymentReference: undefined,
+    shippingAddress: {
+      line1: '12 Biashara Street',
+      city: 'Nakuru',
+      county: 'Nakuru',
+      postalCode: '20100',
+      country: 'Kenya',
+    },
+    createdAt: '2026-09-03T15:45:00Z',
+    updatedAt: '2026-09-03T15:45:00Z',
+  },
+  {
+    id: 'ord_005',
+    userId: '5', // Mary Wanjiru
+    items: [
+      {
+        productId: 'prod-001',
+        productName: 'Eagle Generation T-Shirt',
+        quantity: 1,
+        price: 1500,
+        total: 1500,
+      },
+      {
+        productId: 'prod-003',
+        productName: 'Eagle Generation Cap',
+        quantity: 1,
+        price: 1200,
+        total: 1200,
+      },
+    ],
+    subtotal: 2700,
+    tax: 324,
+    shipping: 350,
+    total: 3374,
+    currency: 'KES',
+    status: 'cancelled',
+    paymentMethod: 'mpesa',
+    paymentReference: 'MPESA_TXN_11223',
+    shippingAddress: {
+      line1: '56 Riverside Drive',
+      city: 'Nairobi',
+      county: 'Nairobi',
+      postalCode: '00100',
+      country: 'Kenya',
+    },
+    createdAt: '2026-08-10T09:00:00Z',
+    updatedAt: '2026-08-12T11:00:00Z',
+  },
+];
+
+// ---- Mock Subscriptions ----
+export const mockSubscriptions: Subscription[] = [
+  {
+    id: 'sub_001',
+    userId: '1',
+    plan: 'premium',
+    status: 'active',
+    startDate: '2026-01-01T00:00:00Z',
+    renewalDate: '2027-01-01T00:00:00Z',
+    price: 12000,
+    currency: 'KES',
+    billingCycle: 'annually',
+    autoRenew: true,
+  },
+  {
+    id: 'sub_002',
+    userId: '2',
+    plan: 'standard',
+    status: 'cancelled',
+    startDate: '2025-06-01T00:00:00Z',
+    renewalDate: '2026-06-01T00:00:00Z',
+    price: 6000,
+    currency: 'KES',
+    billingCycle: 'annually',
+    autoRenew: false,
+  },
+  {
+    id: 'sub_003',
+    userId: '3',
+    plan: 'enterprise',
+    status: 'active',
+    startDate: '2026-03-15T00:00:00Z',
+    renewalDate: '2027-03-15T00:00:00Z',
+    price: 24000,
+    currency: 'KES',
+    billingCycle: 'annually',
+    autoRenew: true,
+  },
+  {
+    id: 'sub_004',
+    userId: '4',
+    plan: 'standard',
+    status: 'active',
+    startDate: '2026-04-01T00:00:00Z',
+    renewalDate: '2027-04-01T00:00:00Z',
+    price: 6000,
+    currency: 'KES',
+    billingCycle: 'monthly',
+    autoRenew: true,
+  },
+];
+
+// ---- Mock Donations ----
+export const mockDonations: Donation[] = [
+  {
+    id: 'don_001',
+    userId: '1',
+    supportPackId: 'silver', // Silver pack
+    amount: 5000,
+    currency: 'KES',
+    message: 'Proud to support the Eagle Generation!',
+    isAnonymous: false,
+    status: 'success',
+    receiptUrl: '/receipts/don_001.pdf',
+    createdAt: '2026-07-10T08:00:00Z',
+  },
+  {
+    id: 'don_002',
+    userId: '3',
+    supportPackId: 'platinum', // Platinum pack
+    amount: 25000,
+    currency: 'KES',
+    message: '',
+    isAnonymous: true,
+    status: 'success',
+    receiptUrl: '/receipts/don_002.pdf',
+    createdAt: '2026-08-20T16:30:00Z',
+  },
+  {
+    id: 'don_003',
+    userId: '6',
+    supportPackId: undefined,
+    amount: 1000,
+    currency: 'KES',
+    message: 'Keep up the great work!',
+    isAnonymous: false,
+    status: 'pending',
+    receiptUrl: undefined,
+    createdAt: '2026-09-04T11:00:00Z',
+  },
+  {
+    id: 'don_004',
+    userId: '2',
+    supportPackId: 'gold',
+    amount: 10000,
+    currency: 'KES',
+    message: 'Supporting the next generation of leaders.',
+    isAnonymous: false,
+    status: 'success',
+    receiptUrl: '/receipts/don_004.pdf',
+    createdAt: '2026-06-15T14:00:00Z',
+  },
+  {
+    id: 'don_005',
+    userId: '5',
+    supportPackId: 'bronze',
+    amount: 2500,
+    currency: 'KES',
+    message: '',
+    isAnonymous: true,
+    status: 'failed',
+    receiptUrl: undefined,
+    createdAt: '2026-09-01T09:30:00Z',
+  },
+];
+
+// ---- Mock KYC Submissions ----
+export const mockKYCSubmissions: KYCSubmission[] = [
+  {
+    id: 'kyc_001',
+    userId: '2',
+    tier: 'enhanced',
+    status: 'approved',
+    documents: [
+      {
+        type: 'national_id',
+        url: '/mock/id_david_front.png',
+        status: 'verified',
+        uploadedAt: '2026-05-01T10:00:00Z',
+      },
+      {
+        type: 'selfie',
+        url: '/mock/selfie_david.png',
+        status: 'verified',
+        uploadedAt: '2026-05-01T10:15:00Z',
+      },
+      {
+        type: 'proof_of_address',
+        url: '/mock/utility_bill_david.png',
+        status: 'verified',
+        uploadedAt: '2026-05-02T09:00:00Z',
+      },
+    ],
+    submittedAt: '2026-05-01T10:30:00Z',
+    reviewedAt: '2026-05-03T14:00:00Z',
+  },
+  {
+    id: 'kyc_002',
+    userId: '4',
+    tier: 'basic',
+    status: 'rejected',
+    documents: [
+      {
+        type: 'passport',
+        url: '/mock/passport_james.png',
+        status: 'rejected',
+        rejectionReason: 'Image is blurry and does not show full document.',
+        uploadedAt: '2026-08-10T12:00:00Z',
+      },
+    ],
+    submittedAt: '2026-08-10T12:15:00Z',
+    reviewedAt: '2026-08-12T09:00:00Z',
+    rejectionReason: 'Document image quality insufficient. Please re-upload a clear photo.',
+  },
+  {
+    id: 'kyc_003',
+    userId: '6',
+    tier: 'enhanced',
+    status: 'pending',
+    documents: [
+      {
+        type: 'national_id',
+        url: '/mock/id_mary.png',
+        status: 'pending',
+        uploadedAt: '2026-09-02T15:00:00Z',
+      },
+      {
+        type: 'selfie',
+        url: '/mock/selfie_mary.png',
+        status: 'pending',
+        uploadedAt: '2026-09-02T15:05:00Z',
+      },
+    ],
+    submittedAt: '2026-09-02T15:10:00Z',
+  },
+  {
+    id: 'kyc_004',
+    userId: '1',
+    tier: 'enhanced',
+    status: 'approved',
+    documents: [
+      {
+        type: 'national_id',
+        url: '/mock/id_grace.png',
+        status: 'verified',
+        uploadedAt: '2026-01-10T08:00:00Z',
+      },
+      {
+        type: 'selfie',
+        url: '/mock/selfie_grace.png',
+        status: 'verified',
+        uploadedAt: '2026-01-10T08:15:00Z',
+      },
+      {
+        type: 'proof_of_address',
+        url: '/mock/utility_bill_grace.png',
+        status: 'verified',
+        uploadedAt: '2026-01-11T09:00:00Z',
+      },
+    ],
+    submittedAt: '2026-01-10T08:30:00Z',
+    reviewedAt: '2026-01-12T10:00:00Z',
+  },
+  {
+    id: 'kyc_005',
+    userId: '3',
+    tier: 'basic',
+    status: 'not_started',
+    documents: [],
+    submittedAt: undefined,
+    reviewedAt: undefined,
+  },
+];
+
+// ---- Mock Payment Transactions (ledger entries) ----
+export const mockPaymentTransactions: PaymentTransaction[] = [
+  {
+    id: 'txn_001',
+    userId: '1',
+    orderId: 'ord_001',
+    amount: 7630,
+    currency: 'KES',
+    type: 'debit',
+    method: 'mpesa',
+    status: 'success',
+    reference: 'MPESA_TXN_98765',
+    metadata: { stkPushRequestId: 'stk_123' },
+    createdAt: '2026-08-15T10:30:00Z',
+  },
+  {
+    id: 'txn_002',
+    userId: '2',
+    orderId: 'ord_002',
+    amount: 15000,
+    currency: 'KES',
+    type: 'debit',
+    method: 'card',
+    status: 'success',
+    reference: 'CARD_AUTH_12345',
+    createdAt: '2026-08-28T09:16:00Z',
+  },
+  {
+    id: 'txn_003',
+    userId: '3',
+    orderId: 'ord_003',
+    amount: 21332,
+    currency: 'KES',
+    type: 'debit',
+    method: 'bank_transfer',
+    status: 'success',
+    reference: 'BANK_REF_56789',
+    createdAt: '2026-09-01T12:05:00Z',
+  },
+  {
+    id: 'txn_004',
+    userId: '4',
+    orderId: 'ord_004',
+    amount: 6272,
+    currency: 'KES',
+    type: 'debit',
+    method: 'mpesa',
+    status: 'pending',
+    reference: 'MPESA_INIT_11223',
+    metadata: { stkPushRequestId: 'stk_456' },
+    createdAt: '2026-09-03T15:45:00Z',
+  },
+  {
+    id: 'txn_005',
+    userId: '1',
+    donationId: 'don_001',
+    amount: 5000,
+    currency: 'KES',
+    type: 'debit',
+    method: 'mpesa',
+    status: 'success',
+    reference: 'MPESA_DON_567',
+    createdAt: '2026-07-10T08:01:00Z',
+  },
+  // Refund example
+  {
+    id: 'txn_006',
+    userId: '3',
+    orderId: 'ord_003',
+    amount: 21332,
+    currency: 'KES',
+    type: 'credit',
+    method: 'refund',
+    status: 'success',
+    reference: 'REFUND_56789_01',
+    metadata: { approvedBy: 'admin_01' },
+    createdAt: '2026-09-02T16:00:00Z',
+  },
+  {
+    id: 'txn_007',
+    userId: '2',
+    donationId: 'don_004',
+    amount: 10000,
+    currency: 'KES',
+    type: 'debit',
+    method: 'card',
+    status: 'success',
+    reference: 'CARD_DON_789',
+    createdAt: '2026-06-15T14:05:00Z',
+  },
+  {
+    id: 'txn_008',
+    userId: '5',
+    donationId: 'don_005',
+    amount: 2500,
+    currency: 'KES',
+    type: 'debit',
+    method: 'mpesa',
+    status: 'failed',
+    reference: 'MPESA_FAIL_999',
+    metadata: { error: 'Insufficient balance' },
+    createdAt: '2026-09-01T09:30:00Z',
+  },
+];
+
+// ============================================================
 // 3. EXPORT ALL (for convenience)
 // ============================================================
 
@@ -2106,4 +2717,10 @@ export const mockData = {
   quizzes: mockQuizzes,
   assignments: mockAssignments,
   certificates: mockCertificates,
+  // PHASE 1
+  orders: mockOrders,
+  subscriptions: mockSubscriptions,
+  donations: mockDonations,
+  kycSubmissions: mockKYCSubmissions,
+  paymentTransactions: mockPaymentTransactions,
 };

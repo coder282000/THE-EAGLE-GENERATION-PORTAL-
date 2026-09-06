@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Wordmark } from "@/components/wordmark";
 import { mockNotifications } from "@/components/mock/data";
+import { useCart } from "@/context/CartContext";
 
 // Feature flag for messaging – controlled by Compliance Lead (G-2)
 const FEATURE_DIRECT_MESSAGING =
@@ -23,6 +24,7 @@ const navSections: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/dashboard", label: "Dashboard", icon: "📊" },
       { href: "/chapter", label: "My Chapter", icon: "🏛️" },
+      { href: "/shop", label: "Shop", icon: "🛒" }, // Added Shop
     ],
   },
   {
@@ -48,6 +50,7 @@ const navSections: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/mentorship/find", label: "Find a Mentor", icon: "🧑‍🏫" },
       { href: "/mentorship/my-mentors", label: "My Mentors", icon: "🤝" },
+      { href: "/mentorship/requests", label: "Request Inbox", icon: "📥" },
     ],
   },
   {
@@ -58,12 +61,22 @@ const navSections: { title: string; items: NavItem[] }[] = [
     ],
   },
   {
+    title: "Giving & Support", // New section
+    items: [
+      { href: "/giving", label: "Give", icon: "❤️" },
+      { href: "/profile/giving", label: "Giving History", icon: "📜" },
+    ],
+  },
+  {
     title: "Profile",
     items: [
       { href: "/profile/me", label: "My Profile", icon: "👤" },
       { href: "/profile/settings", label: "Edit Profile", icon: "✏️" },
       { href: "/profile/security", label: "Security", icon: "🔐" },
       { href: "/profile/privacy", label: "Privacy", icon: "🛡️" },
+      { href: "/profile/orders", label: "My Orders", icon: "📦" },
+      { href: "/profile/subscription", label: "Subscription", icon: "💳" },
+      { href: "/profile/verification", label: "Verification", icon: "🪪" },
     ],
   },
 ];
@@ -74,6 +87,7 @@ const mobileNavItems: NavItem[] = [
   { href: "/community/feed", label: "Feed", icon: "📰" },
   { href: "/learning/courses", label: "Learn", icon: "📚" },
   { href: "/events", label: "Events", icon: "📅" },
+  { href: "/shop", label: "Shop", icon: "🛒" }, // Added Shop to mobile nav
   { href: "/profile/me", label: "Profile", icon: "👤" },
 ];
 
@@ -82,6 +96,10 @@ export function MemberLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Get cart total items
+  const { getTotalItems } = useCart();
+  const cartTotalItems = getTotalItems();
 
   const unreadCount = mockNotifications.filter((n) => !n.read).length;
 
@@ -162,6 +180,20 @@ export function MemberLayout({ children }: { children: ReactNode }) {
             <div className="hidden md:block flex-1" />
 
             <div className="flex items-center gap-3 ml-auto md:ml-0">
+              {/* Cart icon with badge */}
+              <Link
+                href="/cart"
+                className="relative text-ink-400 hover:text-ink-600 transition-colors"
+                aria-label="Shopping cart"
+              >
+                <span className="text-xl">🛒</span>
+                {cartTotalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-clay-500 text-[10px] font-bold text-white">
+                    {cartTotalItems}
+                  </span>
+                )}
+              </Link>
+
               {/* Notifications */}
               <Link
                 href="/notifications"
@@ -221,6 +253,41 @@ export function MemberLayout({ children }: { children: ReactNode }) {
                         onClick={() => setIsDropdownOpen(false)}
                       >
                         <span>🛡️</span> Privacy
+                      </Link>
+                      <Link
+                        href="/profile/orders"
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <span>📦</span> My Orders
+                      </Link>
+                      <Link
+                        href="/profile/subscription"
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <span>💳</span> Subscription
+                      </Link>
+                      <Link
+                        href="/profile/verification"
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <span>🪪</span> Verification
+                      </Link>
+                      <Link
+                        href="/profile/giving"
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <span>❤️</span> Giving History
+                      </Link>
+                      <Link
+                        href="/giving"
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <span>🙏</span> Give Now
                       </Link>
                       <hr className="my-1 border-ink-100" />
                       <button

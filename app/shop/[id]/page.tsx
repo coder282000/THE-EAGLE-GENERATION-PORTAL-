@@ -1,105 +1,176 @@
-"use client";
+// app/shop/[id]/page.tsx
+'use client';
 
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { useState } from "react";
-import { Card } from "@/components/card";
-import { Button } from "@/components/button";
-import { mockProducts } from "@/components/mock/data";
+import React, { useState } from 'react';
+import { notFound, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useParams } from 'next/navigation';
+import { mockProducts } from '@/components/mock/data';
+import { Button } from '@/components/button';
+import { formatCurrency } from '@/lib/utils';
+import { useCart } from '@/context/CartContext';
 
 export default function ProductDetailPage() {
-  const { id } = useParams();
   const router = useRouter();
-  const product = mockProducts.find((p) => p.id === id);
+  const params = useParams();
+  const productId = params.id as string;
+  const { addItem } = useCart();
 
-  const [addedToCart, setAddedToCart] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleAddToCart = async () => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setIsLoading(false);
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 3000);
-  };
+  const product = mockProducts.find((p) => p.id === productId);
 
   if (!product) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center px-4">
-        <Card className="max-w-md w-full p-6 text-center">
-          <p className="text-4xl mb-3">🔍</p>
-          <h2 className="font-display text-lg font-semibold text-ink-900">Product Not Found</h2>
-          <p className="text-sm text-ink-500 mt-2">The product you're looking for doesn't exist.</p>
-          <Link href="/shop" className="mt-4 inline-block">
-            <Button variant="secondary">← Back to Shop</Button>
-          </Link>
-        </Card>
-      </div>
-    );
+    notFound();
   }
 
+  const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const increment = () => setQuantity((q) => q + 1);
+  const decrement = () => setQuantity((q) => (q > 1 ? q - 1 : 1));
+
+  const handleAddToCart = async () => {
+    setIsAdding(true);
+    // Simulate a small delay for UI feedback
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    addItem(product, quantity);
+    setIsAdding(false);
+    setShowSuccess(true);
+    
+    // Reset success state after 2 seconds
+    setTimeout(() => {
+      setShowSuccess(false);
+    }, 2000);
+  };
+
   return (
-    <div className="min-h-screen bg-paper">
-      <div className="container-portal py-8">
-        <div className="max-w-3xl mx-auto space-y-6">
-          <Link href="/shop" className="text-sm text-sky-600 hover:underline inline-flex items-center gap-1">
+    <div className="container mx-auto px-4 py-8">
+      {/* Breadcrumb */}
+      <nav className="text-sm text-gray-500 mb-6">
+        <Link href="/shop" className="hover:text-blue-600">
+          Shop
+        </Link>
+        <span className="mx-2">/</span>
+        <span className="text-gray-700">{product.name}</span>
+      </nav>
+
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* Product Image */}
+        <div className="md:w-1/2">
+          <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+            {product.image ? (
+              <Image
+                src={product.image}
+                alt={product.name}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400 text-6xl">
+                📦
+              </div>
+            )}
+            {!product.inStock && (
+              <div className="absolute top-4 right-4 bg-red-500 text-white text-sm font-medium px-3 py-1 rounded-full">
+                Out of Stock
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Product Info */}
+        <div className="md:w-1/2 flex flex-col">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            {product.name}
+          </h1>
+
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-xl font-bold text-gray-900">
+              {formatCurrency(product.price, 'KES')}
+            </span>
+            <span className="text-sm text-gray-500 capitalize bg-gray-100 px-2 py-0.5 rounded-full">
+              {product.category}
+            </span>
+            <span className="text-sm text-gray-500">
+              SKU: {product.sku}
+            </span>
+          </div>
+
+          <p className="text-gray-700 mb-6 leading-relaxed">
+            {product.description}
+          </p>
+
+          {/* Stock Status */}
+          <div className="mb-6">
+            {product.inStock ? (
+              <span className="text-green-600 text-sm font-medium">✅ In Stock</span>
+            ) : (
+              <span className="text-red-600 text-sm font-medium">❌ Out of Stock</span>
+            )}
+          </div>
+
+          {/* Quantity Selector */}
+          {product.inStock && (
+            <div className="flex items-center gap-4 mb-6">
+              <label htmlFor="quantity" className="text-sm font-medium text-gray-700">
+                Quantity
+              </label>
+              <div className="flex items-center border border-gray-300 rounded-md">
+                <button
+                  onClick={decrement}
+                  className="px-3 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+                  disabled={quantity <= 1}
+                  aria-label="Decrease quantity"
+                >
+                  -
+                </button>
+                <span className="w-10 text-center text-gray-700">{quantity}</span>
+                <button
+                  onClick={increment}
+                  className="px-3 py-2 text-gray-600 hover:bg-gray-100"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Add to Cart Button with Success State */}
+          <Button
+            variant={showSuccess ? "success" : "primary"}
+            size="lg"
+            className="w-full md:w-auto transition-all duration-200"
+            disabled={!product.inStock || isAdding}
+            onClick={handleAddToCart}
+          >
+            {isAdding ? (
+              'Adding...'
+            ) : showSuccess ? (
+              '✅ Added!'
+            ) : product.inStock ? (
+              'Add to Cart'
+            ) : (
+              'Unavailable'
+            )}
+          </Button>
+
+          {/* Success message */}
+          {showSuccess && (
+            <p className="text-sm text-green-600 mt-2 animate-fade-in">
+              {quantity} × {product.name} added to cart
+            </p>
+          )}
+
+          {/* Back to Shop */}
+          <Link
+            href="/shop"
+            className="mt-6 text-sm text-blue-600 hover:underline inline-block"
+          >
             ← Back to Shop
           </Link>
-
-          <Card className="p-6 space-y-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <span className="inline-block rounded-full bg-ink-50 px-2.5 py-0.5 text-xs font-medium text-ink-600 capitalize">
-                  {product.category}
-                </span>
-                <h1 className="mt-2 font-display text-2xl font-bold text-ink-900">{product.name}</h1>
-              </div>
-              <span className="inline-block rounded-full bg-dawn-100 px-3 py-1 text-sm font-medium text-dawn-700">
-                KES {product.price.toLocaleString()}
-              </span>
-            </div>
-
-            <div className="h-48 bg-ink-100 rounded-lg flex items-center justify-center text-6xl">
-              {product.category === "merchandise" && "👕"}
-              {product.category === "resources" && "📚"}
-              {product.category === "learning" && "🎓"}
-              {product.category === "other" && "📦"}
-            </div>
-
-            <div className="border-t border-ink-100 pt-4 space-y-2 text-sm">
-              <p className="text-ink-700 leading-relaxed">{product.description}</p>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <span className="text-ink-500">SKU</span>
-                  <p className="font-medium text-ink-900">{product.sku || "N/A"}</p>
-                </div>
-                <div>
-                  <span className="text-ink-500">Availability</span>
-                  <p className={`font-medium ${product.inStock ? "text-green-700" : "text-clay-700"}`}>
-                    {product.inStock ? "In Stock" : "Out of Stock"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {addedToCart ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                <p className="text-2xl mb-1">✅</p>
-                <p className="font-medium text-green-700">Added to Cart!</p>
-                <Link href="/cart" className="mt-2 inline-block">
-                  <Button variant="secondary" size="sm">View Cart</Button>
-                </Link>
-              </div>
-            ) : product.inStock ? (
-              <Button variant="primary" size="lg" fullWidth onClick={handleAddToCart} disabled={isLoading}>
-                {isLoading ? "Adding..." : "Add to Cart"}
-              </Button>
-            ) : (
-              <Button variant="secondary" size="lg" fullWidth disabled>
-                Out of Stock
-              </Button>
-            )}
-          </Card>
         </div>
       </div>
     </div>
