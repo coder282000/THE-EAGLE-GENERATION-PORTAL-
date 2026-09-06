@@ -1,44 +1,44 @@
-"use client";
+// app/mentorship/sessions/new/page.tsx
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { MemberLayout } from "@/components/layout/memberLayout";
-import { Card } from "@/components/card";
-import { Button } from "@/components/button";
-import { Input } from "@/components/input";
-import { Textarea } from "@/components/textarea";
-import { ArrowLeft, Calendar, Clock, User, AlertCircle } from "lucide-react";
-import { mockMentors, mockMembers, mockMentorshipSessions, mockMentorshipRequests } from "@/components/mock/data";
-import { format } from "date-fns";
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { MemberLayout } from '@/components/layout/memberLayout';
+import { Card } from '@/components/card';
+import { Button } from '@/components/button';
+import { Textarea } from '@/components/textarea';
+import { ArrowLeft, Calendar, Clock, User, AlertCircle } from 'lucide-react';
+import { mockMentors, mockMembers, mockMentorshipSessions, mockMentorshipRequests } from '@/components/mock/data';
+import { format } from 'date-fns';
 
 const DURATION_OPTIONS = [
-  { value: 30, label: "30 minutes" },
-  { value: 45, label: "45 minutes" },
-  { value: 60, label: "1 hour" },
-  { value: 90, label: "1.5 hours" },
-  { value: 120, label: "2 hours" },
+  { value: 30, label: '30 minutes' },
+  { value: 45, label: '45 minutes' },
+  { value: 60, label: '1 hour' },
+  { value: 90, label: '1.5 hours' },
+  { value: 120, label: '2 hours' },
 ];
 
 export default function SessionSchedulingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const mentorId = searchParams.get("mentorId");
-  const menteeId = searchParams.get("menteeId");
+  const mentorId = searchParams.get('mentorId');
+  const menteeId = searchParams.get('menteeId');
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
   // Form state
-  const [scheduledAt, setScheduledAt] = useState("");
+  const [scheduledAt, setScheduledAt] = useState('');
   const [durationMinutes, setDurationMinutes] = useState(60);
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState('');
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [otherUser, setOtherUser] = useState<any>(null);
-  const [otherUserName, setOtherUserName] = useState("");
+  const [otherUserName, setOtherUserName] = useState('');
 
   // Determine if we're scheduling with a mentor or a mentee
   useEffect(() => {
@@ -53,20 +53,20 @@ export default function SessionSchedulingPage() {
           const mentor = mockMentors.find((m) => m.userId === mentorId);
           if (mentor) {
             user = mockMembers.find((m) => m.id === mentor.userId);
-            setOtherUserName(user ? `${user.firstName} ${user.lastName}` : "Unknown Mentor");
+            setOtherUserName(user ? `${user.firstName} ${user.lastName}` : 'Unknown Mentor');
           }
         } else if (menteeId) {
           // We are scheduling with a mentee (from My Mentees)
           user = mockMembers.find((m) => m.id === menteeId);
-          setOtherUserName(user ? `${user.firstName} ${user.lastName}` : "Unknown Mentee");
+          setOtherUserName(user ? `${user.firstName} ${user.lastName}` : 'Unknown Mentee');
         } else {
-          setError("No mentor or mentee specified. Please go back and try again.");
+          setError('No mentor or mentee specified. Please go back and try again.');
           setIsLoading(false);
           return;
         }
 
         if (!user) {
-          setError("User not found.");
+          setError('User not found.');
           setIsLoading(false);
           return;
         }
@@ -78,7 +78,7 @@ export default function SessionSchedulingPage() {
 
         setError(null);
       } catch (err) {
-        setError("Failed to load user details. Please try again.");
+        setError('Failed to load user details. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -91,12 +91,12 @@ export default function SessionSchedulingPage() {
     e.preventDefault();
 
     if (!scheduledAt) {
-      setFormError("Please select a date and time.");
+      setFormError('Please select a date and time.');
       return;
     }
 
     if (new Date(scheduledAt) < new Date()) {
-      setFormError("Please select a future date and time.");
+      setFormError('Please select a future date and time.');
       return;
     }
 
@@ -107,11 +107,9 @@ export default function SessionSchedulingPage() {
       await new Promise((resolve) => setTimeout(resolve, 1200));
 
       // Determine mentorId and menteeId from context
-      // If we have mentorId, we're scheduling with a mentor (current user is mentee)
-      // If we have menteeId, we're scheduling with a mentee (current user is mentor)
-      let finalMentorId = "";
-      let finalMenteeId = "";
-      const currentUserId = "1"; // mock current user
+      let finalMentorId = '';
+      let finalMenteeId = '';
+      const currentUserId = '1'; // mock current user
 
       if (mentorId) {
         finalMentorId = mentorId;
@@ -120,13 +118,13 @@ export default function SessionSchedulingPage() {
         finalMentorId = currentUserId;
         finalMenteeId = menteeId;
       } else {
-        throw new Error("Invalid session context.");
+        throw new Error('Invalid session context.');
       }
 
       // Find an existing request to link (or create a mock one)
-      let requestId = "req-mock";
+      let requestId = 'req-mock';
       const existingRequest = mockMentorshipRequests.find(
-        (r) => r.mentorId === finalMentorId && r.menteeId === finalMenteeId && r.status === "ACCEPTED"
+        (r) => r.mentorId === finalMentorId && r.menteeId === finalMenteeId && r.status === 'ACCEPTED'
       );
       if (existingRequest) {
         requestId = existingRequest.id;
@@ -136,9 +134,9 @@ export default function SessionSchedulingPage() {
           id: `req-${Date.now()}`,
           mentorId: finalMentorId,
           menteeId: finalMenteeId,
-          status: "ACCEPTED",
-          focusArea: "General",
-          message: "Auto-created for scheduling",
+          status: 'ACCEPTED' as const, // ✅ Fix type
+          focusArea: 'General',
+          message: 'Auto-created for scheduling',
           requestedAt: new Date().toISOString(),
           respondedAt: new Date().toISOString(),
         };
@@ -154,17 +152,17 @@ export default function SessionSchedulingPage() {
         menteeId: finalMenteeId,
         scheduledAt,
         durationMinutes,
-        status: "SCHEDULED",
+        status: 'SCHEDULED' as const, // ✅ Fix type
         notes: notes.trim() || undefined,
-        meetingLink: "https://meet.google.com/mock-meeting-link",
+        meetingLink: 'https://meet.google.com/mock-meeting-link',
       };
 
       mockMentorshipSessions.push(newSession);
 
       // Redirect to session history
-      router.push("/mentorship/sessions");
+      router.push('/mentorship/sessions');
     } catch (err) {
-      setFormError("Failed to schedule session. Please try again.");
+      setFormError('Failed to schedule session. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -205,7 +203,7 @@ export default function SessionSchedulingPage() {
         <div className="max-w-2xl mx-auto flex flex-col items-center justify-center py-12 text-center">
           <AlertCircle className="h-12 w-12 text-clay-500 mb-4" />
           <p className="text-lg text-ink-600">{error}</p>
-          <Button variant="outline" className="mt-4" onClick={() => router.push("/mentorship/my-mentors")}>
+          <Button variant="outline" className="mt-4" onClick={() => router.push('/mentorship/my-mentors')}>
             Back to My Mentors
           </Button>
         </div>
@@ -214,8 +212,7 @@ export default function SessionSchedulingPage() {
   }
 
   // ======== FORM ========
-  const displayName = otherUser ? `${otherUser.firstName} ${otherUser.lastName}` : "User";
-  const isMentorSession = !!mentorId;
+  const displayName = otherUser ? `${otherUser.firstName} ${otherUser.lastName}` : 'User';
 
   return (
     <MemberLayout>
@@ -248,13 +245,13 @@ export default function SessionSchedulingPage() {
               <label htmlFor="session-datetime" className="text-sm font-medium text-ink-700">
                 Date & Time <span className="text-clay-500">*</span>
               </label>
-              <Input
+              <input
                 id="session-datetime"
                 type="datetime-local"
                 value={scheduledAt}
                 onChange={(e) => setScheduledAt(e.target.value)}
                 disabled={isSubmitting}
-                className="w-full"
+                className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-dawn-400 focus:border-transparent disabled:opacity-50"
                 required
               />
               <p className="text-xs text-ink-400">Select a future date and time for the session.</p>
@@ -270,10 +267,12 @@ export default function SessionSchedulingPage() {
                 value={durationMinutes}
                 onChange={(e) => setDurationMinutes(parseInt(e.target.value))}
                 disabled={isSubmitting}
-                className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-dawn-400 focus:border-transparent"
+                className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-dawn-400 focus:border-transparent disabled:opacity-50"
               >
                 {DURATION_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -322,7 +321,9 @@ export default function SessionSchedulingPage() {
                       Scheduling...
                     </span>
                   ) : (
-                    <Calendar className="h-4 w-4 mr-1" /> Schedule Session
+                    <>
+                      <Calendar className="h-4 w-4 mr-1" /> Schedule Session
+                    </>
                   )}
                 </Button>
               </div>
