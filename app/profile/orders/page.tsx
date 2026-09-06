@@ -1,6 +1,5 @@
 'use client';
 // app/profile/orders/page.tsx
-'use client';
 
 import React, { useState, useMemo } from 'react';
 import { mockOrders } from '@/components/mock/data';

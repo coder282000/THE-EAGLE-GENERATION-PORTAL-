@@ -1,6 +1,5 @@
 'use client';
 // app/shop/page.tsx
-'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';

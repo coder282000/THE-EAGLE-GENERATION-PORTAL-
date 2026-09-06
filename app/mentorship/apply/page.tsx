@@ -1,6 +1,5 @@
 'use client';
 // app/mentorship/apply/page.tsx
-'use client';
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';

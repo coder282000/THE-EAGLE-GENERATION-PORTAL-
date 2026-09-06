@@ -1,6 +1,5 @@
 'use client';
 // app/profile/verification/page.tsx
-'use client';
 
 import React from 'react';
 import Link from 'next/link';

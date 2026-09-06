@@ -1,6 +1,6 @@
 'use client';
+export const dynamic = 'force-dynamic';
 // app/checkout/success/page.tsx
-'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';

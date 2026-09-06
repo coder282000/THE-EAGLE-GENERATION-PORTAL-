@@ -1,6 +1,5 @@
 'use client';
 // app/verify/pending/page.tsx
-'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';

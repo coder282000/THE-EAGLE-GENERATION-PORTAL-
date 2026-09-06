@@ -1,6 +1,6 @@
 'use client';
+export const dynamic = 'force-dynamic';
 // app/checkout/mpesa/page.tsx
-'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';

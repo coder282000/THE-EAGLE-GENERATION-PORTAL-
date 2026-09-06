@@ -1,6 +1,6 @@
 'use client';
+export const dynamic = 'force-dynamic';
 // app/cart/page.tsx
-'use client';
 
 import React from 'react';
 import Link from 'next/link';

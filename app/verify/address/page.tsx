@@ -1,6 +1,5 @@
 'use client';
 // app/verify/address/page.tsx
-'use client';
 
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
