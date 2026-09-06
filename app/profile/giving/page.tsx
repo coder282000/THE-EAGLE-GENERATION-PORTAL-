@@ -1,3 +1,4 @@
+'use client';
 // app/profile/giving/page.tsx
 'use client';
 

@@ -1,3 +1,4 @@
+'use client';
 import { LegalPage } from "@/components/legal/legalpage";
 
 export default function GuidelinesPage() {

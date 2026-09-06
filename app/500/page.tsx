@@ -1,3 +1,4 @@
+'use client';
 import { ErrorPage } from "@/components/error/errorpage";
 
 export default function ServerErrorPage() {

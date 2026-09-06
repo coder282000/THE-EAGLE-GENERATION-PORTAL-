@@ -1,3 +1,4 @@
+'use client';
 // app/mentorship/sessions/new/page.tsx
 'use client';
 

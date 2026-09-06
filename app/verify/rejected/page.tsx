@@ -1,3 +1,4 @@
+'use client';
 // app/verify/rejected/page.tsx
 'use client';
 

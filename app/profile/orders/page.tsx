@@ -1,3 +1,4 @@
+'use client';
 // app/profile/orders/page.tsx
 'use client';
 

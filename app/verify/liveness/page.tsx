@@ -1,3 +1,4 @@
+'use client';
 // app/verify/liveness/page.tsx
 'use client';
 

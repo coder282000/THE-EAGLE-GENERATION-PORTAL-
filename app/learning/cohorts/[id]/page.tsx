@@ -1,3 +1,4 @@
+'use client';
 // app/learning/cohorts/[id]/page.tsx
 'use client';
 

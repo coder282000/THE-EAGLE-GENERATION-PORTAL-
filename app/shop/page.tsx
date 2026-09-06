@@ -1,3 +1,4 @@
+'use client';
 // app/shop/page.tsx
 'use client';
 

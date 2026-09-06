@@ -1,3 +1,4 @@
+'use client';
 // app/verify/identity/page.tsx
 'use client';
 

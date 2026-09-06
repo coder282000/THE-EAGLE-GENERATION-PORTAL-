@@ -1,3 +1,4 @@
+'use client';
 // app/profile/subscription/page.tsx
 'use client';
 

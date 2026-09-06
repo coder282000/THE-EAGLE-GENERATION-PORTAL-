@@ -1,3 +1,4 @@
+'use client';
 // app/checkout/mpesa/page.tsx
 'use client';
 

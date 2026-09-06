@@ -1,3 +1,4 @@
+'use client';
 // app/verify/pending/page.tsx
 'use client';
 

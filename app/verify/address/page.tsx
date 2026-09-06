@@ -1,3 +1,4 @@
+'use client';
 // app/verify/address/page.tsx
 'use client';
 

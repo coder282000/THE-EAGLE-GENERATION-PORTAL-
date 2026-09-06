@@ -1,3 +1,4 @@
+'use client';
 import { StatusPage } from "@/components/status/statuspage";
 
 export default function SuspendedPage() {

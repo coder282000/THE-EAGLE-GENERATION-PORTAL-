@@ -1,3 +1,4 @@
+'use client';
 "use client";
 
 import { MemberLayout } from "@/components/layout/memberLayout";
