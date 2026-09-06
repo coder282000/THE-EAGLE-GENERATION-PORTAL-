@@ -98,8 +98,8 @@ export function MemberLayout({ children }: { children: ReactNode }) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Get cart total items
-  const { getTotalItems } = useCart();
-  const cartTotalItems = getTotalItems();
+  const { items } = useCart();
+  const cartTotalItems = items.reduce((acc, item) => acc + item.quantity, 0);
 
   const unreadCount = mockNotifications.filter((n) => !n.read).length;
 

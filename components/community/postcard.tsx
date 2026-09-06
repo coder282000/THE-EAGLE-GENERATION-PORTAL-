@@ -55,7 +55,7 @@ export function PostCard({ post, onLike }: PostCardProps) {
             <span className="text-xs text-clay-light">• {timeAgo}</span>
           </div>
           <div className="flex items-center gap-2 mt-0.5">
-            <PillarTag pillar={post.pillar} size="sm" />
+            <PillarTag pillar={post.pillar.toLowerCase() as "marketplace" | "governance" | "technology"} />
             {post.author.chapterName && (
               <span className="text-xs text-clay-light">• {post.author.chapterName}</span>
             )}
@@ -66,7 +66,7 @@ export function PostCard({ post, onLike }: PostCardProps) {
         <div className="relative">
           <Button
             variant="ghost"
-            size="sm"
+           
             className="h-8 w-8"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="More options"
@@ -98,7 +98,7 @@ export function PostCard({ post, onLike }: PostCardProps) {
       <CardFooter className="flex items-center gap-4 border-t border-sky/5 pt-3">
         <Button
           variant="ghost"
-          size="sm"
+         
           className={`gap-1 ${post.likedByUser ? 'text-red-500' : ''}`}
           onClick={() => onLike(post.id)}
         >
@@ -106,12 +106,12 @@ export function PostCard({ post, onLike }: PostCardProps) {
           <span>{post.likes}</span>
         </Button>
         <Link href={`/community/posts/${post.id}`}>
-          <Button variant="ghost" size="sm" className="gap-1">
+          <Button variant="ghost" className="gap-1">
             <MessageCircle className="h-4 w-4" />
             <span>{post.comments}</span>
           </Button>
         </Link>
-        <Button variant="ghost" size="sm" className="gap-1">
+        <Button variant="ghost" className="gap-1">
           <Share2 className="h-4 w-4" />
         </Button>
       </CardFooter>
