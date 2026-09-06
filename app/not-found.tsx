@@ -1,19 +1,8 @@
-"use client";
-
-import { ErrorPage } from "@/components/error/errorpage";
-
 export default function NotFound() {
   return (
-    <ErrorPage
-      statusCode={404}
-      title="Page Not Found"
-      message="We couldn't find the page you were looking for."
-      emoji="🔍"
-      actions={[
-        { label: "Go Home", href: "/", variant: "primary" },
-        { label: "Return to Dashboard", href: "/dashboard" },
-        { label: "Browse the Site", href: "/events" },
-      ]}
-    />
+    <div>
+      <h2>Page Not Found</h2>
+      <p>Could not find the requested resource.</p>
+    </div>
   );
 }
