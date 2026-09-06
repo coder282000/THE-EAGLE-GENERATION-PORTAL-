@@ -1,54 +1,56 @@
-"use client";
+// app/mentorship/requests/page.tsx
+'use client';
 
-import { useEffect, useState, useMemo } from "react";
-import Link from "next/link";
-import { MemberLayout } from "@/components/layout/memberLayout";
-import { Card } from "@/components/card";
-import { Button } from "@/components/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/avatar";
-import { 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  Eye, 
+import { useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
+import { MemberLayout } from '@/components/layout/memberLayout';
+import { Card } from '@/components/card';
+import { Button } from '@/components/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/avatar';
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  Eye,
   AlertCircle,
   Filter,
-  User
-} from "lucide-react";
-import { mockMentorshipRequests, mockMembers, MentorshipRequest, Member } from "@/components/mock/data";
-import { formatDistanceToNow } from "date-fns";
+  User,
+} from 'lucide-react';
+import { mockMentorshipRequests, mockMembers, MentorshipRequest, Member } from '@/components/mock/data';
+import { formatDistanceToNow } from 'date-fns';
 
 // ============================================================
 // Types
 // ============================================================
 
-type FilterType = "pending" | "accepted" | "rejected";
+type FilterType = 'pending' | 'accepted' | 'rejected';
 
 // ============================================================
 // Request Card Component
 // ============================================================
 
-function RequestCard({ 
-  request, 
-  onAccept, 
+function RequestCard({
+  request,
+  onAccept,
   onDecline,
-  isProcessing 
-}: { 
-  request: MentorshipRequest; 
+  isProcessing,
+}: {
+  request: MentorshipRequest;
   onAccept: (requestId: string) => void;
   onDecline: (requestId: string) => void;
   isProcessing: boolean;
 }) {
   const mentee = mockMembers.find((m) => m.id === request.menteeId);
   const timeAgo = formatDistanceToNow(new Date(request.requestedAt), { addSuffix: true });
-  const initials = mentee ? `${mentee.firstName[0]}${mentee.lastName[0]}` : "??";
-  const displayName = mentee ? `${mentee.firstName} ${mentee.lastName}` : "Unknown Member";
+  const initials = mentee ? `${mentee.firstName[0]}${mentee.lastName[0]}` : '??';
+  const displayName = mentee ? `${mentee.firstName} ${mentee.lastName}` : 'Unknown Member';
 
-  // Status styling
+  // ✅ Status styling (now includes COMPLETED)
   const statusStyles = {
-    PENDING: { label: "Pending", color: "bg-amber-100 text-amber-700", icon: <Clock className="h-3.5 w-3.5" /> },
-    ACCEPTED: { label: "Accepted", color: "bg-green-100 text-green-700", icon: <CheckCircle className="h-3.5 w-3.5" /> },
-    REJECTED: { label: "Rejected", color: "bg-clay-100 text-clay-700", icon: <XCircle className="h-3.5 w-3.5" /> },
+    PENDING: { label: 'Pending', color: 'bg-amber-100 text-amber-700', icon: <Clock className="h-3.5 w-3.5" /> },
+    ACCEPTED: { label: 'Accepted', color: 'bg-green-100 text-green-700', icon: <CheckCircle className="h-3.5 w-3.5" /> },
+    REJECTED: { label: 'Rejected', color: 'bg-clay-100 text-clay-700', icon: <XCircle className="h-3.5 w-3.5" /> },
+    COMPLETED: { label: 'Completed', color: 'bg-blue-100 text-blue-800', icon: <CheckCircle className="h-4 w-4" /> },
   };
 
   const statusInfo = statusStyles[request.status] || statusStyles.PENDING;
@@ -77,9 +79,11 @@ function RequestCard({
                   {displayName}
                 </h3>
               </Link>
-              <p className="text-xs text-ink-400">{mentee?.memberNumber || "Member"}</p>
+              <p className="text-xs text-ink-400">{mentee?.memberNumber || 'Member'}</p>
             </div>
-            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full flex items-center gap-1 ${statusInfo.color}`}>
+            <span
+              className={`text-[10px] font-medium px-2 py-0.5 rounded-full flex items-center gap-1 ${statusInfo.color}`}
+            >
               {statusInfo.icon}
               {statusInfo.label}
             </span>
@@ -99,7 +103,10 @@ function RequestCard({
 
           <div className="flex flex-wrap items-center gap-2 mt-2">
             {mentee?.pillarInterest.map((pillar) => (
-              <span key={pillar} className="text-[10px] font-medium bg-ink-50 text-ink-600 px-2 py-0.5 rounded-full">
+              <span
+                key={pillar}
+                className="text-[10px] font-medium bg-ink-50 text-ink-600 px-2 py-0.5 rounded-full"
+              >
                 {pillar}
               </span>
             ))}
@@ -113,20 +120,20 @@ function RequestCard({
               <Eye className="h-3.5 w-3.5" /> View Profile
             </Button>
           </Link>
-          {request.status === "PENDING" && (
+          {request.status === 'PENDING' && (
             <>
-              <Button 
-                variant="primary" 
-                size="sm" 
+              <Button
+                variant="primary"
+                size="sm"
                 className="gap-1"
                 onClick={() => onAccept(request.id)}
                 disabled={isProcessing}
               >
                 <CheckCircle className="h-3.5 w-3.5" /> Accept
               </Button>
-              <Button 
-                variant="destructive" 
-                size="sm" 
+              <Button
+                variant="danger"
+                size="sm"
                 className="gap-1"
                 onClick={() => onDecline(request.id)}
                 disabled={isProcessing}
@@ -148,11 +155,11 @@ function RequestCard({
 export default function RequestInboxPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [requests, setRequests] = useState<MentorshipRequest[]>([]);
-  const [filter, setFilter] = useState<FilterType>("pending");
+  const [filter, setFilter] = useState<FilterType>('pending');
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const currentUserId = "1"; // mock current user (Grace Mwangi – a mentor)
+  const currentUserId = '1'; // mock current user (Grace Mwangi – a mentor)
 
   // Fetch requests where current user is the mentor
   useEffect(() => {
@@ -167,7 +174,7 @@ export default function RequestInboxPage() {
         setRequests(userRequests);
         setError(null);
       } catch (err) {
-        setError("Failed to load requests. Please try again.");
+        setError('Failed to load requests. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -184,22 +191,19 @@ export default function RequestInboxPage() {
   // Counts for badge
   const counts = useMemo(() => {
     return {
-      pending: requests.filter((r) => r.status === "PENDING").length,
-      accepted: requests.filter((r) => r.status === "ACCEPTED").length,
-      rejected: requests.filter((r) => r.status === "REJECTED").length,
+      pending: requests.filter((r) => r.status === 'PENDING').length,
+      accepted: requests.filter((r) => r.status === 'ACCEPTED').length,
+      rejected: requests.filter((r) => r.status === 'REJECTED').length,
     };
   }, [requests]);
 
   // Handle accept
   const handleAccept = (requestId: string) => {
-    if (!confirm("Accept this mentorship request?")) return;
+    if (!confirm('Accept this mentorship request?')) return;
     setIsProcessing(true);
-    // Simulate API call
     setTimeout(() => {
       setRequests((prev) =>
-        prev.map((r) =>
-          r.id === requestId ? { ...r, status: "ACCEPTED" } : r
-        )
+        prev.map((r) => (r.id === requestId ? { ...r, status: 'ACCEPTED' } : r))
       );
       setIsProcessing(false);
     }, 600);
@@ -207,14 +211,11 @@ export default function RequestInboxPage() {
 
   // Handle decline
   const handleDecline = (requestId: string) => {
-    if (!confirm("Decline this mentorship request?")) return;
+    if (!confirm('Decline this mentorship request?')) return;
     setIsProcessing(true);
-    // Simulate API call
     setTimeout(() => {
       setRequests((prev) =>
-        prev.map((r) =>
-          r.id === requestId ? { ...r, status: "REJECTED" } : r
-        )
+        prev.map((r) => (r.id === requestId ? { ...r, status: 'REJECTED' } : r))
       );
       setIsProcessing(false);
     }, 600);
@@ -302,16 +303,15 @@ export default function RequestInboxPage() {
             <h1 className="font-display text-2xl font-semibold text-ink-900">Request Inbox</h1>
             <p className="text-sm text-ink-400">Manage your mentorship requests</p>
           </div>
-          {/* Filter tabs */}
           <div className="flex flex-wrap gap-2">
-            {(["pending", "accepted", "rejected"] as FilterType[]).map((key) => (
+            {(['pending', 'accepted', 'rejected'] as FilterType[]).map((key) => (
               <button
                 key={key}
                 onClick={() => setFilter(key)}
                 className={`text-sm px-4 py-1.5 rounded-full transition-colors ${
                   filter === key
-                    ? "bg-dawn-500 text-white"
-                    : "bg-ink-50 text-ink-600 hover:bg-ink-100"
+                    ? 'bg-dawn-500 text-white'
+                    : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
                 }`}
               >
                 {key.charAt(0).toUpperCase() + key.slice(1)}
@@ -337,22 +337,20 @@ export default function RequestInboxPage() {
   return (
     <MemberLayout>
       <div className="space-y-4">
-        {/* Header */}
         <div>
           <h1 className="font-display text-2xl font-semibold text-ink-900">Request Inbox</h1>
           <p className="text-sm text-ink-400">Manage your mentorship requests</p>
         </div>
 
-        {/* Filter tabs */}
         <div className="flex flex-wrap gap-2">
-          {(["pending", "accepted", "rejected"] as FilterType[]).map((key) => (
+          {(['pending', 'accepted', 'rejected'] as FilterType[]).map((key) => (
             <button
               key={key}
               onClick={() => setFilter(key)}
               className={`text-sm px-4 py-1.5 rounded-full transition-colors ${
                 filter === key
-                  ? "bg-dawn-500 text-white"
-                  : "bg-ink-50 text-ink-600 hover:bg-ink-100"
+                  ? 'bg-dawn-500 text-white'
+                  : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
               }`}
             >
               {key.charAt(0).toUpperCase() + key.slice(1)}
@@ -365,7 +363,6 @@ export default function RequestInboxPage() {
           ))}
         </div>
 
-        {/* Request list */}
         <div className="space-y-3">
           {filteredRequests.map((request) => (
             <RequestCard

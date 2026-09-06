@@ -85,7 +85,7 @@ export default function ActivityFeedPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-ink">Activity Feed</h1>
-            <Button variant="default" size="sm" disabled>
+            <Button variant="primary" size="sm" disabled>
               New Post
             </Button>
           </div>
@@ -133,7 +133,7 @@ export default function ActivityFeedPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-ink">Activity Feed</h1>
-            <Button variant="default" size="sm" onClick={handleNewPost}>
+            <Button variant="primary" size="sm" onClick={handleNewPost}>
               New Post
             </Button>
           </div>
@@ -176,7 +176,7 @@ export default function ActivityFeedPage() {
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-2xl font-bold text-ink">Activity Feed</h1>
-          <Button variant="default" size="sm" onClick={handleNewPost}>
+          <Button variant="primary" size="sm" onClick={handleNewPost}>
             New Post
           </Button>
         </div>

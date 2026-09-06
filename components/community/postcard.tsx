@@ -66,7 +66,7 @@ export function PostCard({ post, onLike }: PostCardProps) {
         <div className="relative">
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             className="h-8 w-8"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="More options"

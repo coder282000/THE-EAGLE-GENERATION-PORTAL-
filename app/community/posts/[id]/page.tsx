@@ -77,7 +77,7 @@ function CommentItem({ comment, onLike, onReply, onReport, replies = [], level =
             <div className="relative">
               <Button
                 variant="ghost"
-                size="icon"
+                size="sm"
                 className="h-6 w-6"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label="More options"
@@ -422,7 +422,7 @@ export default function PostDetailPage() {
             <div className="relative">
               <Button
                 variant="ghost"
-                size="icon"
+                size="sm"
                 className="h-8 w-8"
                 onClick={() => setIsPostMenuOpen(!isPostMenuOpen)}
                 aria-label="More options"

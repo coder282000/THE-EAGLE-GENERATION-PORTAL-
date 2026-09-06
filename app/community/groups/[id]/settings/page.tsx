@@ -484,7 +484,7 @@ export default function GroupSettingsPage() {
             Deleting a group is permanent and cannot be undone. All posts and member data will be lost.
           </p>
           <Button
-            variant="destructive"
+            variant="danger"
             size="sm"
             className="mt-3"
             onClick={handleDeleteGroup}

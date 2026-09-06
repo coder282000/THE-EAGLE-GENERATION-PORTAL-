@@ -140,7 +140,7 @@ export default function ProductDetailPage() {
 
           {/* Add to Cart Button with Success State */}
           <Button
-            variant={showSuccess ? "success" : "primary"}
+            variant="primary"
             size="lg"
             className="w-full md:w-auto transition-all duration-200"
             disabled={!product.inStock || isAdding}
