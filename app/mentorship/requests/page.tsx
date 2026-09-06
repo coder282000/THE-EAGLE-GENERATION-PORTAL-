@@ -33,8 +33,8 @@ function RequestCard({
 }) {
   const mentee = mockMembers.find((m) => m.id === request.menteeId);
   const timeAgo = formatDistanceToNow(new Date(request.requestedAt), { addSuffix: true });
-  const initials = mentee ? \\ : '??';
-  const displayName = mentee ? \ \ : 'Unknown Member';
+  const initials = mentee ? `${mentee.firstName[0]}${mentee.lastName[0]}` : '??';
+  const displayName = mentee ? `${mentee.firstName} ${mentee.lastName}` : 'Unknown Member';
 
   const statusStyles = {
     PENDING: { label: 'Pending', color: 'bg-amber-100 text-amber-700', icon: <Clock className="h-3.5 w-3.5" /> },
@@ -48,7 +48,7 @@ function RequestCard({
   return (
     <Card className="p-5 border border-ink-100 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex flex-col sm:flex-row gap-4">
-        <Link href={/profile/\} className="shrink-0">
+        <Link href={`/profile/${mentee?.id ?? request.menteeId}`} className="shrink-0">
           <Avatar className="h-14 w-14">
             {mentee?.avatar ? (
               <AvatarImage src={mentee.avatar} alt={displayName} />
@@ -63,7 +63,7 @@ function RequestCard({
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <Link href={/profile/\}>
+              <Link href={`/profile/${mentee?.id ?? request.menteeId}`}>
                 <h3 className="font-display font-semibold text-ink-900 hover:underline">
                   {displayName}
                 </h3>
@@ -71,7 +71,7 @@ function RequestCard({
               <p className="text-xs text-ink-400">{mentee?.memberNumber || 'Member'}</p>
             </div>
             <span
-              className={	ext-[10px] font-medium px-2 py-0.5 rounded-full flex items-center gap-1 \}
+              className={`text-[10px] font-medium px-2 py-0.5 rounded-full flex items-center gap-1 ${statusInfo.color}`}
             >
               {statusInfo.icon}
               {statusInfo.label}
@@ -103,7 +103,7 @@ function RequestCard({
         </div>
 
         <div className="shrink-0 w-full sm:w-auto flex flex-wrap gap-2">
-          <Link href={/profile/\}>
+          <Link href={`/profile/${mentee?.id ?? request.menteeId}`}>
             <Button variant="outline" size="sm" className="gap-1">
               <Eye className="h-3.5 w-3.5" /> View Profile
             </Button>
@@ -281,7 +281,11 @@ export default function RequestInboxPage() {
               <button
                 key={key}
                 onClick={() => setFilter(key)}
-                className={	ext-sm px-4 py-1.5 rounded-full transition-colors \}
+                className={`text-sm px-4 py-1.5 rounded-full transition-colors ${
+                  filter === key
+                    ? 'bg-ink-900 text-white'
+                    : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+                }`}
               >
                 {key.charAt(0).toUpperCase() + key.slice(1)}
                 {counts[key] > 0 && (
@@ -315,7 +319,11 @@ export default function RequestInboxPage() {
             <button
               key={key}
               onClick={() => setFilter(key)}
-              className={	ext-sm px-4 py-1.5 rounded-full transition-colors \}
+              className={`text-sm px-4 py-1.5 rounded-full transition-colors ${
+                filter === key
+                  ? 'bg-ink-900 text-white'
+                  : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+              }`}
             >
               {key.charAt(0).toUpperCase() + key.slice(1)}
               {counts[key] > 0 && (
