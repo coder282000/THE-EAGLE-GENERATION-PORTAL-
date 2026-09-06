@@ -1,3 +1,4 @@
+'use client';
 import { forwardRef, TextareaHTMLAttributes } from "react";
 import { cn } from "@/lib/utils"; // assuming a utility for classNames; if not, we can use a simple function
 
