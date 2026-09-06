@@ -1,4 +1,4 @@
-'use client';
+
 // app/verify/[id]/page.tsx
 import { notFound, redirect } from "next/navigation";
 import { mockCertificates, mockMembers, mockCourses } from "@/components/mock/data";
