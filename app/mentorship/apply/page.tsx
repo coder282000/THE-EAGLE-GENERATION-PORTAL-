@@ -1,64 +1,64 @@
-"use client";
+// app/mentorship/apply/page.tsx
+'use client';
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { MemberLayout } from "@/components/layout/memberLayout";
-import { Card } from "@/components/card";
-import { Button } from "@/components/button";
-import { Input } from "@/components/input";
-import { Textarea } from "@/components/textarea";
-import { ArrowLeft, AlertCircle, UserCheck } from "lucide-react";
-import { mockMentors, mockMembers, MentorProfile } from "@/components/mock/data";
+import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { MemberLayout } from '@/components/layout/memberLayout';
+import { Card } from '@/components/card';
+import { Button } from '@/components/button';
+import { Textarea } from '@/components/textarea';
+import { ArrowLeft, AlertCircle, UserCheck } from 'lucide-react';
+import { mockMentors, mockMembers, MentorProfile } from '@/components/mock/data';
 
 // ============================================================
 // Helper Data
 // ============================================================
 
 const AVAILABLE_FOCUS_CATEGORIES = [
-  "Leadership",
-  "Governance",
-  "Public Policy",
-  "Entrepreneurship",
-  "Technology",
-  "Software Engineering",
-  "Career Growth",
-  "Cloud Computing",
-  "DevOps",
-  "Infrastructure",
-  "Marketplace",
-  "Data Science",
-  "AI/ML",
-  "Cybersecurity",
-  "Product Management",
-  "Project Management",
-  "Finance",
-  "Legal",
-  "Education",
-  "Healthcare",
+  'Leadership',
+  'Governance',
+  'Public Policy',
+  'Entrepreneurship',
+  'Technology',
+  'Software Engineering',
+  'Career Growth',
+  'Cloud Computing',
+  'DevOps',
+  'Infrastructure',
+  'Marketplace',
+  'Data Science',
+  'AI/ML',
+  'Cybersecurity',
+  'Product Management',
+  'Project Management',
+  'Finance',
+  'Legal',
+  'Education',
+  'Healthcare',
 ];
 
 const AVAILABLE_EXPERTISE = [
-  "Policy Analysis",
-  "Public Administration",
-  "Ethical Leadership",
-  "Business Development",
-  "AI Strategy",
-  "Product Management",
-  "Full Stack Development",
-  "Mentoring Women in Tech",
-  "Cloud Architecture",
-  "AWS",
-  "Kubernetes",
-  "CI/CD",
-  "Site Reliability",
-  "Data Analytics",
-  "Machine Learning",
-  "Cybersecurity",
-  "Risk Management",
-  "Financial Planning",
-  "Legal Compliance",
-  "Project Management",
+  'Policy Analysis',
+  'Public Administration',
+  'Ethical Leadership',
+  'Business Development',
+  'AI Strategy',
+  'Product Management',
+  'Full Stack Development',
+  'Mentoring Women in Tech',
+  'Cloud Architecture',
+  'AWS',
+  'Kubernetes',
+  'CI/CD',
+  'Site Reliability',
+  'Data Analytics',
+  'Machine Learning',
+  'Cybersecurity',
+  'Risk Management',
+  'Financial Planning',
+  'Legal Compliance',
+  'Project Management',
 ];
 
 // ============================================================
@@ -75,11 +75,11 @@ export default function BecomeMentorPage() {
   // Form state
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedExpertise, setSelectedExpertise] = useState<string[]>([]);
-  const [availability, setAvailability] = useState("");
-  const [bio, setBio] = useState("");
+  const [availability, setAvailability] = useState('');
+  const [bio, setBio] = useState('');
 
   // Current user (mock)
-  const currentUserId = "1";
+  const currentUserId = '1';
 
   // Validation
   const isValid = useMemo(() => {
@@ -110,7 +110,7 @@ export default function BecomeMentorPage() {
     e.preventDefault();
 
     if (!isValid) {
-      setError("Please fill in all required fields and ensure bio is at least 20 characters.");
+      setError('Please fill in all required fields and ensure bio is at least 20 characters.');
       return;
     }
 
@@ -138,9 +138,9 @@ export default function BecomeMentorPage() {
         const member = mockMembers.find((m) => m.id === currentUserId);
         const newMentor: MentorProfile = {
           userId: currentUserId,
-          firstName: member?.firstName || "Unknown",
-          lastName: member?.lastName || "User",
-          avatar: member?.avatar || "",
+          firstName: member?.firstName || 'Unknown',
+          lastName: member?.lastName || 'User',
+          avatar: member?.avatar || '',
           focusCategories: selectedCategories,
           expertise: selectedExpertise,
           availability: availability.trim(),
@@ -156,10 +156,10 @@ export default function BecomeMentorPage() {
 
       setSuccess(true);
       setTimeout(() => {
-        router.push("/mentorship/my-mentors");
+        router.push('/mentorship/my-mentors');
       }, 2000);
     } catch (err) {
-      setError("Failed to submit application. Please try again.");
+      setError('Failed to submit application. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -228,8 +228,8 @@ export default function BecomeMentorPage() {
                     onClick={() => toggleCategory(cat)}
                     className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
                       selectedCategories.includes(cat)
-                        ? "bg-dawn-500 text-white"
-                        : "bg-ink-50 text-ink-600 hover:bg-ink-100"
+                        ? 'bg-dawn-500 text-white'
+                        : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
                     }`}
                   >
                     {cat}
@@ -252,8 +252,8 @@ export default function BecomeMentorPage() {
                     onClick={() => toggleExpertise(exp)}
                     className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
                       selectedExpertise.includes(exp)
-                        ? "bg-dawn-500 text-white"
-                        : "bg-ink-50 text-ink-600 hover:bg-ink-100"
+                        ? 'bg-dawn-500 text-white'
+                        : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
                     }`}
                   >
                     {exp}
@@ -268,12 +268,14 @@ export default function BecomeMentorPage() {
               <label htmlFor="availability" className="text-sm font-medium text-ink-700">
                 Availability <span className="text-clay-500">*</span>
               </label>
-              <Input
+              <input
                 id="availability"
+                type="text"
                 placeholder="e.g., Weekends and Tuesday evenings"
                 value={availability}
                 onChange={(e) => setAvailability(e.target.value)}
                 disabled={isLoading}
+                className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-dawn-400 disabled:opacity-50"
               />
               <p className="text-xs text-ink-400">When are you available for mentoring sessions?</p>
             </div>
@@ -325,7 +327,9 @@ export default function BecomeMentorPage() {
                       Submitting...
                     </span>
                   ) : (
-                    <UserCheck className="h-4 w-4 mr-1" /> Become a Mentor
+                    <>
+                      <UserCheck className="h-4 w-4 mr-1" /> Become a Mentor
+                    </>
                   )}
                 </Button>
               </div>
