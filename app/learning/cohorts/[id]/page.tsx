@@ -1,67 +1,67 @@
-"use client";
+// app/learning/cohorts/[id]/page.tsx
+'use client';
 
-import { useEffect, useState, useMemo, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { MemberLayout } from "@/components/layout/memberLayout";
-import { Card } from "@/components/card";
-import { Button } from "@/components/button";
-import { Input } from "@/components/input";
-import { Textarea } from "@/components/textarea";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/avatar";
-import { 
-  ArrowLeft, 
-  Users, 
-  BookOpen, 
-  CheckCircle, 
-  Clock, 
-  UserCheck, 
-  UserX, 
-  Edit2, 
-  Save, 
-  X, 
-  PlusCircle, 
+import { useEffect, useState, useMemo } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { MemberLayout } from '@/components/layout/memberLayout';
+import { Card } from '@/components/card';
+import { Button } from '@/components/button';
+import { Textarea } from '@/components/textarea';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/avatar';
+import {
+  ArrowLeft,
+  Users,
+  BookOpen,
+  CheckCircle,
+  Clock,
+  UserCheck,
+  UserX,
+  Edit2,
+  Save,
+  X,
+  PlusCircle,
   Trash2,
-  AlertCircle
-} from "lucide-react";
-import { mockCohorts, mockCourses, mockCohortMembers, Cohort, Course, CohortMember, mockMembers } from "@/components/mock/data";
-import { format, formatDistanceToNow } from "date-fns";
+  AlertCircle,
+} from 'lucide-react';
+import { mockCohorts, mockCourses, mockCohortMembers, Cohort, Course, CohortMember, mockMembers } from '@/components/mock/data';
+import { format, formatDistanceToNow } from 'date-fns';
 
 // ============================================================
 // Helpers
 // ============================================================
 
 const STATUS_LABELS: Record<string, { label: string; color: string; icon: string }> = {
-  PLANNED: { label: "Planned", color: "bg-ink-100 text-ink-600", icon: "📅" },
-  OPEN: { label: "Open", color: "bg-green-100 text-green-700", icon: "🟢" },
-  FULL: { label: "Full", color: "bg-amber-100 text-amber-700", icon: "🔴" },
-  IN_PROGRESS: { label: "In Progress", color: "bg-blue-100 text-blue-700", icon: "📖" },
-  COMPLETED: { label: "Completed", color: "bg-clay-100 text-clay-700", icon: "✅" },
+  PLANNED: { label: 'Planned', color: 'bg-ink-100 text-ink-600', icon: '📅' },
+  OPEN: { label: 'Open', color: 'bg-green-100 text-green-700', icon: '🟢' },
+  FULL: { label: 'Full', color: 'bg-amber-100 text-amber-700', icon: '🔴' },
+  IN_PROGRESS: { label: 'In Progress', color: 'bg-blue-100 text-blue-700', icon: '📖' },
+  COMPLETED: { label: 'Completed', color: 'bg-clay-100 text-clay-700', icon: '✅' },
 };
 
 const STATUS_OPTIONS = [
-  { value: "PLANNED", label: "Planned" },
-  { value: "OPEN", label: "Open" },
-  { value: "FULL", label: "Full" },
-  { value: "IN_PROGRESS", label: "In Progress" },
-  { value: "COMPLETED", label: "Completed" },
+  { value: 'PLANNED', label: 'Planned' },
+  { value: 'OPEN', label: 'Open' },
+  { value: 'FULL', label: 'Full' },
+  { value: 'IN_PROGRESS', label: 'In Progress' },
+  { value: 'COMPLETED', label: 'Completed' },
 ];
 
 const MEMBER_STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  ACTIVE: { label: "Active", color: "bg-green-100 text-green-700" },
-  COMPLETED: { label: "Completed", color: "bg-blue-100 text-blue-700" },
-  DROPPED: { label: "Dropped", color: "bg-clay-100 text-clay-700" },
+  ACTIVE: { label: 'Active', color: 'bg-green-100 text-green-700' },
+  COMPLETED: { label: 'Completed', color: 'bg-blue-100 text-blue-700' },
+  DROPPED: { label: 'Dropped', color: 'bg-clay-100 text-clay-700' },
 };
 
 function formatDate(dateStr: string): string {
-  return format(new Date(dateStr), "MMM d, yyyy");
+  return format(new Date(dateStr), 'MMM d, yyyy');
 }
 
 function getCohortStats(members: CohortMember[]) {
   const total = members.length;
-  const active = members.filter((m) => m.status === "ACTIVE").length;
-  const completed = members.filter((m) => m.status === "COMPLETED").length;
-  const dropped = members.filter((m) => m.status === "DROPPED").length;
+  const active = members.filter((m) => m.status === 'ACTIVE').length;
+  const completed = members.filter((m) => m.status === 'COMPLETED').length;
+  const dropped = members.filter((m) => m.status === 'DROPPED').length;
   const avgProgress = total > 0 ? Math.round(members.reduce((sum, m) => sum + m.progress, 0) / total) : 0;
   return { total, active, completed, dropped, avgProgress };
 }
@@ -70,13 +70,13 @@ function getCohortStats(members: CohortMember[]) {
 // Member List Component (with management actions)
 // ============================================================
 
-function MemberList({ 
-  cohortId, 
-  canManage, 
-  onRemoveMember 
-}: { 
-  cohortId: string; 
-  canManage: boolean; 
+function MemberList({
+  cohortId,
+  canManage,
+  onRemoveMember,
+}: {
+  cohortId: string;
+  canManage: boolean;
   onRemoveMember: (userId: string) => void;
 }) {
   const members = mockCohortMembers.filter((cm) => cm.cohortId === cohortId);
@@ -98,7 +98,10 @@ function MemberList({
         const initials = `${user.firstName[0]}${user.lastName[0]}`;
 
         return (
-          <div key={cm.userId} className="flex flex-wrap items-center gap-3 p-3 border border-ink-50 rounded-lg hover:border-ink-100 transition-colors">
+          <div
+            key={cm.userId}
+            className="flex flex-wrap items-center gap-3 p-3 border border-ink-50 rounded-lg hover:border-ink-100 transition-colors"
+          >
             <Link href={`/profile/${user.id}`} className="shrink-0">
               <Avatar className="h-10 w-10">
                 {user.avatar ? (
@@ -129,7 +132,11 @@ function MemberList({
                 <div className="mt-0.5 h-1.5 w-full rounded-full bg-ink-100">
                   <div
                     className={`h-1.5 rounded-full transition-all ${
-                      cm.progress === 100 ? "bg-green-500" : cm.progress > 0 ? "bg-dawn-500" : "bg-ink-200"
+                      cm.progress === 100
+                        ? 'bg-green-500'
+                        : cm.progress > 0
+                        ? 'bg-dawn-500'
+                        : 'bg-ink-200'
                     }`}
                     style={{ width: `${cm.progress}%` }}
                   />
@@ -159,14 +166,26 @@ function MemberList({
 
 function CohortTimeline({ cohort }: { cohort: Cohort }) {
   const milestones = [
-    { date: cohort.startsOn, label: "Cohort Starts", icon: "🚀" },
-    { date: cohort.endsOn, label: "Cohort Ends", icon: "🏁" },
+    { date: cohort.startsOn, label: 'Cohort Starts', icon: '🚀' },
+    { date: cohort.endsOn, label: 'Cohort Ends', icon: '🏁' },
   ];
 
   const phaseMilestones = [
-    { date: new Date(new Date(cohort.startsOn).getTime() + 1000 * 60 * 60 * 24 * 30).toISOString(), label: "Phase 1: Foundation", icon: "📚" },
-    { date: new Date(new Date(cohort.startsOn).getTime() + 1000 * 60 * 60 * 24 * 60).toISOString(), label: "Phase 2: Specialisation", icon: "📖" },
-    { date: new Date(new Date(cohort.startsOn).getTime() + 1000 * 60 * 60 * 24 * 90).toISOString(), label: "Phase 3: Application", icon: "🛠️" },
+    {
+      date: new Date(new Date(cohort.startsOn).getTime() + 1000 * 60 * 60 * 24 * 30).toISOString(),
+      label: 'Phase 1: Foundation',
+      icon: '📚',
+    },
+    {
+      date: new Date(new Date(cohort.startsOn).getTime() + 1000 * 60 * 60 * 24 * 60).toISOString(),
+      label: 'Phase 2: Specialisation',
+      icon: '📖',
+    },
+    {
+      date: new Date(new Date(cohort.startsOn).getTime() + 1000 * 60 * 60 * 24 * 90).toISOString(),
+      label: 'Phase 3: Application',
+      icon: '🛠️',
+    },
   ];
 
   const allMilestones = [...milestones, ...phaseMilestones].sort(
@@ -209,22 +228,22 @@ export default function CohortDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isManageMode, setIsManageMode] = useState(false);
 
-  const [editName, setEditName] = useState("");
-  const [editStartsOn, setEditStartsOn] = useState("");
-  const [editEndsOn, setEditEndsOn] = useState("");
+  const [editName, setEditName] = useState('');
+  const [editStartsOn, setEditStartsOn] = useState('');
+  const [editEndsOn, setEditEndsOn] = useState('');
   const [editCapacity, setEditCapacity] = useState(0);
-  const [editStatus, setEditStatus] = useState<Cohort["status"]>("PLANNED");
-  const [editFacilitators, setEditFacilitators] = useState("");
+  const [editStatus, setEditStatus] = useState<Cohort['status']>('PLANNED');
+  const [editFacilitators, setEditFacilitators] = useState('');
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const [memberSearch, setMemberSearch] = useState("");
+  const [memberSearch, setMemberSearch] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isAddingMember, setIsAddingMember] = useState(false);
 
-  const currentUserId = "1";
+  const currentUserId = '1';
 
   const isFacilitator = cohort?.facilitators?.includes(currentUserId) || false;
 
@@ -236,7 +255,7 @@ export default function CohortDetailPage() {
 
         const foundCohort = mockCohorts.find((c) => c.id === cohortId);
         if (!foundCohort) {
-          setError("Cohort not found");
+          setError('Cohort not found');
           setIsLoading(false);
           return;
         }
@@ -246,7 +265,7 @@ export default function CohortDetailPage() {
         setEditEndsOn(foundCohort.endsOn);
         setEditCapacity(foundCohort.capacity);
         setEditStatus(foundCohort.status);
-        setEditFacilitators(foundCohort.facilitators.join(", "));
+        setEditFacilitators(foundCohort.facilitators.join(', '));
 
         const foundCourse = mockCourses.find((c) => c.id === foundCohort.courseId);
         if (foundCourse) setCourse(foundCourse);
@@ -256,7 +275,7 @@ export default function CohortDetailPage() {
 
         setError(null);
       } catch (err) {
-        setError("Failed to load cohort. Please try again.");
+        setError('Failed to load cohort. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -269,7 +288,7 @@ export default function CohortDetailPage() {
   const statusInfo = cohort ? STATUS_LABELS[cohort.status] || STATUS_LABELS.PLANNED : null;
 
   const handleRemoveMember = (userId: string) => {
-    if (!confirm("Are you sure you want to remove this member from the cohort?")) return;
+    if (!confirm('Are you sure you want to remove this member from the cohort?')) return;
     setMembers((prev) => prev.filter((m) => m.userId !== userId));
   };
 
@@ -282,12 +301,13 @@ export default function CohortDetailPage() {
     const q = query.toLowerCase().trim();
     const alreadyInCohort = members.map((m) => m.userId);
     const results = mockMembers
-      .filter((m) => 
-        !alreadyInCohort.includes(m.id) &&
-        (m.firstName.toLowerCase().includes(q) || 
-         m.lastName.toLowerCase().includes(q) || 
-         m.email.toLowerCase().includes(q) ||
-         m.memberNumber.toLowerCase().includes(q))
+      .filter(
+        (m) =>
+          !alreadyInCohort.includes(m.id) &&
+          (m.firstName.toLowerCase().includes(q) ||
+            m.lastName.toLowerCase().includes(q) ||
+            m.email.toLowerCase().includes(q) ||
+            m.memberNumber.toLowerCase().includes(q))
       )
       .slice(0, 5);
     setSearchResults(results);
@@ -299,11 +319,11 @@ export default function CohortDetailPage() {
       userId,
       cohortId: cohort!.id,
       progress: 0,
-      status: "ACTIVE",
+      status: 'ACTIVE',
       enrolledAt: new Date().toISOString(),
     };
     setMembers((prev) => [...prev, newMember]);
-    setMemberSearch("");
+    setMemberSearch('');
     setSearchResults([]);
     setIsAddingMember(false);
     if (cohort) {
@@ -327,7 +347,10 @@ export default function CohortDetailPage() {
         endsOn: editEndsOn,
         capacity: editCapacity,
         status: editStatus,
-        facilitators: editFacilitators.split(",").map((f) => f.trim()).filter(Boolean),
+        facilitators: editFacilitators
+          .split(',')
+          .map((f) => f.trim())
+          .filter(Boolean),
       };
 
       const index = mockCohorts.findIndex((c) => c.id === cohortId);
@@ -340,19 +363,19 @@ export default function CohortDetailPage() {
       setTimeout(() => setSaveSuccess(false), 3000);
       setIsManageMode(false);
     } catch (err) {
-      setSaveError("Failed to save changes. Please try again.");
+      setSaveError('Failed to save changes. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDeleteCohort = () => {
-    if (!confirm("Are you sure you want to delete this cohort? This action cannot be undone.")) return;
+    if (!confirm('Are you sure you want to delete this cohort? This action cannot be undone.')) return;
     const index = mockCohorts.findIndex((c) => c.id === cohortId);
     if (index !== -1) {
       mockCohorts.splice(index, 1);
     }
-    router.push(`/learning/courses/${course?.slug || ""}`);
+    router.push(`/learning/courses/${course?.slug || ''}`);
   };
 
   if (isLoading) {
@@ -405,8 +428,8 @@ export default function CohortDetailPage() {
       <MemberLayout>
         <div className="max-w-3xl mx-auto flex flex-col items-center justify-center py-12 text-center">
           <span className="text-4xl mb-4">🔍</span>
-          <p className="text-lg text-ink-600">{error || "Cohort not found"}</p>
-          <Button variant="outline" className="mt-4" onClick={() => router.push("/learning/courses")}>
+          <p className="text-lg text-ink-600">{error || 'Cohort not found'}</p>
+          <Button variant="outline" className="mt-4" onClick={() => router.push('/learning/courses')}>
             Back to Courses
           </Button>
         </div>
@@ -414,10 +437,10 @@ export default function CohortDetailPage() {
     );
   }
 
-  const isOpen = cohort.status === "OPEN";
-  const isFull = cohort.status === "FULL";
-  const isInProgress = cohort.status === "IN_PROGRESS";
-  const isCompleted = cohort.status === "COMPLETED";
+  const isOpen = cohort.status === 'OPEN';
+  const isFull = cohort.status === 'FULL';
+  const isInProgress = cohort.status === 'IN_PROGRESS';
+  const isCompleted = cohort.status === 'COMPLETED';
 
   return (
     <MemberLayout>
@@ -432,15 +455,19 @@ export default function CohortDetailPage() {
           </button>
           {isFacilitator && (
             <Button
-              variant={isManageMode ? "primary" : "outline"}
+              variant={isManageMode ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setIsManageMode(!isManageMode)}
               className="gap-1"
             >
               {isManageMode ? (
-                <><X className="h-4 w-4" /> Cancel</>
+                <>
+                  <X className="h-4 w-4" /> Cancel
+                </>
               ) : (
-                <><Edit2 className="h-4 w-4" /> Manage Cohort</>
+                <>
+                  <Edit2 className="h-4 w-4" /> Manage Cohort
+                </>
               )}
             </Button>
           )}
@@ -464,54 +491,65 @@ export default function CohortDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-ink-700">Cohort Name</label>
-                  <Input
+                  <input
+                    type="text"
                     value={editName}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditName(e.target.value)}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-dawn-400"
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-ink-700">Status</label>
                   <select
                     value={editStatus}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setEditStatus(e.target.value as Cohort["status"])}
-                    className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm bg-white"
+                    onChange={(e) => setEditStatus(e.target.value as Cohort['status'])}
+                    className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-dawn-400"
                   >
                     {STATUS_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-ink-700">Start Date</label>
-                  <Input
+                  <input
                     type="date"
                     value={editStartsOn}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditStartsOn(e.target.value)}
+                    onChange={(e) => setEditStartsOn(e.target.value)}
+                    className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-dawn-400"
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-ink-700">End Date</label>
-                  <Input
+                  <input
                     type="date"
                     value={editEndsOn}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditEndsOn(e.target.value)}
+                    onChange={(e) => setEditEndsOn(e.target.value)}
+                    className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-dawn-400"
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-ink-700">Capacity</label>
-                  <Input
+                  <input
                     type="number"
                     min="1"
                     value={editCapacity}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditCapacity(parseInt(e.target.value) || 0)}
+                    onChange={(e) => setEditCapacity(parseInt(e.target.value) || 0)}
+                    className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-dawn-400"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-ink-700">Facilitators (comma-separated names)</label>
-                  <Input
+                  <label className="text-sm font-medium text-ink-700">
+                    Facilitators (comma-separated names)
+                  </label>
+                  <input
+                    type="text"
                     value={editFacilitators}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditFacilitators(e.target.value)}
+                    onChange={(e) => setEditFacilitators(e.target.value)}
                     placeholder="e.g., Grace Mwangi, David Ochieng"
+                    className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-dawn-400"
                   />
                 </div>
               </div>
@@ -523,10 +561,14 @@ export default function CohortDetailPage() {
                       Saving...
                     </span>
                   ) : (
-                    <Save className="h-4 w-4 mr-1" /> Save Changes
+                    <>
+                      <Save className="h-4 w-4 mr-1" /> Save Changes
+                    </>
                   )}
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => setIsManageMode(false)}>Cancel</Button>
+                <Button variant="outline" size="sm" onClick={() => setIsManageMode(false)}>
+                  Cancel
+                </Button>
               </div>
             </div>
           ) : (
@@ -540,13 +582,17 @@ export default function CohortDetailPage() {
                     </Link>
                   )}
                   <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-ink-400">
-                    <span>📅 {formatDate(cohort.startsOn)} → {formatDate(cohort.endsOn)}</span>
+                    <span>
+                      📅 {formatDate(cohort.startsOn)} → {formatDate(cohort.endsOn)}
+                    </span>
                     <span>•</span>
-                    <span>👥 {cohort.enrolled} / {cohort.capacity} enrolled</span>
+                    <span>
+                      👥 {cohort.enrolled} / {cohort.capacity} enrolled
+                    </span>
                     {cohort.facilitators.length > 0 && (
                       <>
                         <span>•</span>
-                        <span>👨‍🏫 {cohort.facilitators.join(", ")}</span>
+                        <span>👨‍🏫 {cohort.facilitators.join(', ')}</span>
                       </>
                     )}
                   </div>
@@ -579,14 +625,20 @@ export default function CohortDetailPage() {
 
               <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-ink-100">
                 {isOpen && !isFull && (
-                  <Button variant="primary" size="sm">Enrol Now</Button>
+                  <Button variant="primary" size="sm">
+                    Enrol Now
+                  </Button>
                 )}
                 {isFull && (
-                  <Button variant="outline" size="sm">Join Waitlist</Button>
+                  <Button variant="outline" size="sm">
+                    Join Waitlist
+                  </Button>
                 )}
                 {isCompleted && course && (
                   <Link href={`/learning/certificates/${course.id}`}>
-                    <Button variant="outline" size="sm">🎓 View Certificates</Button>
+                    <Button variant="outline" size="sm">
+                      🎓 View Certificates
+                    </Button>
                   </Link>
                 )}
                 {isFacilitator && (
@@ -602,25 +654,33 @@ export default function CohortDetailPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-lg font-semibold text-ink-900">Members</h2>
-            <span className="text-sm text-ink-400">{stats.total} member{stats.total !== 1 ? "s" : ""}</span>
+            <span className="text-sm text-ink-400">
+              {stats.total} member{stats.total !== 1 ? 's' : ''}
+            </span>
           </div>
 
           {isManageMode && isFacilitator && (
             <div className="mb-4 p-4 bg-ink-50 rounded-lg border border-ink-100">
               <h3 className="font-medium text-sm text-ink-700 mb-2">Add Member</h3>
               <div className="flex flex-wrap items-center gap-2">
-                <Input
+                <input
+                  type="text"
                   placeholder="Search by name, email, or member number..."
                   value={memberSearch}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearchMembers(e.target.value)}
-                  className="flex-1 min-w-[200px]"
+                  onChange={(e) => handleSearchMembers(e.target.value)}
+                  className="flex-1 min-w-[200px] rounded-md border border-ink-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-dawn-400"
                 />
               </div>
               {searchResults.length > 0 && (
                 <div className="mt-2 space-y-1">
                   {searchResults.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-2 bg-white rounded border border-ink-100">
-                      <span className="text-sm">{user.firstName} {user.lastName} ({user.memberNumber})</span>
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between p-2 bg-white rounded border border-ink-100"
+                    >
+                      <span className="text-sm">
+                        {user.firstName} {user.lastName} ({user.memberNumber})
+                      </span>
                       <Button
                         variant="primary"
                         size="sm"
@@ -639,8 +699,8 @@ export default function CohortDetailPage() {
             </div>
           )}
 
-          <MemberList 
-            cohortId={cohort.id} 
+          <MemberList
+            cohortId={cohort.id}
             canManage={isManageMode && isFacilitator}
             onRemoveMember={handleRemoveMember}
           />
@@ -657,12 +717,7 @@ export default function CohortDetailPage() {
             <p className="text-sm text-ink-500 mt-1">
               Deleting a cohort is permanent and cannot be undone. All member data and progress will be lost.
             </p>
-            <Button
-              variant="danger"
-              size="sm"
-              className="mt-3"
-              onClick={handleDeleteCohort}
-            >
+            <Button variant="danger" size="sm" className="mt-3" onClick={handleDeleteCohort}>
               <Trash2 className="h-4 w-4 mr-1" /> Delete Cohort
             </Button>
           </Card>
