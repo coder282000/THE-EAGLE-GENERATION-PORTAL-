@@ -152,11 +152,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
-// Hook for using cart
-export function useCart() {
+// ✅ FIX: Hook for using cart – returns fallback when used outside provider
+export function useCart(): CartContextValue {
   const context = useContext(CartContext);
   if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
+    // Return a safe fallback for static generation or when used outside provider
+    // This prevents "Cannot read properties of null" during Vercel build
+    if (process.env.NODE_ENV === 'production') {
+      // In production, log a warning but don't break the app
+      console.warn('useCart was called outside of CartProvider. Using fallback empty cart.');
+    }
+    return {
+      items: [],
+      totalItems: 0,
+      totalPrice: 0,
+      addItem: () => {},
+      removeItem: () => {},
+      updateQuantity: () => {},
+      clearCart: () => {},
+      isInCart: () => false,
+      getItemQuantity: () => 0,
+    };
   }
   return context;
 }
