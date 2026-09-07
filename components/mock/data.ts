@@ -514,6 +514,146 @@ export interface PaymentTransaction {
 }
 
 // ============================================================
+// R4 – SAVINGS & CREDIT (NEW)
+// ============================================================
+
+// ---------- Savings ----------
+export interface Circle {
+  id: string;
+  name: string;
+  description: string;
+  type: 'ROTATING' | 'INVESTMENT' | 'GOAL';
+  contributionAmount: number; // in minor units (cents)
+  currency: string; // e.g., 'KES'
+  frequency: 'WEEKLY' | 'MONTHLY' | 'QUARTERLY';
+  payoutOrder: 'ROTATIONAL' | 'RANDOM' | 'BIDDING';
+  status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'DISBANDED';
+  leaderId: string; // userId of CIRCLE_LEADER
+  memberIds: string[]; // userIds
+  createdAt: string;
+  nextPayoutDate?: string;
+  totalBalance: number; // in minor units (derived from ledger)
+  contributionCount?: number;
+  memberCount?: number;
+}
+
+export interface Contribution {
+  id: string;
+  circleId: string;
+  memberId: string;
+  amount: number; // minor units
+  currency: string;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REVERSED';
+  transactionId?: string;
+  paidAt?: string;
+  createdAt: string;
+  method: 'M-PESA' | 'BANK' | 'WALLET';
+}
+
+export interface Payout {
+  id: string;
+  circleId: string;
+  memberId: string;
+  amount: number; // minor units
+  currency: string;
+  status: 'PENDING' | 'APPROVED' | 'EXECUTED' | 'FAILED' | 'REVERSED';
+  initiatedBy: string; // userId
+  approvedBy?: string; // userId (four‑eyes)
+  scheduledDate: string;
+  executedAt?: string;
+  createdAt: string;
+}
+
+export interface Dispute {
+  id: string;
+  circleId: string;
+  raisedBy: string; // userId
+  title: string;
+  description: string;
+  status: 'OPEN' | 'IN_REVIEW' | 'RESOLVED' | 'CLOSED';
+  resolution?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ---------- Credit / Loans ----------
+export interface LoanProduct {
+  id: string;
+  name: string;
+  description: string;
+  minAmount: number; // minor units
+  maxAmount: number;
+  minTenor: number; // months
+  maxTenor: number;
+  interestRate: number; // annual percentage
+  serviceFee: number; // flat fee in minor units
+  eligibilityCriteria: {
+    minKycLevel: 0 | 1 | 2;
+    minSavingsBalance?: number;
+    minMemberTier?: 'STUDENT' | 'PROFESSIONAL' | 'ASSOCIATE';
+  };
+  status: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
+}
+
+export interface LoanApplication {
+  id: string;
+  productId: string;
+  memberId: string;
+  amount: number;
+  tenor: number; // months
+  purpose: string;
+  affordabilityNotes?: string;
+  guarantorIds: string[]; // userIds
+  status: 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'OFFERED' | 'DISBURSED' | 'REPAID';
+  submittedAt?: string;
+  decisionAt?: string;
+  offer?: {
+    interestRate: number;
+    totalCost: number; // total cost of credit (minor units)
+    monthlyPayment: number;
+    approvedAmount: number;
+    approvedTenor: number;
+    expiresAt: string;
+  };
+  createdAt: string;
+}
+
+export interface Loan {
+  id: string;
+  applicationId: string;
+  memberId: string;
+  productId: string;
+  principal: number;
+  interestRate: number;
+  totalCost: number;
+  disbursedAt: string;
+  nextDueDate: string;
+  outstandingBalance: number;
+  status: 'ACTIVE' | 'PAID' | 'DEFAULTED' | 'RESTRUCTURED';
+  repayments: Repayment[];
+}
+
+export interface Repayment {
+  id: string;
+  loanId: string;
+  dueDate: string;
+  amount: number;
+  paidAmount?: number;
+  status: 'PAID' | 'PARTIAL' | 'OVERDUE' | 'PENDING';
+  paidAt?: string;
+}
+
+export interface Guarantee {
+  id: string;
+  loanId: string;
+  guarantorId: string; // userId
+  borrowerId: string;
+  amount: number;
+  status: 'PENDING' | 'ACTIVE' | 'RELEASED' | 'CALLED';
+  createdAt: string;
+}
+
+// ============================================================
 // 2. MOCK DATA
 // ============================================================
 
@@ -2679,6 +2819,291 @@ export const mockPaymentTransactions: PaymentTransaction[] = [
 ];
 
 // ============================================================
+// R4 – MOCK DATA (Savings & Credit)
+// ============================================================
+
+// ---- Mock Circles ----
+export const mockCircles: Circle[] = [
+  {
+    id: 'c1',
+    name: 'Nairobi Professional Circle',
+    description: 'Monthly savings for professionals in Nairobi. Rotational payouts.',
+    type: 'ROTATING',
+    contributionAmount: 5000,
+    currency: 'KES',
+    frequency: 'MONTHLY',
+    payoutOrder: 'ROTATIONAL',
+    status: 'ACTIVE',
+    leaderId: '5',
+    memberIds: ['1', '2', '3', '5'],
+    createdAt: '2026-01-15T10:00:00Z',
+    nextPayoutDate: '2026-02-15T10:00:00Z',
+    totalBalance: 20000,
+    contributionCount: 4,
+    memberCount: 4,
+  },
+  {
+    id: 'c2',
+    name: 'Tech Innovators Investment Pool',
+    description: 'Investing in tech startups. Quarterly payouts.',
+    type: 'INVESTMENT',
+    contributionAmount: 10000,
+    currency: 'KES',
+    frequency: 'QUARTERLY',
+    payoutOrder: 'RANDOM',
+    status: 'ACTIVE',
+    leaderId: '3',
+    memberIds: ['1', '2', '3'],
+    createdAt: '2025-11-01T10:00:00Z',
+    nextPayoutDate: '2026-04-01T10:00:00Z',
+    totalBalance: 30000,
+    contributionCount: 3,
+    memberCount: 3,
+  },
+  {
+    id: 'c3',
+    name: 'Thika Chapter Savings',
+    description: 'Supporting chapter projects.',
+    type: 'GOAL',
+    contributionAmount: 2000,
+    currency: 'KES',
+    frequency: 'WEEKLY',
+    payoutOrder: 'BIDDING',
+    status: 'PAUSED',
+    leaderId: '2',
+    memberIds: ['2', '4', '6'],
+    createdAt: '2025-12-01T10:00:00Z',
+    totalBalance: 6000,
+    contributionCount: 3,
+    memberCount: 3,
+  },
+];
+
+// ---- Mock Contributions ----
+export const mockContributions: Contribution[] = [
+  {
+    id: 'ct1',
+    circleId: 'c1',
+    memberId: '1',
+    amount: 5000,
+    currency: 'KES',
+    status: 'COMPLETED',
+    transactionId: 'txn_001',
+    paidAt: '2026-01-15T10:30:00Z',
+    createdAt: '2026-01-15T10:00:00Z',
+    method: 'M-PESA',
+  },
+  {
+    id: 'ct2',
+    circleId: 'c1',
+    memberId: '2',
+    amount: 5000,
+    currency: 'KES',
+    status: 'PENDING',
+    createdAt: '2026-01-16T09:00:00Z',
+    method: 'BANK',
+  },
+  {
+    id: 'ct3',
+    circleId: 'c2',
+    memberId: '1',
+    amount: 10000,
+    currency: 'KES',
+    status: 'COMPLETED',
+    transactionId: 'txn_002',
+    paidAt: '2025-11-01T11:00:00Z',
+    createdAt: '2025-11-01T10:00:00Z',
+    method: 'WALLET',
+  },
+];
+
+// ---- Mock Payouts ----
+export const mockPayouts: Payout[] = [
+  {
+    id: 'p1',
+    circleId: 'c1',
+    memberId: '1',
+    amount: 5000,
+    currency: 'KES',
+    status: 'PENDING',
+    initiatedBy: '5',
+    scheduledDate: '2026-02-15T10:00:00Z',
+    createdAt: '2026-02-14T10:00:00Z',
+  },
+  {
+    id: 'p2',
+    circleId: 'c2',
+    memberId: '2',
+    amount: 10000,
+    currency: 'KES',
+    status: 'APPROVED',
+    initiatedBy: '3',
+    approvedBy: '5',
+    scheduledDate: '2026-04-01T10:00:00Z',
+    createdAt: '2026-03-30T10:00:00Z',
+  },
+];
+
+// ---- Mock Disputes ----
+export const mockDisputes: Dispute[] = [
+  {
+    id: 'd1',
+    circleId: 'c1',
+    raisedBy: '2',
+    title: 'Missing contribution record',
+    description: 'I contributed on 2026-01-16 but it is not showing in the ledger.',
+    status: 'OPEN',
+    createdAt: '2026-01-17T08:00:00Z',
+    updatedAt: '2026-01-17T08:00:00Z',
+  },
+];
+
+// ---- Mock Loan Products ----
+export const mockLoanProducts: LoanProduct[] = [
+  {
+    id: 'lp1',
+    name: 'Member Quick Loan',
+    description: 'Short-term loan for verified members. Up to 6 months.',
+    minAmount: 10000,
+    maxAmount: 50000,
+    minTenor: 1,
+    maxTenor: 6,
+    interestRate: 12,
+    serviceFee: 500,
+    eligibilityCriteria: {
+      minKycLevel: 1,
+      minMemberTier: 'PROFESSIONAL',
+    },
+    status: 'ACTIVE',
+  },
+  {
+    id: 'lp2',
+    name: 'Savings-Backed Loan',
+    description: 'Loan secured by your savings circle balance.',
+    minAmount: 5000,
+    maxAmount: 200000,
+    minTenor: 3,
+    maxTenor: 12,
+    interestRate: 8,
+    serviceFee: 1000,
+    eligibilityCriteria: {
+      minKycLevel: 2,
+      minSavingsBalance: 10000,
+    },
+    status: 'ACTIVE',
+  },
+  {
+    id: 'lp3',
+    name: 'Chapter Development Loan',
+    description: 'For chapter leaders to fund events and projects.',
+    minAmount: 20000,
+    maxAmount: 100000,
+    minTenor: 6,
+    maxTenor: 18,
+    interestRate: 10,
+    serviceFee: 1500,
+    eligibilityCriteria: {
+      minKycLevel: 2,
+      minMemberTier: 'PROFESSIONAL',
+    },
+    status: 'PAUSED',
+  },
+];
+
+// ---- Mock Loan Applications ----
+export const mockLoanApplications: LoanApplication[] = [
+  {
+    id: 'la1',
+    productId: 'lp1',
+    memberId: '1',
+    amount: 30000,
+    tenor: 3,
+    purpose: 'To buy a laptop for my studies.',
+    affordabilityNotes: 'I have a part-time job earning KES 15,000/month.',
+    guarantorIds: ['2'],
+    status: 'UNDER_REVIEW',
+    submittedAt: '2026-01-20T09:00:00Z',
+    createdAt: '2026-01-19T10:00:00Z',
+  },
+  {
+    id: 'la2',
+    productId: 'lp2',
+    memberId: '3',
+    amount: 50000,
+    tenor: 6,
+    purpose: 'To expand my small business.',
+    affordabilityNotes: 'Monthly net income KES 30,000.',
+    guarantorIds: ['1', '5'],
+    status: 'OFFERED',
+    submittedAt: '2026-01-15T11:00:00Z',
+    offer: {
+      interestRate: 8,
+      totalCost: 62000,
+      monthlyPayment: 10333,
+      approvedAmount: 50000,
+      approvedTenor: 6,
+      expiresAt: '2026-02-15T11:00:00Z',
+    },
+    createdAt: '2026-01-14T10:00:00Z',
+  },
+];
+
+// ---- Mock Loans ----
+export const mockLoans: Loan[] = [
+  {
+    id: 'l1',
+    applicationId: 'la2',
+    memberId: '3',
+    productId: 'lp2',
+    principal: 50000,
+    interestRate: 8,
+    totalCost: 62000,
+    disbursedAt: '2026-01-22T10:00:00Z',
+    nextDueDate: '2026-02-22T10:00:00Z',
+    outstandingBalance: 62000,
+    status: 'ACTIVE',
+    repayments: [
+      {
+        id: 'r1',
+        loanId: 'l1',
+        dueDate: '2026-02-22T10:00:00Z',
+        amount: 10333,
+        status: 'PENDING',
+      },
+      {
+        id: 'r2',
+        loanId: 'l1',
+        dueDate: '2026-03-22T10:00:00Z',
+        amount: 10333,
+        status: 'PENDING',
+      },
+    ],
+  },
+];
+
+// ---- Mock Guarantees ----
+export const mockGuarantees: Guarantee[] = [
+  {
+    id: 'g1',
+    loanId: 'l1',
+    guarantorId: '1',
+    borrowerId: '3',
+    amount: 50000,
+    status: 'ACTIVE',
+    createdAt: '2026-01-20T10:00:00Z',
+  },
+  {
+    id: 'g2',
+    loanId: 'la1',
+    guarantorId: '2',
+    borrowerId: '1',
+    amount: 30000,
+    status: 'PENDING',
+    createdAt: '2026-01-20T10:00:00Z',
+  },
+];
+
+// ============================================================
 // 3. EXPORT ALL (for convenience)
 // ============================================================
 
@@ -2723,4 +3148,13 @@ export const mockData = {
   donations: mockDonations,
   kycSubmissions: mockKYCSubmissions,
   paymentTransactions: mockPaymentTransactions,
+  // R4
+  circles: mockCircles,
+  contributions: mockContributions,
+  payouts: mockPayouts,
+  disputes: mockDisputes,
+  loanProducts: mockLoanProducts,
+  loanApplications: mockLoanApplications,
+  loans: mockLoans,
+  guarantees: mockGuarantees,
 };

@@ -24,7 +24,7 @@ const navSections: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/dashboard", label: "Dashboard", icon: "📊" },
       { href: "/chapter", label: "My Chapter", icon: "🏛️" },
-      { href: "/shop", label: "Shop", icon: "🛒" }, // Added Shop
+      { href: "/shop", label: "Shop", icon: "🛒" },
     ],
   },
   {
@@ -61,7 +61,16 @@ const navSections: { title: string; items: NavItem[] }[] = [
     ],
   },
   {
-    title: "Giving & Support", // New section
+    title: "Finance",
+    items: [
+      { href: "/savings", label: "Savings", icon: "💰" },
+      { href: "/credit", label: "Credit", icon: "💳" },
+      { href: "/credit/my-loans", label: "My Loans", icon: "📋" },
+      { href: "/credit/guarantees", label: "Guarantees", icon: "🛡️" },
+    ],
+  },
+  {
+    title: "Giving & Support",
     items: [
       { href: "/giving", label: "Give", icon: "❤️" },
       { href: "/profile/giving", label: "Giving History", icon: "📜" },
@@ -81,13 +90,14 @@ const navSections: { title: string; items: NavItem[] }[] = [
   },
 ];
 
-// Flat list for bottom mobile nav (only the most important items)
+// Flat list for bottom mobile nav
 const mobileNavItems: NavItem[] = [
   { href: "/dashboard", label: "Home", icon: "🏠" },
   { href: "/community/feed", label: "Feed", icon: "📰" },
   { href: "/learning/courses", label: "Learn", icon: "📚" },
   { href: "/events", label: "Events", icon: "📅" },
-  { href: "/shop", label: "Shop", icon: "🛒" }, // Added Shop to mobile nav
+  { href: "/shop", label: "Shop", icon: "🛒" },
+  { href: "/savings", label: "Savings", icon: "💰" },
   { href: "/profile/me", label: "Profile", icon: "👤" },
 ];
 
@@ -309,14 +319,14 @@ export function MemberLayout({ children }: { children: ReactNode }) {
 
         {/* Bottom navigation - Mobile only */}
         <nav className="bg-white border-t border-ink-100 fixed bottom-0 w-full z-10 md:hidden">
-          <div className="flex justify-around items-center h-16">
+          <div className="flex justify-around items-center h-16 overflow-x-auto">
             {mobileNavItems.map((item) => {
               const active = isActive(item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex flex-col items-center text-xs ${
+                  className={`flex flex-col items-center text-xs min-w-[4rem] ${
                     active ? "text-dawn-600" : "text-ink-400 hover:text-ink-600"
                   }`}
                 >

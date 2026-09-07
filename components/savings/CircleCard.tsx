@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { Card } from '@/components/card';
 import { Button } from '@/components/button';
-import { AvatarGroup } from '@/components/avatar-group'; // we'll create this or use a simple list
-import { PillarTag } from '@/components/pillartag';
+import { PillarTag } from '@/components/pillarTag'; // corrected casing
 import { formatCurrency } from '@/lib/utils';
 import { Circle } from '@/components/mock/data';
 
@@ -72,11 +71,22 @@ export function CircleCard({ circle, isMember = false, onJoin }: CircleCardProps
             <Button variant="outline" size="sm">View</Button>
           </Link>
           {!isMember && onJoin && (
-            <Button variant="sky" size="sm" onClick={() => onJoin(circle.id)}>Join</Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => onJoin(circle.id)}
+            >
+              Join
+            </Button>
           )}
-          {isMember && circle.leaderId === '3' && ( // mock current user as leader
+          {isMember && circle.leaderId === '3' && (
             <Link href={`/savings/circles/${circle.id}/manage`}>
-              <Button variant="clay" size="sm">Manage</Button>
+              <Button
+                variant="secondary"  // or "warning" if your Button supports it
+                size="sm"
+              >
+                Manage
+              </Button>
             </Link>
           )}
         </div>

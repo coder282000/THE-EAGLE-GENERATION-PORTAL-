@@ -1,13 +1,14 @@
+// components/savings/LedgerTable.tsx
 import { formatCurrency } from '@/lib/utils';
 
-interface LedgerEntry {
+export interface LedgerEntry {
   id: string;
   date: string;
   description: string;
   amount: number;
   currency: string;
   type: 'CREDIT' | 'DEBIT';
-  status?: 'PENDING' | 'COMPLETED' | 'FAILED';
+  status?: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REVERSED' | 'APPROVED' | 'EXECUTED';
 }
 
 interface LedgerTableProps {
@@ -16,7 +17,7 @@ interface LedgerTableProps {
   title?: string;
 }
 
-export function LedgerTable({ entries, currency, title = 'Transaction History' }: LedgerTableProps) {
+export default function LedgerTable({ entries, currency, title = 'Transaction History' }: LedgerTableProps) {
   if (entries.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -25,6 +26,15 @@ export function LedgerTable({ entries, currency, title = 'Transaction History' }
       </div>
     );
   }
+
+  const statusStyles: Record<string, string> = {
+    COMPLETED: 'bg-emerald-100 text-emerald-800',
+    PENDING: 'bg-amber-100 text-amber-800',
+    FAILED: 'bg-red-100 text-red-800',
+    REVERSED: 'bg-gray-100 text-gray-800',
+    APPROVED: 'bg-blue-100 text-blue-800',
+    EXECUTED: 'bg-indigo-100 text-indigo-800',
+  };
 
   return (
     <div className="overflow-x-auto">
@@ -39,29 +49,30 @@ export function LedgerTable({ entries, currency, title = 'Transaction History' }
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
-          {entries.map((entry) => (
-            <tr key={entry.id} className="hover:bg-gray-50">
-              <td className="px-4 py-2 text-sm text-gray-600">
-                {new Date(entry.date).toLocaleDateString()}
-              </td>
-              <td className="px-4 py-2 text-sm text-ink">{entry.description}</td>
-              <td className={`px-4 py-2 text-sm font-medium text-right ${
-                entry.type === 'CREDIT' ? 'text-emerald-600' : 'text-red-600'
-              }`}>
-                {entry.type === 'CREDIT' ? '+' : '-'}
-                {formatCurrency(Math.abs(entry.amount), entry.currency)}
-              </td>
-              <td className="px-4 py-2 text-sm text-center">
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                  entry.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800' :
-                  entry.status === 'PENDING' ? 'bg-amber-100 text-amber-800' :
-                  'bg-red-100 text-red-800'
+          {entries.map((entry) => {
+            const status = entry.status || 'COMPLETED';
+            const statusClass = statusStyles[status] || 'bg-gray-100 text-gray-800';
+
+            return (
+              <tr key={entry.id} className="hover:bg-gray-50">
+                <td className="px-4 py-2 text-sm text-gray-600">
+                  {new Date(entry.date).toLocaleDateString()}
+                </td>
+                <td className="px-4 py-2 text-sm text-ink">{entry.description}</td>
+                <td className={`px-4 py-2 text-sm font-medium text-right ${
+                  entry.type === 'CREDIT' ? 'text-emerald-600' : 'text-red-600'
                 }`}>
-                  {entry.status || 'COMPLETED'}
-                </span>
-              </td>
-            </tr>
-          ))}
+                  {entry.type === 'CREDIT' ? '+' : '-'}
+                  {formatCurrency(Math.abs(entry.amount), entry.currency)}
+                </td>
+                <td className="px-4 py-2 text-sm text-center">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusClass}`}>
+                    {status}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

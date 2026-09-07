@@ -1,8 +1,9 @@
 // app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter, IBM_Plex_Mono } from "next/font/google";
+// @ts-ignore – CSS import
 import "./globals.css";
-import { Providers } from "./providers"; // <-- import
+import { Providers } from "./providers";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -41,13 +42,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable} ${plexMono.variable}`}>
       <body>
-        <Providers>   {/* Wrap with Providers */}
+        <Providers>
           {children}
         </Providers>
       </body>
     </html>
   );
 }
-// Force rebuild
-
-
