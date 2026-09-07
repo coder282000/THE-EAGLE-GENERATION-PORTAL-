@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 export const dynamic = 'force-dynamic';
 // app/checkout/page.tsx
 import React, { useState } from 'react';
@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/button';
-import { TextInput, SelectInput } from '@/components/input';
+import { TextInput } from '@/components/input';
+import { Select } from '@/components/select';
 import { formatCurrency } from '@/lib/utils';
 type PaymentMethod = 'mpesa' | 'card' | 'bank_transfer';
 interface FormData {

@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { MemberLayout } from "@/components/layout/memberLayout";
 import { Card } from "@/components/card";
 import { Button } from "@/components/button";
-import { TextInput, TextareaInput } from "@/components/input";
+import { TextInput } from "@/components/input";
+import { Textarea } from "@/components/textarea";
 import { mockMembers } from "@/components/mock/data";
 interface FormData {
   firstName: string;

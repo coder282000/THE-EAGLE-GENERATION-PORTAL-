@@ -1,10 +1,11 @@
-﻿'use client';
+'use client';
 // app/verify/identity/page.tsx
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/button';
-import { TextInput, SelectInput } from '@/components/input';
+import { TextInput } from '@/components/input';
+import { Select } from '@/components/select';
 import { cn } from '@/lib/utils';
 import { mockKYCSubmissions } from '@/components/mock/data';
 // Mock current user ID

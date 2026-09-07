@@ -1,11 +1,12 @@
-﻿'use client';
+'use client';
 // app/shop/page.tsx
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { mockProducts } from '@/components/mock/data';
 import { Product } from '@/components/mock/data';
-import { TextInput, SelectInput } from '@/components/input';
+import { TextInput } from '@/components/input';
+import { Select } from '@/components/select';
 import { Button } from '@/components/button';
 import { debounce } from '@/lib/utils';
 type CategoryFilter = 'all' | 'merchandise' | 'resources' | 'learning' | 'other';
