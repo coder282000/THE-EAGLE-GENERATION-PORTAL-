@@ -48,8 +48,7 @@ import {
 // Feature flags for compliance-gated modules
 const FEATURE_DIRECT_MESSAGING =
   process.env.NEXT_PUBLIC_FEATURE_DIRECT_MESSAGING === "true";
-const FEATURE_VIRTUAL_ASSETS =
-  process.env.NEXT_PUBLIC_FEATURE_VIRTUAL_ASSETS === "true";
+const FEATURE_VIRTUAL_ASSETS = true;
 
 interface NavItem {
   href: string;
