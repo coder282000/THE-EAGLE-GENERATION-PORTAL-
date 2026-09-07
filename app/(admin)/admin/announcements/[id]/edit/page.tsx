@@ -1,11 +1,13 @@
-'use client';
+﻿'use client';
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AdminLayout } from "@/components/layout/adminLayout";
 import { Card } from "@/components/card";
-import { TextInput, TextareaInput, SelectInput } from "@/components/input";
+import { TextInput } from "@/components/input";
+import { Textarea } from "@/components/textarea";
+import { Select } from "@/components/select";
 import { Button } from "@/components/button";
 import { mockAnnouncements } from "@/components/mock/data";
 
@@ -85,7 +87,7 @@ export default function EditAnnouncementPage() {
     return (
       <AdminLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-          <p className="text-4xl mb-4">📢</p>
+          <p className="text-4xl mb-4">ðŸ“¢</p>
           <h1 className="text-2xl font-bold text-ink-900">Announcement Not Found</h1>
           <p className="text-ink-500 mt-2">
             The announcement you're looking for doesn't exist.
@@ -95,7 +97,7 @@ export default function EditAnnouncementPage() {
             className="mt-6"
             onClick={() => router.push("/admin/announcements")}
           >
-            ← Back to Announcements
+            â† Back to Announcements
           </Button>
         </div>
       </AdminLayout>
@@ -126,7 +128,7 @@ export default function EditAnnouncementPage() {
               disabled={isLoading}
             />
 
-            <TextareaInput
+            <Textarea
               id="edit-content"
               label="Content"
               name="content"
@@ -138,14 +140,14 @@ export default function EditAnnouncementPage() {
               hint="Be clear and concise. Include any important dates or actions required."
             />
 
-            <SelectInput
+            <Select
               id="edit-priority"
               label="Priority"
               name="priority"
               options={[
-                { value: "HIGH", label: "🔴 High" },
-                { value: "MEDIUM", label: "🟠 Medium" },
-                { value: "LOW", label: "🟢 Low" },
+                { value: "HIGH", label: "ðŸ”´ High" },
+                { value: "MEDIUM", label: "ðŸŸ  Medium" },
+                { value: "LOW", label: "ðŸŸ¢ Low" },
               ]}
               value={form.priority}
               onChange={handleChange}
