@@ -1,3 +1,4 @@
+﻿'use client';
 // app/verify/address/page.tsx
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -237,7 +238,7 @@ export default function AddressPage() {
                     />
                   ) : (
                     <div className="text-center">
-                      <div className="text-4xl mb-2">📄</div>
+                      <div className="text-4xl mb-2">ðŸ“„</div>
                       <p className="text-gray-600">{proofFile?.name}</p>
                       <p className="text-xs text-gray-400">
                         {(proofFile?.size || 0) / 1024 < 1024
@@ -251,12 +252,12 @@ export default function AddressPage() {
                     onClick={removeProof}
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                   >
-                    ✕
+                    âœ•
                   </button>
                 </div>
               ) : (
                 <div>
-                  <div className="text-4xl mb-2">🏠</div>
+                  <div className="text-4xl mb-2">ðŸ </div>
                   <p className="text-gray-600">Upload a utility bill, bank statement, or official letter</p>
                   <p className="text-xs text-gray-400 mt-1">PDF, JPEG, PNG, WebP (max 5MB)</p>
                   <input
@@ -331,7 +332,7 @@ export default function AddressPage() {
           <div className="flex flex-col sm:flex-row gap-3 justify-end pt-4 border-t border-gray-200">
             <Link href="/verify/liveness">
               <Button variant="secondary" type="button">
-                ← Back to Liveness
+                â† Back to Liveness
               </Button>
             </Link>
             <Button variant="primary" type="submit" disabled={isSubmitting}>

@@ -1,3 +1,4 @@
+﻿'use client';
 export const dynamic = 'force-dynamic';
 // app/checkout/page.tsx
 import React, { useState } from 'react';
@@ -60,7 +61,7 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <div className="text-6xl mb-4">🛒</div>
+        <div className="text-6xl mb-4">ðŸ›’</div>
         <h2 className="text-2xl font-bold text-gray-800 mb-2">Your cart is empty</h2>
         <p className="text-gray-600 mb-6">
           You need items in your cart to proceed to checkout.
@@ -356,7 +357,7 @@ export default function CheckoutPage() {
                 {isSubmitting ? 'Processing...' : 'Place Order'}
               </Button>
               <Link href="/cart" className="block text-center text-sm text-blue-600 hover:underline mt-3">
-                ← Return to Cart
+                â† Return to Cart
               </Link>
             </div>
           </div>

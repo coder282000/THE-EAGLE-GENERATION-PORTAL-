@@ -1,3 +1,4 @@
+﻿'use client';
 // app/shop/page.tsx
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -100,7 +101,7 @@ export default function ShopPage() {
       </div>
       {filteredProducts.length === 0 ? (
         <div className="text-center py-16">
-          <div className="text-6xl mb-4">🔍</div>
+          <div className="text-6xl mb-4">ðŸ”</div>
           <h3 className="text-xl font-semibold text-gray-700">No products found</h3>
           <p className="text-gray-500 mt-2">Try adjusting your filters or search terms.</p>
           <Button

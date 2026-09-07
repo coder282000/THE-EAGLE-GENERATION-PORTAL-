@@ -1,3 +1,4 @@
+﻿'use client';
 // app/verify/identity/page.tsx
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -160,12 +161,12 @@ export default function IdentityCapturePage() {
                     onClick={() => handleRemoveFile('front')}
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                   >
-                    ✕
+                    âœ•
                   </button>
                 </div>
               ) : (
                 <div>
-                  <div className="text-4xl mb-2">📄</div>
+                  <div className="text-4xl mb-2">ðŸ“„</div>
                   <p className="text-gray-600">Click or drag to upload front image</p>
                   <p className="text-xs text-gray-400 mt-1">JPEG, PNG, WebP (max 5MB)</p>
                   <input
@@ -198,12 +199,12 @@ export default function IdentityCapturePage() {
                     onClick={() => handleRemoveFile('back')}
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                   >
-                    ✕
+                    âœ•
                   </button>
                 </div>
               ) : (
                 <div>
-                  <div className="text-4xl mb-2">📄</div>
+                  <div className="text-4xl mb-2">ðŸ“„</div>
                   <p className="text-gray-600">Click or drag to upload back image</p>
                   <p className="text-xs text-gray-400 mt-1">JPEG, PNG, WebP (max 5MB)</p>
                   <input
@@ -265,7 +266,7 @@ export default function IdentityCapturePage() {
               </Button>
             </Link>
             <Button variant="primary" type="submit" disabled={isUploading}>
-              {isUploading ? 'Uploading...' : 'Continue to Liveness Check →'}
+              {isUploading ? 'Uploading...' : 'Continue to Liveness Check â†’'}
             </Button>
           </div>
         </form>
