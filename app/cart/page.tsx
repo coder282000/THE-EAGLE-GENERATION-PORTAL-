@@ -1,27 +1,23 @@
+// app/cart/page.tsx
 'use client';
 export const dynamic = 'force-dynamic';
-// app/cart/page.tsx
 
-import React from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
-import { Button } from '@/components/button';
 import { formatCurrency } from '@/lib/utils';
+import { Button } from '@/components/button';
+import Link from 'next/link';
+import { mockProducts } from '@/components/mock/data';
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, totalItems, totalPrice, clearCart } = useCart();
+  const { items, removeItem, updateQuantity, clearCart, totalPrice, totalItems } = useCart();
 
   if (items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <div className="text-6xl mb-4">🛒</div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Your cart is empty</h2>
-        <p className="text-gray-600 mb-6">
-          Looks like you haven't added anything to your cart yet.
-        </p>
-        <Link href="/shop">
-          <Button variant="primary">Start Shopping</Button>
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-bold text-ink">Your cart is empty</h2>
+        <p className="text-gray-500 mt-2">Browse the shop and add items you like.</p>
+        <Link href="/shop" className="inline-block mt-4 text-sky-600 hover:underline">
+          Continue Shopping
         </Link>
       </div>
     );
@@ -29,111 +25,82 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Your Cart</h1>
-
+      <h1 className="text-2xl font-bold text-ink mb-6">Shopping Cart</h1>
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Cart Items */}
         <div className="lg:w-2/3">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="divide-y divide-gray-200">
-              {items.map((item) => (
-                <div key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <div className="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden relative">
-                    {item.image ? (
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                        sizes="80px"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-2xl text-gray-400">
-                        📦
-                      </div>
-                    )}
+          <div className="divide-y divide-gray-200">
+            {items.map((item) => {
+              // Optional: find product to get image if needed
+              const product = mockProducts.find((p) => p.id === item.productId);
+              return (
+                <div key={item.productId} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div className="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden relative flex items-center justify-center text-2xl">
+                    📦 {/* Placeholder instead of missing image */}
                   </div>
-
-                  <div className="flex-1 min-w-0">
-                    <Link href={`/shop/${item.id}`} className="font-medium text-gray-900 hover:text-blue-600">
-                      {item.name}
-                    </Link>
-                    <p className="text-sm text-gray-500">
-                      {formatCurrency(item.price, 'KES')} each
-                    </p>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-ink">{item.productName}</h3>
+                    <p className="text-sm text-gray-500">{formatCurrency(item.price, 'KES')} each</p>
+                    {item.variant && <p className="text-sm text-gray-500">Variant: {item.variant}</p>}
                   </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center border border-gray-300 rounded-md">
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="px-2 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
-                        disabled={item.quantity <= 1}
-                        aria-label="Decrease quantity"
-                      >
-                        -
-                      </button>
-                      <span className="w-8 text-center text-gray-700">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="px-2 py-1 text-gray-600 hover:bg-gray-100"
-                        aria-label="Increase quantity"
-                      >
-                        +
-                      </button>
-                    </div>
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={() => removeItem(item.id)}
-                      className="text-red-500 hover:text-red-700 text-sm font-medium"
-                      aria-label="Remove item"
+                      onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                      className="px-2 py-1 border rounded hover:bg-gray-100"
+                      aria-label="Decrease quantity"
+                    >
+                      -
+                    </button>
+                    <span className="w-8 text-center">{item.quantity}</span>
+                    <button
+                      onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                      className="px-2 py-1 border rounded hover:bg-gray-100"
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold">{formatCurrency(item.total, 'KES')}</p>
+                    <button
+                      onClick={() => removeItem(item.productId)}
+                      className="text-sm text-red-500 hover:underline"
                     >
                       Remove
                     </button>
                   </div>
-
-                  <div className="font-semibold text-gray-900 sm:text-right min-w-[80px]">
-                    {formatCurrency(item.price * item.quantity, 'KES')}
-                  </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
-
-          <div className="mt-4 flex justify-between">
-            <Button variant="secondary" onClick={clearCart}>
+          <div className="mt-4 flex justify-between items-center">
+            <button
+              onClick={clearCart}
+              className="text-sm text-red-500 hover:underline"
+            >
               Clear Cart
-            </Button>
-            <Link href="/shop">
-              <Button variant="secondary">Continue Shopping</Button>
-            </Link>
+            </button>
+            <span className="text-sm text-gray-500">{totalItems} items</span>
           </div>
         </div>
-
-        {/* Order Summary */}
         <div className="lg:w-1/3">
-          <div className="bg-gray-50 rounded-lg p-6 sticky top-24">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
-            <div className="space-y-2 text-sm">
+          <div className="bg-gray-50 p-6 rounded-lg">
+            <h2 className="text-lg font-semibold text-ink mb-4">Order Summary</h2>
+            <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-600">Items ({totalItems})</span>
-                <span className="text-gray-900 font-medium">{formatCurrency(totalPrice, 'KES')}</span>
+                <span>Subtotal</span>
+                <span>{formatCurrency(totalPrice, 'KES')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Shipping</span>
-                <span className="text-gray-900 font-medium">Calculated at checkout</span>
+                <span>Shipping</span>
+                <span>Calculated at checkout</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Tax</span>
-                <span className="text-gray-900 font-medium">Calculated at checkout</span>
+              <div className="border-t pt-2 font-semibold flex justify-between">
+                <span>Total</span>
+                <span>{formatCurrency(totalPrice, 'KES')}</span>
               </div>
-            </div>
-            <hr className="my-4" />
-            <div className="flex justify-between text-lg font-bold">
-              <span>Total</span>
-              <span>{formatCurrency(totalPrice, 'KES')}</span>
             </div>
             <Link href="/checkout">
-              <Button variant="primary" size="lg" className="w-full mt-6" disabled={items.length === 0}>
+              <Button variant="primary" className="w-full mt-4">
                 Proceed to Checkout
               </Button>
             </Link>

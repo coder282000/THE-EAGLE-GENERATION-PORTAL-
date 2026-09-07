@@ -1,9 +1,8 @@
 'use client';
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'; // keep only one
 
-// app/shop/[id]/page.tsx
 import React, { useState } from 'react';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
@@ -13,9 +12,8 @@ import { formatCurrency } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
 
 export default function ProductDetailPage() {
-  const router = useRouter();
-  const params = useParams();
-  const productId = params.id as string;
+  const params = useParams<{ id: string }>();
+  const productId = params.id;
   const { addItem } = useCart();
 
   const product = mockProducts.find((p) => p.id === productId);
@@ -35,14 +33,19 @@ export default function ProductDetailPage() {
     setIsAdding(true);
     // Simulate a small delay for UI feedback
     await new Promise((resolve) => setTimeout(resolve, 600));
-    addItem(product, quantity);
+    // ✅ Correct: pass a single CartItem object
+    addItem({
+      productId: product.id,
+      productName: product.name,
+      price: product.price,
+      quantity,
+      total: product.price * quantity,
+      variant: undefined,
+    });
     setIsAdding(false);
     setShowSuccess(true);
-    
-    // Reset success state after 2 seconds
-    setTimeout(() => {
-      setShowSuccess(false);
-    }, 2000);
+
+    setTimeout(() => setShowSuccess(false), 2000);
   };
 
   return (

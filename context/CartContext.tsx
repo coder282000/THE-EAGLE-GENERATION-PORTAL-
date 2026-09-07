@@ -1,178 +1,106 @@
 // context/CartContext.tsx
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { Product } from '@/components/mock/data';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-// Cart item extends product with quantity and selected variant
-export interface CartItem extends Product {
+export interface CartItem {
+  productId: string;
+  productName: string;
   quantity: number;
-  variant?: string; // for future use (size, color, etc.)
+  price: number;
+  total: number;
+  variant?: string;
 }
 
-// Cart state
-interface CartState {
+interface CartContextType {
   items: CartItem[];
-  totalItems: number;
-  totalPrice: number; // in minor units
-}
-
-// Cart actions
-type CartAction =
-  | { type: 'ADD_ITEM'; payload: { product: Product; quantity: number; variant?: string } }
-  | { type: 'REMOVE_ITEM'; payload: { productId: string } }
-  | { type: 'UPDATE_QUANTITY'; payload: { productId: string; quantity: number } }
-  | { type: 'CLEAR_CART' }
-  | { type: 'LOAD_CART'; payload: CartState };
-
-// Context value
-interface CartContextValue extends CartState {
-  addItem: (product: Product, quantity?: number, variant?: string) => void;
+  addItem: (item: CartItem) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
-  isInCart: (productId: string) => boolean;
-  getItemQuantity: (productId: string) => number;
+  totalItems: number;
+  totalPrice: number;
 }
 
-// Initial state
-const initialState: CartState = {
+// Provide a default empty context – this avoids null/undefined errors.
+const defaultContext: CartContextType = {
   items: [],
+  addItem: () => {},
+  removeItem: () => {},
+  updateQuantity: () => {},
+  clearCart: () => {},
   totalItems: 0,
   totalPrice: 0,
 };
 
-// Reducer
-function cartReducer(state: CartState, action: CartAction): CartState {
-  switch (action.type) {
-    case 'ADD_ITEM': {
-      const { product, quantity, variant } = action.payload;
-      const existingIndex = state.items.findIndex((item) => item.id === product.id);
-      let newItems;
-      if (existingIndex >= 0) {
-        // Update quantity
-        newItems = [...state.items];
-        newItems[existingIndex].quantity += quantity;
-      } else {
-        // Add new item
-        const newItem: CartItem = { ...product, quantity, variant };
-        newItems = [...state.items, newItem];
-      }
-      const totalItems = newItems.reduce((sum, i) => sum + i.quantity, 0);
-      const totalPrice = newItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-      return { items: newItems, totalItems, totalPrice };
-    }
-    case 'REMOVE_ITEM': {
-      const newItems = state.items.filter((item) => item.id !== action.payload.productId);
-      const totalItems = newItems.reduce((sum, i) => sum + i.quantity, 0);
-      const totalPrice = newItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-      return { items: newItems, totalItems, totalPrice };
-    }
-    case 'UPDATE_QUANTITY': {
-      const { productId, quantity } = action.payload;
-      if (quantity <= 0) {
-        return cartReducer(state, { type: 'REMOVE_ITEM', payload: { productId } });
-      }
-      const newItems = state.items.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
-      );
-      const totalItems = newItems.reduce((sum, i) => sum + i.quantity, 0);
-      const totalPrice = newItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-      return { items: newItems, totalItems, totalPrice };
-    }
-    case 'CLEAR_CART':
-      return initialState;
-    case 'LOAD_CART':
-      return action.payload;
-    default:
-      return state;
-  }
-}
+const CartContext = createContext<CartContextType>(defaultContext);
 
-// Create context
-const CartContext = createContext<CartContextValue | undefined>(undefined);
+const CART_STORAGE_KEY = 'eagle_cart';
 
-// Provider component
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(cartReducer, initialState);
-
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem('cart');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as CartState;
-        dispatch({ type: 'LOAD_CART', payload: parsed });
-      } catch (e) {
-        console.error('Failed to parse cart from localStorage', e);
-      }
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem(CART_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
     }
-  }, []);
+  });
 
-  // Save to localStorage whenever state changes
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(state));
-  }, [state]);
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    } catch (error) {
+      console.warn('Failed to save cart:', error);
+    }
+  }, [items]);
 
-  const addItem = (product: Product, quantity: number = 1, variant?: string) => {
-    dispatch({ type: 'ADD_ITEM', payload: { product, quantity, variant } });
+  const addItem = (item: CartItem) => {
+    setItems((prev) => {
+      const existing = prev.find((i) => i.productId === item.productId && i.variant === item.variant);
+      if (existing) {
+        return prev.map((i) =>
+          i.productId === item.productId && i.variant === item.variant
+            ? { ...i, quantity: i.quantity + item.quantity, total: (i.quantity + item.quantity) * i.price }
+            : i
+        );
+      }
+      return [...prev, item];
+    });
   };
 
   const removeItem = (productId: string) => {
-    dispatch({ type: 'REMOVE_ITEM', payload: { productId } });
+    setItems((prev) => prev.filter((i) => i.productId !== productId));
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, quantity } });
+    if (quantity <= 0) {
+      removeItem(productId);
+      return;
+    }
+    setItems((prev) =>
+      prev.map((i) =>
+        i.productId === productId ? { ...i, quantity, total: quantity * i.price } : i
+      )
+    );
   };
 
-  const clearCart = () => {
-    dispatch({ type: 'CLEAR_CART' });
-  };
+  const clearCart = () => setItems([]);
 
-  const isInCart = (productId: string) => {
-    return state.items.some((item) => item.id === productId);
-  };
+  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
+  const totalPrice = items.reduce((sum, i) => sum + i.total, 0);
 
-  const getItemQuantity = (productId: string) => {
-    const item = state.items.find((item) => item.id === productId);
-    return item ? item.quantity : 0;
-  };
-
-  const value: CartContextValue = {
-    ...state,
-    addItem,
-    removeItem,
-    updateQuantity,
-    clearCart,
-    isInCart,
-    getItemQuantity,
-  };
-
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+  return (
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice }}>
+      {children}
+    </CartContext.Provider>
+  );
 }
 
-// ✅ FIX: Hook for using cart – returns fallback when used outside provider
-export function useCart(): CartContextValue {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    // Return a safe fallback for static generation or when used outside provider
-    // This prevents "Cannot read properties of null" during Vercel build
-    if (process.env.NODE_ENV === 'production') {
-      // In production, log a warning but don't break the app
-      console.warn('useCart was called outside of CartProvider. Using fallback empty cart.');
-    }
-    return {
-      items: [],
-      totalItems: 0,
-      totalPrice: 0,
-      addItem: () => {},
-      removeItem: () => {},
-      updateQuantity: () => {},
-      clearCart: () => {},
-      isInCart: () => false,
-      getItemQuantity: () => 0,
-    };
-  }
-  return context;
+// This hook now always returns a valid context (default or provider).
+// No need to check for undefined or throw.
+export function useCart() {
+  return useContext(CartContext);
 }
