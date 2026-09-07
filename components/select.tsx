@@ -11,10 +11,11 @@ export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   options: Option[];
   error?: string;
+  hint?: string;
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, options, error, id, ...props }, ref) => {
+  ({ className, label, options, error, hint, id, ...props }, ref) => {
     const hasError = !!error;
     return (
       <div className="w-full">
@@ -37,7 +38,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             className
           )}
           aria-invalid={hasError}
-          aria-describedby={hasError ? `${id}-error` : undefined}
+          aria-describedby={
+            hasError ? `${id}-error` : hint ? `${id}-hint` : undefined
+          }
           {...props}
         >
           {options.map((opt) => (
@@ -49,6 +52,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {hasError && (
           <p id={`${id}-error`} className="mt-1 text-sm text-clay-600">
             {error}
+          </p>
+        )}
+        {!hasError && hint && (
+          <p id={`${id}-hint`} className="mt-1 text-sm text-ink-500">
+            {hint}
           </p>
         )}
       </div>

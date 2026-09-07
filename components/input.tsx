@@ -28,10 +28,13 @@ export interface TextInputProps extends InputProps {
   id?: string;
   leftElement?: React.ReactNode;   // e.g., icon or button on the left
   rightElement?: React.ReactNode;  // e.g., icon or button on the right
+  error?: string;
+  hint?: string;
 }
 
 const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(
-  ({ className, label, id, leftElement, rightElement, ...props }, ref) => {
+  ({ className, label, id, leftElement, rightElement, error, hint, ...props }, ref) => {
+    const hasError = !!error;
     return (
       <div className="space-y-1">
         {label && (
@@ -52,6 +55,10 @@ const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(
               leftElement && "pl-10",
               rightElement && "pr-10"
             )}
+            aria-invalid={hasError}
+            aria-describedby={
+              hasError ? `${id}-error` : hint ? `${id}-hint` : undefined
+            }
             ref={ref}
             {...props}
           />
@@ -61,6 +68,16 @@ const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(
             </div>
           )}
         </div>
+        {hasError && (
+          <p id={`${id}-error`} className="text-sm text-clay-600">
+            {error}
+          </p>
+        )}
+        {!hasError && hint && (
+          <p id={`${id}-hint`} className="text-sm text-ink-500">
+            {hint}
+          </p>
+        )}
       </div>
     );
   }

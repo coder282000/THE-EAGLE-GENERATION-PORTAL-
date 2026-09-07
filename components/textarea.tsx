@@ -6,10 +6,11 @@ export interface TextareaProps
   extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
+  hint?: string;
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, label, error, id, ...props }, ref) => {
+  ({ className, label, error, hint, id, ...props }, ref) => {
     const hasError = !!error;
     return (
       <div className="w-full">
@@ -32,12 +33,19 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             className
           )}
           aria-invalid={hasError}
-          aria-describedby={hasError ? `${id}-error` : undefined}
+          aria-describedby={
+            hasError ? `${id}-error` : hint ? `${id}-hint` : undefined
+          }
           {...props}
         />
         {hasError && (
           <p id={`${id}-error`} className="mt-1 text-sm text-clay-600">
             {error}
+          </p>
+        )}
+        {!hasError && hint && (
+          <p id={`${id}-hint`} className="mt-1 text-sm text-ink-500">
+            {hint}
           </p>
         )}
       </div>
