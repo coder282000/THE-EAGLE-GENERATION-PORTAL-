@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { Card } from '@/components/card';
 import { Button } from '@/components/button';
-import { PillarTag } from '@/components/pillarTag'; // corrected casing
+// Removed unused AvatarGroup import
+import { PillarTag } from '@/components/pillarTag';
 import { formatCurrency } from '@/lib/utils';
 import { Circle } from '@/components/mock/data';
 
@@ -82,7 +83,7 @@ export function CircleCard({ circle, isMember = false, onJoin }: CircleCardProps
           {isMember && circle.leaderId === '3' && (
             <Link href={`/savings/circles/${circle.id}/manage`}>
               <Button
-                variant="secondary"  // or "warning" if your Button supports it
+                variant="secondary"
                 size="sm"
               >
                 Manage
