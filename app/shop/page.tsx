@@ -1,6 +1,4 @@
-'use client';
 // app/shop/page.tsx
-
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/shop/ProductCard';
@@ -9,9 +7,7 @@ import { Product } from '@/components/mock/data';
 import { TextInput, SelectInput } from '@/components/input';
 import { Button } from '@/components/button';
 import { debounce } from '@/lib/utils';
-
 type CategoryFilter = 'all' | 'merchandise' | 'resources' | 'learning' | 'other';
-
 const CATEGORY_OPTIONS = [
   { value: 'all', label: 'All Categories' },
   { value: 'merchandise', label: 'Merchandise' },
@@ -19,16 +15,13 @@ const CATEGORY_OPTIONS = [
   { value: 'learning', label: 'Learning Products' },
   { value: 'other', label: 'Other' },
 ];
-
 export default function ShopPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const itemsPerPage = 9;
-
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-
   const allProducts = useMemo(() => {
     let result = mockProducts;
     if (category !== 'all') {
@@ -44,14 +37,11 @@ export default function ShopPage() {
     }
     return result;
   }, [category, searchTerm]);
-
   const paginatedProducts = useMemo(() => {
     const start = (page - 1) * itemsPerPage;
     return filteredProducts.slice(start, start + itemsPerPage);
   }, [filteredProducts, page]);
-
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-
   useEffect(() => {
     setLoading(true);
     const timer = setTimeout(() => {
@@ -61,28 +51,23 @@ export default function ShopPage() {
     }, 300);
     return () => clearTimeout(timer);
   }, [allProducts]);
-
   const handleSearch = useCallback(
     debounce((value: string) => {
       setSearchTerm(value);
     }, 300),
     []
   );
-
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setCategory(e.target.value as CategoryFilter);
   };
-
   const loadMore = () => {
     if (page < totalPages) {
       setPage(p => p + 1);
     }
   };
-
   if (loading && filteredProducts.length === 0) {
     return <ShopLoadingSkeleton />;
   }
-
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header & Filters */}
@@ -99,7 +84,7 @@ export default function ShopPage() {
             />
           </div>
           <div className="sm:w-48">
-            <SelectInput
+            <Select
               id="shop-category"
               label="Category"
               value={category}
@@ -110,11 +95,9 @@ export default function ShopPage() {
           </div>
         </div>
       </div>
-
       <div className="mb-4 text-sm text-gray-500">
         Showing {paginatedProducts.length} of {filteredProducts.length} products
       </div>
-
       {filteredProducts.length === 0 ? (
         <div className="text-center py-16">
           <div className="text-6xl mb-4">🔍</div>
@@ -138,7 +121,6 @@ export default function ShopPage() {
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
-
           {totalPages > 1 && page < totalPages && (
             <div className="flex justify-center mt-8">
               <Button
@@ -155,7 +137,6 @@ export default function ShopPage() {
     </div>
   );
 }
-
 function ShopLoadingSkeleton() {
   return (
     <div className="container mx-auto px-4 py-8">

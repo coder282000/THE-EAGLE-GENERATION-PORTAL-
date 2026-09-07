@@ -1,36 +1,31 @@
-'use client';
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminLayout } from "@/components/layout/adminLayout";
 import { Card } from "@/components/card";
-import { TextInput, TextareaInput, SelectInput } from "@/components/input";
+import { TextInput } from "@/components/input";
+import { Textarea } from "@/components/textarea";
+import { Select } from "@/components/select";
 import { Button } from "@/components/button";
-
 export default function NewAnnouncementPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const [form, setForm] = useState({
     title: "",
     content: "",
     priority: "MEDIUM",
   });
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setError(null);
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-
     if (!form.title.trim()) {
       setError("Title is required.");
       setIsLoading(false);
@@ -41,13 +36,11 @@ export default function NewAnnouncementPage() {
       setIsLoading(false);
       return;
     }
-
     await new Promise((resolve) => setTimeout(resolve, 1200));
     console.log("New announcement:", form);
     setIsLoading(false);
     router.push("/admin/announcements");
   };
-
   return (
     <AdminLayout>
       <div className="max-w-2xl mx-auto space-y-6">
@@ -59,7 +52,6 @@ export default function NewAnnouncementPage() {
             Create a new announcement for all members.
           </p>
         </div>
-
         <form onSubmit={handleSubmit}>
           <Card className="p-6 space-y-5">
             <TextInput
@@ -72,8 +64,7 @@ export default function NewAnnouncementPage() {
               disabled={isLoading}
               placeholder="Enter announcement title"
             />
-
-            <TextareaInput
+            <Textarea
               id="new-content"
               label="Content"
               name="content"
@@ -85,8 +76,7 @@ export default function NewAnnouncementPage() {
               placeholder="Write the announcement content here..."
               hint="Be clear and concise. Include any important dates or actions required."
             />
-
-            <SelectInput
+            <Select
               id="new-priority"
               label="Priority"
               name="priority"
@@ -100,13 +90,11 @@ export default function NewAnnouncementPage() {
               disabled={isLoading}
               hint="High priority announcements appear at the top."
             />
-
             {error && (
               <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">
                 {error}
               </div>
             )}
-
             <div className="flex flex-wrap gap-3 pt-2">
               <Button
                 type="submit"

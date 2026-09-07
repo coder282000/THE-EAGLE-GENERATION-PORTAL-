@@ -1,6 +1,4 @@
-'use client';
 // app/verify/identity/page.tsx
-
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -8,22 +6,17 @@ import { Button } from '@/components/button';
 import { TextInput, SelectInput } from '@/components/input';
 import { cn } from '@/lib/utils';
 import { mockKYCSubmissions } from '@/components/mock/data';
-
 // Mock current user ID
 const CURRENT_USER_ID = '1';
-
 type DocumentType = 'national_id' | 'passport' | 'drivers_license';
-
 const DOCUMENT_TYPES = [
   { value: 'national_id', label: 'National ID' },
   { value: 'passport', label: 'Passport' },
   { value: 'drivers_license', label: "Driver's License" },
 ];
-
 export default function IdentityCapturePage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [documentType, setDocumentType] = useState<DocumentType>('national_id');
   const [frontFile, setFrontFile] = useState<File | null>(null);
   const [backFile, setBackFile] = useState<File | null>(null);
@@ -34,28 +27,23 @@ export default function IdentityCapturePage() {
   const [fullName, setFullName] = useState('');
   const [dob, setDob] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     side: 'front' | 'back'
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setErrors((prev) => ({ ...prev, [side]: 'File size must be less than 5MB' }));
       return;
     }
-
     // Validate file type
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       setErrors((prev) => ({ ...prev, [side]: 'Only JPEG, PNG, or WebP images allowed' }));
       return;
     }
-
     setErrors((prev) => ({ ...prev, [side]: '' }));
-
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
@@ -69,7 +57,6 @@ export default function IdentityCapturePage() {
     };
     reader.readAsDataURL(file);
   };
-
   const handleRemoveFile = (side: 'front' | 'back') => {
     if (side === 'front') {
       setFrontFile(null);
@@ -80,28 +67,22 @@ export default function IdentityCapturePage() {
       setBackPreview(null);
     }
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     // Validate
     const newErrors: { [key: string]: string } = {};
     if (!frontFile) newErrors.front = 'Front image is required';
     if (!idNumber.trim()) newErrors.idNumber = 'ID number is required';
     if (!fullName.trim()) newErrors.fullName = 'Full name is required';
     if (!dob) newErrors.dob = 'Date of birth is required';
-
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-
     setIsUploading(true);
-
     try {
       // Simulate API call to upload document
       await new Promise((resolve) => setTimeout(resolve, 1500));
-
       // Update KYC submission record
       const kyc = mockKYCSubmissions.find((s) => s.userId === CURRENT_USER_ID);
       if (kyc) {
@@ -117,7 +98,6 @@ export default function IdentityCapturePage() {
           kyc.submittedAt = new Date().toISOString();
         }
       }
-
       // Redirect to next step (liveness check)
       router.push('/verify/liveness');
     } catch (error) {
@@ -127,7 +107,6 @@ export default function IdentityCapturePage() {
       setIsUploading(false);
     }
   };
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       {/* Breadcrumb */}
@@ -138,20 +117,18 @@ export default function IdentityCapturePage() {
         <span className="mx-2">/</span>
         <span className="text-gray-700">Identity Document</span>
       </nav>
-
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Identity Document</h1>
         <p className="text-gray-500 mb-6">
           Upload a clear photo of your government-issued ID. We'll verify your identity.
         </p>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Document Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Document Type
             </label>
-            <SelectInput
+            <Select
               id="documentType"
               label="Document Type"
               value={documentType}
@@ -160,7 +137,6 @@ export default function IdentityCapturePage() {
               aria-label="Document type"
             />
           </div>
-
           {/* Front Image Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -204,7 +180,6 @@ export default function IdentityCapturePage() {
             </div>
             {errors.front && <p className="mt-1 text-sm text-red-600">{errors.front}</p>}
           </div>
-
           {/* Back Image Upload (optional) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -241,7 +216,6 @@ export default function IdentityCapturePage() {
               )}
             </div>
           </div>
-
           {/* ID Data Extraction (mock) */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Extracted Information</h3>
@@ -278,13 +252,11 @@ export default function IdentityCapturePage() {
               Please verify the extracted information. This helps us process your verification faster.
             </p>
           </div>
-
           {errors.submit && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
               {errors.submit}
             </div>
           )}
-
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 justify-end pt-4 border-t border-gray-200">
             <Link href="/profile/verification">

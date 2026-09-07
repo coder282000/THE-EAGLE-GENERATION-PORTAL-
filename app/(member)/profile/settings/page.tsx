@@ -1,6 +1,4 @@
-'use client';
 "use client";
-
 import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,7 +7,6 @@ import { Card } from "@/components/card";
 import { Button } from "@/components/button";
 import { TextInput, TextareaInput } from "@/components/input";
 import { mockMembers } from "@/components/mock/data";
-
 interface FormData {
   firstName: string;
   lastName: string;
@@ -17,7 +14,6 @@ interface FormData {
   phone: string;
   bio: string;
 }
-
 interface FormErrors {
   firstName?: string;
   lastName?: string;
@@ -25,11 +21,9 @@ interface FormErrors {
   phone?: string;
   bio?: string;
 }
-
 export default function EditProfilePage() {
   const router = useRouter();
   const member = mockMembers[0];
-
   const [form, setForm] = useState<FormData>({
     firstName: member.firstName,
     lastName: member.lastName,
@@ -37,11 +31,9 @@ export default function EditProfilePage() {
     phone: member.phone || "",
     bio: member.bio || "",
   });
-
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
-
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
     if (!form.firstName.trim()) newErrors.firstName = "First name is required";
@@ -54,24 +46,18 @@ export default function EditProfilePage() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-
     setIsSubmitting(true);
     setToast(null);
-
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 800));
     setIsSubmitting(false);
-
     setToast({ type: "success", message: "Profile updated successfully!" });
-
     // Redirect after toast
     setTimeout(() => router.push("/profile/me"), 1500);
   };
-
   return (
     <MemberLayout>
       <div className="space-y-8">
@@ -92,7 +78,6 @@ export default function EditProfilePage() {
             Cancel
           </Link>
         </div>
-
         {/* Toast notification */}
         {toast && (
           <div
@@ -106,7 +91,6 @@ export default function EditProfilePage() {
             {toast.message}
           </div>
         )}
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Profile photo */}
           <Card className="p-5">
@@ -132,7 +116,6 @@ export default function EditProfilePage() {
               </div>
             </div>
           </Card>
-
           {/* Form fields */}
           <Card className="space-y-5 p-5">
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -155,7 +138,6 @@ export default function EditProfilePage() {
                 hint="Your family name or surname"
               />
             </div>
-
             <TextInput
               id="email"
               type="email"
@@ -166,7 +148,6 @@ export default function EditProfilePage() {
               error={errors.email}
               hint="Used for login and notifications"
             />
-
             <TextInput
               id="phone"
               type="tel"
@@ -175,9 +156,8 @@ export default function EditProfilePage() {
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
               hint="Include your country code (e.g., +254 7XX XXX XXX)"
             />
-
             <div>
-              <TextareaInput
+              <Textarea
                 id="bio"
                 label="Bio"
                 rows={4}
@@ -188,7 +168,6 @@ export default function EditProfilePage() {
               />
             </div>
           </Card>
-
           {/* Actions */}
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:gap-4">
             <Link href="/profile/me" className="w-full sm:w-auto">

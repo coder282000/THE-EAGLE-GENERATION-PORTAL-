@@ -1,6 +1,4 @@
-'use client';
 // app/verify/address/page.tsx
-
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -9,30 +7,24 @@ import { TextInput, SelectInput } from '@/components/input';
 import { Textarea } from '@/components/textarea';
 import { cn } from '@/lib/utils';
 import { mockKYCSubmissions } from '@/components/mock/data';
-
 const CURRENT_USER_ID = '1';
-
 const COUNTIES = [
   'Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Malindi',
   'Meru', 'Nyeri', 'Kitale', 'Kakamega', 'Machakos', 'Kisii', 'Garissa',
   'Embu', 'Bungoma', 'Vihiga', 'Uasin Gishu', 'Trans Nzoia', 'Laikipia',
 ];
-
 const OCCUPATIONS = [
   'Student', 'Professional', 'Business Owner', 'Self-Employed', 'Government Employee',
   'Non-Profit / NGO', 'Educator', 'Healthcare', 'Technology', 'Finance',
   'Agriculture', 'Retail', 'Hospitality', 'Other',
 ];
-
 const SOURCE_OF_FUNDS = [
   'Employment Income', 'Business Revenue', 'Investments', 'Savings',
   'Family Support', 'Gifts', 'Other',
 ];
-
 export default function AddressPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [formData, setFormData] = useState({
     addressLine1: '',
     addressLine2: '',
@@ -44,12 +36,10 @@ export default function AddressPage() {
     sourceOfFunds: '',
     additionalInfo: '',
   });
-
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -60,21 +50,17 @@ export default function AddressPage() {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (file.size > 5 * 1024 * 1024) {
       setErrors((prev) => ({ ...prev, proof: 'File size must be less than 5MB' }));
       return;
     }
-
     if (!['application/pdf', 'image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       setErrors((prev) => ({ ...prev, proof: 'Only PDF, JPEG, PNG, or WebP allowed' }));
       return;
     }
-
     setProofFile(file);
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -85,13 +71,11 @@ export default function AddressPage() {
       setErrors((prev) => ({ ...prev, proof: '' }));
     }
   };
-
   const removeProof = () => {
     setProofFile(null);
     setProofPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
-
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};
     if (!formData.addressLine1.trim()) newErrors.addressLine1 = 'Address is required';
@@ -104,17 +88,13 @@ export default function AddressPage() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-
     setIsSubmitting(true);
-
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
-
       // Update KYC submission with address and proof (if provided)
       const kyc = mockKYCSubmissions.find((s) => s.userId === CURRENT_USER_ID);
       if (kyc) {
@@ -132,7 +112,6 @@ export default function AddressPage() {
           kyc.submittedAt = new Date().toISOString();
         }
       }
-
       router.push('/verify/pending');
     } catch (error) {
       console.error('Address submission error:', error);
@@ -141,7 +120,6 @@ export default function AddressPage() {
       setIsSubmitting(false);
     }
   };
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       {/* Breadcrumb */}
@@ -160,13 +138,11 @@ export default function AddressPage() {
         <span className="mx-2">/</span>
         <span className="text-gray-700">Address</span>
       </nav>
-
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Address & Additional Info</h1>
         <p className="text-gray-500 mb-6">
           Provide your address and additional information for verification purposes.
         </p>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Address Fields */}
           <div>
@@ -207,7 +183,7 @@ export default function AddressPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   County <span className="text-red-500">*</span>
                 </label>
-                <SelectInput
+                <Select
                   id="county"
                   label="County"
                   name="county"
@@ -240,7 +216,6 @@ export default function AddressPage() {
               />
             </div>
           </div>
-
           {/* Proof of Address Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -296,7 +271,6 @@ export default function AddressPage() {
             </div>
             {errors.proof && <p className="mt-1 text-sm text-red-600">{errors.proof}</p>}
           </div>
-
           {/* Additional Info */}
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-3">Additional Information</h3>
@@ -305,7 +279,7 @@ export default function AddressPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Occupation <span className="text-red-500">*</span>
                 </label>
-                <SelectInput
+                <Select
                   id="occupation"
                   label="Occupation"
                   name="occupation"
@@ -322,7 +296,7 @@ export default function AddressPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Source of Funds <span className="text-red-500">*</span>
                 </label>
-                <SelectInput
+                <Select
                   id="sourceOfFunds"
                   label="Source of Funds"
                   name="sourceOfFunds"
@@ -348,13 +322,11 @@ export default function AddressPage() {
               />
             </div>
           </div>
-
           {errors.submit && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
               {errors.submit}
             </div>
           )}
-
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 justify-end pt-4 border-t border-gray-200">
             <Link href="/verify/liveness">

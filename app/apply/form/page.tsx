@@ -1,15 +1,14 @@
-'use client';
 "use client";
-
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { MemberLayout } from "@/components/layout/memberLayout";
 import { Card } from "@/components/card";
 import { Button } from "@/components/button";
-import { TextInput, TextareaInput, SelectInput } from "@/components/input";
+import { TextInput } from "@/components/input";
+import { Textarea } from "@/components/textarea";
+import { Select } from "@/components/select";
 import { AscentStepper } from "@/components/ascentStepper";
-
 // Main page component with Suspense wrapper
 export default function ApplyFormPage() {
   return (
@@ -18,12 +17,10 @@ export default function ApplyFormPage() {
     </Suspense>
   );
 }
-
 // Actual form component that uses useSearchParams
 function FormContent() {
   const searchParams = useSearchParams();
   const tier = searchParams.get("tier") || "Eagle";
-
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -33,33 +30,26 @@ function FormContent() {
     chapter: "",
     motivation: "",
   });
-
   const totalSteps = 5;
-
   // Define the step labels and provide dummy state (will be overridden)
   const stepLabels = ["Personal", "Chapter", "Interests", "Motivation", "Review"];
   const steps = stepLabels.map((label) => ({
     label,
     state: "upcoming" as const, // placeholder, overridden by currentIndex
   }));
-
   const handleNext = () => setStep((s) => Math.min(s + 1, totalSteps));
   const handlePrev = () => setStep((s) => Math.max(s - 1, 1));
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Form submitted", { tier, ...formData });
   };
-
   return (
     <MemberLayout>
       <div className="max-w-2xl mx-auto">
         <AscentStepper steps={steps} currentIndex={step - 1} />
-
         <Card className="p-6 mt-6">
           <form onSubmit={handleSubmit}>
             {/* Step 1: Personal Info */}
@@ -103,12 +93,11 @@ function FormContent() {
                 />
               </div>
             )}
-
             {/* Step 2: Chapter */}
             {step === 2 && (
               <div className="space-y-4">
                 <h2 className="font-display text-xl font-semibold text-ink-900">Chapter Selection</h2>
-                <SelectInput
+                <Select
                   id="chapter"
                   label="Chapter"
                   name="chapter"
@@ -125,7 +114,6 @@ function FormContent() {
                 />
               </div>
             )}
-
             {/* Step 3: Interests */}
             {step === 3 && (
               <div className="space-y-4">
@@ -141,12 +129,11 @@ function FormContent() {
                 </div>
               </div>
             )}
-
             {/* Step 4: Motivation */}
             {step === 4 && (
               <div className="space-y-4">
                 <h2 className="font-display text-xl font-semibold text-ink-900">Motivation</h2>
-                <TextareaInput
+                <Textarea
                   id="motivation"
                   label="Why do you want to join?"
                   name="motivation"
@@ -158,7 +145,6 @@ function FormContent() {
                 />
               </div>
             )}
-
             {/* Step 5: Review */}
             {step === 5 && (
               <div className="space-y-4">
@@ -172,7 +158,6 @@ function FormContent() {
                 </div>
               </div>
             )}
-
             {/* Navigation */}
             <div className="flex justify-between mt-6 pt-4 border-t">
               <Button variant="secondary" onClick={handlePrev} disabled={step === 1} type="button">

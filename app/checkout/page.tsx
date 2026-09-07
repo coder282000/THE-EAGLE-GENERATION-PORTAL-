@@ -1,7 +1,5 @@
-'use client';
 export const dynamic = 'force-dynamic';
 // app/checkout/page.tsx
-
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -9,9 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/button';
 import { TextInput, SelectInput } from '@/components/input';
 import { formatCurrency } from '@/lib/utils';
-
 type PaymentMethod = 'mpesa' | 'card' | 'bank_transfer';
-
 interface FormData {
   firstName: string;
   lastName: string;
@@ -28,19 +24,16 @@ interface FormData {
   expiryDate?: string;
   cvv?: string;
 }
-
 const PAYMENT_METHODS = [
   { value: 'mpesa', label: 'M-Pesa (STK Push)' },
   { value: 'card', label: 'Credit / Debit Card' },
   { value: 'bank_transfer', label: 'Bank Transfer' },
 ];
-
 const COUNTIES = [
   'Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Malindi',
   'Meru', 'Nyeri', 'Kitale', 'Kakamega', 'Machakos', 'Kisii', 'Garissa',
   'Embu', 'Bungoma', 'Vihiga', 'Uasin Gishu', 'Trans Nzoia', 'Laikipia',
 ];
-
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, totalItems, totalPrice, clearCart } = useCart();
@@ -61,10 +54,8 @@ export default function CheckoutPage() {
     expiryDate: '',
     cvv: '',
   });
-
   // Form validation
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
-
   // If cart is empty, redirect to shop
   if (items.length === 0) {
     return (
@@ -80,7 +71,6 @@ export default function CheckoutPage() {
       </div>
     );
   }
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -89,7 +79,6 @@ export default function CheckoutPage() {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
-
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof FormData, string>> = {};
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
@@ -102,7 +91,6 @@ export default function CheckoutPage() {
     if (!formData.county) newErrors.county = 'County is required';
     if (!formData.postalCode.trim()) newErrors.postalCode = 'Postal code is required';
     if (!formData.paymentMethod) newErrors.paymentMethod = 'Payment method is required';
-
     // Conditional validation for payment method details
     if (formData.paymentMethod === 'mpesa') {
       if (!formData.mpesaPhone?.trim()) newErrors.mpesaPhone = 'M-Pesa phone number is required';
@@ -113,27 +101,21 @@ export default function CheckoutPage() {
       if (!formData.expiryDate?.trim()) newErrors.expiryDate = 'Expiry date is required';
       if (!formData.cvv?.trim()) newErrors.cvv = 'CVV is required';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-
     setIsSubmitting(true);
-
     // Simulate API call for order creation and payment
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-
       // For M-Pesa, we would redirect to wait screen
       if (formData.paymentMethod === 'mpesa') {
         router.push('/checkout/mpesa');
         return;
       }
-
       // For card or bank, redirect to success
       router.push('/checkout/success');
     } catch (error) {
@@ -143,7 +125,6 @@ export default function CheckoutPage() {
       setIsSubmitting(false);
     }
   };
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
@@ -153,9 +134,7 @@ export default function CheckoutPage() {
         <span>/</span>
         <span className="text-gray-700">Checkout</span>
       </div>
-
       <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
-
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Form */}
@@ -225,7 +204,7 @@ export default function CheckoutPage() {
                 />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">County</label>
-                  <SelectInput
+                  <Select
                     id="county"
                     label="County"
                     name="county"
@@ -258,14 +237,13 @@ export default function CheckoutPage() {
                 />
               </div>
             </div>
-
             {/* Payment Method */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Payment Method</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Select Payment Method</label>
-                  <SelectInput
+                  <Select
                     id="paymentMethod"
                     label="Payment Method"
                     name="paymentMethod"
@@ -275,7 +253,6 @@ export default function CheckoutPage() {
                     error={errors.paymentMethod}
                   />
                 </div>
-
                 {/* Conditional payment details */}
                 {formData.paymentMethod === 'mpesa' && (
                   <div className="mt-3 p-4 bg-blue-50 rounded-lg">
@@ -293,7 +270,6 @@ export default function CheckoutPage() {
                     />
                   </div>
                 )}
-
                 {formData.paymentMethod === 'card' && (
                   <div className="mt-3 p-4 bg-gray-50 rounded-lg">
                     <p className="text-sm text-gray-600 mb-2">Enter your card details (test mode).</p>
@@ -331,7 +307,6 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                 )}
-
                 {formData.paymentMethod === 'bank_transfer' && (
                   <div className="mt-3 p-4 bg-gray-50 rounded-lg">
                     <p className="text-sm text-gray-600">
@@ -348,7 +323,6 @@ export default function CheckoutPage() {
               </div>
             </div>
           </div>
-
           {/* Order Summary */}
           <div className="lg:w-1/3">
             <div className="bg-gray-50 rounded-lg p-6 sticky top-24">
