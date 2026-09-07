@@ -1,45 +1,44 @@
-// components/savings/ApprovalStatus.tsx
+'use client';
 
-interface ApprovalStatusProps {
-  status: string; // Accept any status string – will map to known values
-  initiatedBy?: string;
-  approvedBy?: string;
-  scheduledDate?: string;
-}
+import { useParams } from 'next/navigation';
+import { Card } from '@/components/card';
+import { mockCircles, mockPayouts, mockMembers } from '@/components/mock/data';
+import { formatCurrency } from '@/lib/utils';
+import ApprovalStatus from '@/components/savings/ApprovalStatus'; // ✅ Default import
 
-export function ApprovalStatus({ status, initiatedBy, approvedBy, scheduledDate }: ApprovalStatusProps) {
-  const statusConfig: Record<string, { label: string; color: string; icon: string }> = {
-    PENDING: { label: 'Pending Approval', color: 'bg-amber-100 text-amber-800', icon: '⏳' },
-    APPROVED: { label: 'Approved', color: 'bg-blue-100 text-blue-800', icon: '✅' },
-    REJECTED: { label: 'Rejected', color: 'bg-red-100 text-red-800', icon: '❌' },
-    EXECUTED: { label: 'Executed', color: 'bg-emerald-100 text-emerald-800', icon: '✔️' },
-    FAILED: { label: 'Failed', color: 'bg-red-100 text-red-800', icon: '❌' },
-    REVERSED: { label: 'Reversed', color: 'bg-gray-100 text-gray-800', icon: '↩️' },
-    // Add more mappings as needed
-  };
+export default function PayoutSchedulePage() {
+  const { id } = useParams();
+  const circle = mockCircles.find((c) => c.id === id);
+  const payouts = mockPayouts.filter((p) => p.circleId === id);
 
-  const config = statusConfig[status] || {
-    label: status,
-    color: 'bg-gray-100 text-gray-800',
-    icon: '•',
-  };
+  if (!circle) {
+    return <div className="text-center py-12 text-gray-500">Circle not found.</div>;
+  }
 
   return (
-    <div className="flex items-center gap-2 text-sm">
-      <span className={`px-2 py-1 rounded-full ${config.color}`}>
-        {config.icon} {config.label}
-      </span>
-      {initiatedBy && (
-        <span className="text-gray-500 text-xs">Initiated by: {initiatedBy}</span>
-      )}
-      {approvedBy && status === 'APPROVED' && (
-        <span className="text-gray-500 text-xs">Approved by: {approvedBy}</span>
-      )}
-      {scheduledDate && (
-        <span className="text-gray-500 text-xs">
-          Scheduled: {new Date(scheduledDate).toLocaleDateString()}
-        </span>
-      )}
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-ink">Payout Schedule – {circle.name}</h1>
+      <Card className="p-4">
+        {payouts.length === 0 ? (
+          <p className="text-gray-500 text-center py-8">No payouts scheduled yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {payouts.map((p) => (
+              <div key={p.id} className="flex justify-between items-center border-b border-gray-100 py-3">
+                <div>
+                  <p className="font-medium">
+                    {mockMembers.find((m) => m.id === p.memberId)?.firstName || 'Member'}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {formatCurrency(p.amount, p.currency)} • {new Date(p.scheduledDate).toLocaleDateString()}
+                  </p>
+                </div>
+                <ApprovalStatus status={p.status} />
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

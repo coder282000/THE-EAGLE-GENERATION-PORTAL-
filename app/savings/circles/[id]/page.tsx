@@ -7,7 +7,7 @@ import { Button } from '@/components/button';
 // Removed Avatar import – using inline initials instead
 import { PillarTag } from '@/components/pillarTag';
 import LedgerTable from '@/components/savings/LedgerTable'; // Changed to default import
-import { ApprovalStatus } from '@/components/savings/ApprovalStatus';
+import ApprovalStatus from '@/components/savings/ApprovalStatus';
 import { formatCurrency } from '@/lib/utils';
 import { mockCircles, mockContributions, mockPayouts, mockMembers } from '@/components/mock/data';
 
