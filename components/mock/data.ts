@@ -654,6 +654,128 @@ export interface Guarantee {
 }
 
 // ============================================================
+// R5 – WALLET & OTC & REMITTANCE (NEW)
+// ============================================================
+
+export interface WalletBalance {
+  asset: 'USDT';
+  network: 'TRC20' | 'ERC20' | 'BEP20';
+  available: number; // stored in minor units (cents)
+  pending: number;   // minor units
+}
+
+export interface WalletTransaction {
+  id: string;
+  type: 'DEPOSIT' | 'WITHDRAWAL' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'OTC_BUY' | 'OTC_SELL';
+  asset: 'USDT';
+  network: 'TRC20' | 'ERC20' | 'BEP20' | null;
+  amount: number; // minor units
+  fee: number;    // minor units
+  status: 'PENDING' | 'CONFIRMING' | 'CONFIRMED' | 'FAILED' | 'REJECTED';
+  txHash?: string;
+  confirmations?: number;
+  confirmationThreshold?: number;
+  timestamp: string;
+  counterparty?: string; // for transfers
+  memo?: string;
+}
+
+export interface KYCStatus {
+  tier: 0 | 1 | 2; // 0=none, 1=basic, 2=full
+  dailyLimit: number; // in minor units
+  dailyUsed: number;  // in minor units
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+}
+
+// ---- OTC Desk ----
+export interface OTCRate {
+  pair: 'USDT/KES';
+  buyRate: number;      // KES per USDT
+  sellRate: number;
+  spread: number;
+  lastUpdated: string;
+}
+
+export interface OTCQuote {
+  id: string;
+  type: 'BUY' | 'SELL';
+  amount: number;       // USDT (minor units)
+  rate: number;
+  fee: number;          // KES (minor units)
+  total: number;        // KES (minor units)
+  expiresAt: string;
+  status: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REJECTED';
+}
+
+export interface OTCOrder {
+  id: string;
+  userId: string;
+  type: 'BUY' | 'SELL';
+  amount: number;
+  rate: number;
+  total: number;
+  fee: number;
+  status: 'PENDING' | 'IN_ESCROW' | 'MATCHED' | 'COMPLETED' | 'CANCELLED' | 'DISPUTED';
+  escrowId?: string;
+  matchedWith?: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+}
+
+// ---- Remittance ----
+export interface RemittanceCorridor {
+  id: string;
+  fromCountry: string;
+  fromCurrency: string;
+  toCountry: string;
+  toCurrency: string;
+  rate: number;
+  fee: number;
+  estimatedDelivery: string;
+  minAmount: number;
+  maxAmount: number;
+  status: 'ACTIVE' | 'MAINTENANCE' | 'PAUSED';
+  partner: string;
+}
+
+export interface RemittanceRecipient {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  country: string;
+  currency: string;
+  bankName?: string;
+  bankAccount?: string;
+  mobileNetwork?: string;
+  relationship: 'SELF' | 'FAMILY' | 'FRIEND' | 'BUSINESS' | 'OTHER';
+  isSaved: boolean;
+  createdAt: string;
+}
+
+export interface RemittanceTransfer {
+  id: string;
+  userId: string;
+  corridorId: string;
+  recipientId: string;
+  amount: number;
+  fee: number;
+  rate: number;
+  total: number;
+  sendCurrency: string;
+  receiveAmount: number;
+  receiveCurrency: string;
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
+  purpose: string;
+  trackingCode: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  failureReason?: string;
+}
+
+// ============================================================
 // 2. MOCK DATA
 // ============================================================
 
@@ -2317,13 +2439,13 @@ export const mockCertificates: Certificate[] = [
 export const mockOrders: Order[] = [
   {
     id: 'ord_001',
-    userId: '1', // Grace Muthoni
+    userId: '1',
     items: [
       {
         productId: 'prod-001',
         productName: 'Eagle Generation T-Shirt',
         quantity: 2,
-        price: 1500,    // KES 15.00
+        price: 1500,
         total: 3000,
         variant: 'Large / Black',
       },
@@ -2336,9 +2458,9 @@ export const mockOrders: Order[] = [
       },
     ],
     subtotal: 6500,
-    tax: 780,   // 12% VAT
+    tax: 780,
     shipping: 350,
-    total: 7630, // 6500 + 780 + 350 = 7630
+    total: 7630,
     currency: 'KES',
     status: 'delivered',
     paymentMethod: 'mpesa',
@@ -2355,7 +2477,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ord_002',
-    userId: '2', // David Ochieng
+    userId: '2',
     items: [
       {
         productId: 'prod-004',
@@ -2385,7 +2507,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ord_003',
-    userId: '3', // Faith Akinyi
+    userId: '3',
     items: [
       {
         productId: 'prod-003',
@@ -2422,7 +2544,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ord_004',
-    userId: '4', // James Kariuki
+    userId: '4',
     items: [
       {
         productId: 'prod-006',
@@ -2452,7 +2574,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ord_005',
-    userId: '5', // Mary Wanjiru
+    userId: '5',
     items: [
       {
         productId: 'prod-001',
@@ -2546,7 +2668,7 @@ export const mockDonations: Donation[] = [
   {
     id: 'don_001',
     userId: '1',
-    supportPackId: 'silver', // Silver pack
+    supportPackId: 'silver',
     amount: 5000,
     currency: 'KES',
     message: 'Proud to support the Eagle Generation!',
@@ -2558,7 +2680,7 @@ export const mockDonations: Donation[] = [
   {
     id: 'don_002',
     userId: '3',
-    supportPackId: 'platinum', // Platinum pack
+    supportPackId: 'platinum',
     amount: 25000,
     currency: 'KES',
     message: '',
@@ -2777,7 +2899,6 @@ export const mockPaymentTransactions: PaymentTransaction[] = [
     reference: 'MPESA_DON_567',
     createdAt: '2026-07-10T08:01:00Z',
   },
-  // Refund example
   {
     id: 'txn_006',
     userId: '3',
@@ -3104,6 +3225,320 @@ export const mockGuarantees: Guarantee[] = [
 ];
 
 // ============================================================
+// R5 – MOCK DATA (Wallet, OTC & Remittance)
+// ============================================================
+
+// ---- Mock Wallet Balances ----
+export const mockWalletBalances: WalletBalance[] = [
+  { asset: 'USDT', network: 'TRC20', available: 123456, pending: 0 },
+  { asset: 'USDT', network: 'ERC20', available: 45678, pending: 1000 },
+  { asset: 'USDT', network: 'BEP20', available: 78901, pending: 2500 },
+];
+
+// ---- Mock Wallet Transactions ----
+export const mockWalletTransactions: WalletTransaction[] = [
+  {
+    id: 'tx_1',
+    type: 'DEPOSIT',
+    asset: 'USDT',
+    network: 'TRC20',
+    amount: 100000,
+    fee: 0,
+    status: 'CONFIRMED',
+    txHash: '0xabc123...',
+    confirmations: 12,
+    confirmationThreshold: 6,
+    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+  },
+  {
+    id: 'tx_2',
+    type: 'WITHDRAWAL',
+    asset: 'USDT',
+    network: 'ERC20',
+    amount: 50000,
+    fee: 150,
+    status: 'PENDING',
+    txHash: undefined,
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+  },
+  {
+    id: 'tx_3',
+    type: 'TRANSFER_IN',
+    asset: 'USDT',
+    network: null,
+    amount: 25000,
+    fee: 0,
+    status: 'CONFIRMED',
+    counterparty: 'Grace Mwangi',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+  },
+  {
+    id: 'tx_4',
+    type: 'OTC_BUY',
+    asset: 'USDT',
+    network: 'BEP20',
+    amount: 150000,
+    fee: 1500,
+    status: 'CONFIRMING',
+    txHash: '0xdef456...',
+    confirmations: 2,
+    confirmationThreshold: 6,
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+  },
+  {
+    id: 'tx_5',
+    type: 'DEPOSIT',
+    asset: 'USDT',
+    network: 'TRC20',
+    amount: 30000,
+    fee: 0,
+    status: 'CONFIRMED',
+    txHash: '0xghi789...',
+    confirmations: 20,
+    confirmationThreshold: 6,
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
+  },
+];
+
+// ---- Mock KYC Status (for wallet) ----
+export const mockKYCStatus: KYCStatus = {
+  tier: 2,
+  dailyLimit: 500000,
+  dailyUsed: 150000,
+  status: 'APPROVED',
+};
+
+// ---- Mock OTC Rate & Orders ----
+export const mockOTCRate: OTCRate = {
+  pair: 'USDT/KES',
+  buyRate: 150.50,
+  sellRate: 148.75,
+  spread: 1.16,
+  lastUpdated: new Date().toISOString(),
+};
+
+export const getOTCQuote = (type: 'BUY' | 'SELL', usdtAmount: number): OTCQuote => {
+  const rate = type === 'BUY' ? mockOTCRate.buyRate : mockOTCRate.sellRate;
+  const total = usdtAmount * rate;
+  const fee = Math.round(total * 0.01);
+  return {
+    id: 'quote-' + Date.now().toString(36),
+    type,
+    amount: usdtAmount,
+    rate,
+    fee,
+    total: Math.round(total + fee),
+    expiresAt: new Date(Date.now() + 1000 * 60 * 5).toISOString(),
+    status: 'PENDING',
+  };
+};
+
+export const mockOTCOrders: OTCOrder[] = [
+  {
+    id: 'otc-001',
+    userId: '1',
+    type: 'BUY',
+    amount: 100000,
+    rate: 150.50,
+    total: 15050000,
+    fee: 150500,
+    status: 'COMPLETED',
+    escrowId: 'esc-001',
+    matchedWith: 'agent-001',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+    completedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
+  },
+  {
+    id: 'otc-002',
+    userId: '1',
+    type: 'SELL',
+    amount: 50000,
+    rate: 148.75,
+    total: 7437500,
+    fee: 74375,
+    status: 'IN_ESCROW',
+    escrowId: 'esc-002',
+    matchedWith: 'agent-002',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 1).toISOString(),
+  },
+  {
+    id: 'otc-003',
+    userId: '2',
+    type: 'BUY',
+    amount: 25000,
+    rate: 150.25,
+    total: 3756250,
+    fee: 37562,
+    status: 'PENDING',
+    createdAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+  },
+];
+
+// ---- Mock Remittance Corridors ----
+export const mockRemittanceCorridors: RemittanceCorridor[] = [
+  {
+    id: 'corr-001',
+    fromCountry: 'Kenya',
+    fromCurrency: 'KES',
+    toCountry: 'Uganda',
+    toCurrency: 'UGX',
+    rate: 28.50,
+    fee: 3500,
+    estimatedDelivery: '2-5 minutes',
+    minAmount: 10000,
+    maxAmount: 500000,
+    status: 'ACTIVE',
+    partner: 'MTN MoMo',
+  },
+  {
+    id: 'corr-002',
+    fromCountry: 'Kenya',
+    fromCurrency: 'KES',
+    toCountry: 'Tanzania',
+    toCurrency: 'TZS',
+    rate: 23.75,
+    fee: 4000,
+    estimatedDelivery: '5-10 minutes',
+    minAmount: 15000,
+    maxAmount: 400000,
+    status: 'ACTIVE',
+    partner: 'Tigo Pesa',
+  },
+  {
+    id: 'corr-003',
+    fromCountry: 'Kenya',
+    fromCurrency: 'KES',
+    toCountry: 'DR Congo',
+    toCurrency: 'CDF',
+    rate: 2.10,
+    fee: 5000,
+    estimatedDelivery: '10-30 minutes',
+    minAmount: 20000,
+    maxAmount: 300000,
+    status: 'ACTIVE',
+    partner: 'Airtel Money',
+  },
+  {
+    id: 'corr-004',
+    fromCountry: 'Kenya',
+    fromCurrency: 'KES',
+    toCountry: 'Rwanda',
+    toCurrency: 'RWF',
+    rate: 0.12,
+    fee: 3500,
+    estimatedDelivery: '2-5 minutes',
+    minAmount: 10000,
+    maxAmount: 350000,
+    status: 'MAINTENANCE',
+    partner: 'MTN MoMo',
+  },
+];
+
+// ---- Mock Remittance Recipients ----
+export const mockRemittanceRecipients: RemittanceRecipient[] = [
+  {
+    id: 'rec-001',
+    name: 'Grace Mwangi',
+    phone: '+256 712 345 678',
+    email: 'grace@example.com',
+    country: 'Uganda',
+    currency: 'UGX',
+    mobileNetwork: 'MTN MoMo',
+    relationship: 'FAMILY',
+    isSaved: true,
+    createdAt: '2026-01-15T10:00:00Z',
+  },
+  {
+    id: 'rec-002',
+    name: 'Daniel Ochieng',
+    phone: '+255 723 456 789',
+    country: 'Tanzania',
+    currency: 'TZS',
+    mobileNetwork: 'Tigo Pesa',
+    relationship: 'FRIEND',
+    isSaved: true,
+    createdAt: '2026-02-10T14:30:00Z',
+  },
+  {
+    id: 'rec-003',
+    name: 'Faith Akinyi',
+    phone: '+243 812 345 678',
+    country: 'DR Congo',
+    currency: 'CDF',
+    mobileNetwork: 'Airtel Money',
+    relationship: 'FAMILY',
+    isSaved: false,
+    createdAt: '2026-03-01T09:00:00Z',
+  },
+];
+
+// ---- Mock Remittance Transfers ----
+export const mockRemittanceTransfers: RemittanceTransfer[] = [
+  {
+    id: 'rem-001',
+    userId: '1',
+    corridorId: 'corr-001',
+    recipientId: 'rec-001',
+    amount: 50000,
+    fee: 3500,
+    rate: 28.50,
+    total: 53500,
+    sendCurrency: 'KES',
+    receiveAmount: 1425000,
+    receiveCurrency: 'UGX',
+    status: 'COMPLETED',
+    purpose: 'Family support',
+    trackingCode: 'TRK-001-2026',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+    completedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3 + 1000 * 60 * 5).toISOString(),
+  },
+  {
+    id: 'rem-002',
+    userId: '1',
+    corridorId: 'corr-002',
+    recipientId: 'rec-002',
+    amount: 30000,
+    fee: 4000,
+    rate: 23.75,
+    total: 34000,
+    sendCurrency: 'KES',
+    receiveAmount: 712500,
+    receiveCurrency: 'TZS',
+    status: 'PROCESSING',
+    purpose: 'Business payment',
+    trackingCode: 'TRK-002-2026',
+    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+  },
+  {
+    id: 'rem-003',
+    userId: '1',
+    corridorId: 'corr-003',
+    recipientId: 'rec-003',
+    amount: 25000,
+    fee: 5000,
+    rate: 2.10,
+    total: 30000,
+    sendCurrency: 'KES',
+    receiveAmount: 52500,
+    receiveCurrency: 'CDF',
+    status: 'PENDING',
+    purpose: 'School fees',
+    trackingCode: 'TRK-003-2026',
+    createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+  },
+];
+
+// ---- Helper Functions ----
+export const getCorridorById = (id: string) => mockRemittanceCorridors.find(c => c.id === id);
+export const getRecipientById = (id: string) => mockRemittanceRecipients.find(r => r.id === id);
+
+// ============================================================
 // 3. EXPORT ALL (for convenience)
 // ============================================================
 
@@ -3138,17 +3573,17 @@ export const mockData = {
   cohortMembers: mockCohortMembers,
   lessons: mockLessons,
   lessonProgress: mockLessonProgress,
-  // NEW
+  // R2 – E-Learning
   quizzes: mockQuizzes,
   assignments: mockAssignments,
   certificates: mockCertificates,
-  // PHASE 1
+  // R3 – Commerce & KYC
   orders: mockOrders,
   subscriptions: mockSubscriptions,
   donations: mockDonations,
   kycSubmissions: mockKYCSubmissions,
   paymentTransactions: mockPaymentTransactions,
-  // R4
+  // R4 – Savings & Credit
   circles: mockCircles,
   contributions: mockContributions,
   payouts: mockPayouts,
@@ -3157,4 +3592,15 @@ export const mockData = {
   loanApplications: mockLoanApplications,
   loans: mockLoans,
   guarantees: mockGuarantees,
+  // R5 – Wallet
+  walletBalances: mockWalletBalances,
+  walletTransactions: mockWalletTransactions,
+  kycStatus: mockKYCStatus,
+  // R5 – OTC
+  otcRate: mockOTCRate,
+  otcOrders: mockOTCOrders,
+  // R5 – Remittance
+  remittanceCorridors: mockRemittanceCorridors,
+  remittanceRecipients: mockRemittanceRecipients,
+  remittanceTransfers: mockRemittanceTransfers,
 };

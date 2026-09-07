@@ -7,9 +7,11 @@ import { Wordmark } from "@/components/wordmark";
 import { mockNotifications } from "@/components/mock/data";
 import { useCart } from "@/context/CartContext";
 
-// Feature flag for messaging – controlled by Compliance Lead (G-2)
+// Feature flags for compliance-gated modules
 const FEATURE_DIRECT_MESSAGING =
   process.env.NEXT_PUBLIC_FEATURE_DIRECT_MESSAGING === "true";
+const FEATURE_VIRTUAL_ASSETS =
+  process.env.NEXT_PUBLIC_FEATURE_VIRTUAL_ASSETS === "true";
 
 interface NavItem {
   href: string;
@@ -18,88 +20,133 @@ interface NavItem {
 }
 
 // Main navigation – grouped sections
-const navSections: { title: string; items: NavItem[] }[] = [
-  {
-    title: "Overview",
-    items: [
-      { href: "/dashboard", label: "Dashboard", icon: "📊" },
-      { href: "/chapter", label: "My Chapter", icon: "🏛️" },
-      { href: "/shop", label: "Shop", icon: "🛒" },
-    ],
-  },
-  {
-    title: "Community",
-    items: [
-      { href: "/community/feed", label: "Feed", icon: "📰" },
-      { href: "/community/groups", label: "Groups", icon: "👥" },
-      ...(FEATURE_DIRECT_MESSAGING
-        ? [{ href: "/community/messages", label: "Messages", icon: "💬" }]
-        : []),
-      { href: "/community/directory", label: "Directory", icon: "📇" },
-    ],
-  },
-  {
-    title: "Learning",
-    items: [
-      { href: "/learning/courses", label: "Courses", icon: "📚" },
-      { href: "/learning/my-learning", label: "My Learning", icon: "📖" },
-    ],
-  },
-  {
-    title: "Mentorship",
-    items: [
-      { href: "/mentorship/find", label: "Find a Mentor", icon: "🧑‍🏫" },
-      { href: "/mentorship/my-mentors", label: "My Mentors", icon: "🤝" },
-      { href: "/mentorship/requests", label: "Request Inbox", icon: "📥" },
-    ],
-  },
-  {
-    title: "Events",
-    items: [
-      { href: "/events", label: "Events", icon: "📅" },
-      { href: "/meetings", label: "Meetings", icon: "🎥" },
-    ],
-  },
-  {
-    title: "Finance",
-    items: [
-      { href: "/savings", label: "Savings", icon: "💰" },
-      { href: "/credit", label: "Credit", icon: "💳" },
-      { href: "/credit/my-loans", label: "My Loans", icon: "📋" },
-      { href: "/credit/guarantees", label: "Guarantees", icon: "🛡️" },
-    ],
-  },
-  {
-    title: "Giving & Support",
-    items: [
-      { href: "/giving", label: "Give", icon: "❤️" },
-      { href: "/profile/giving", label: "Giving History", icon: "📜" },
-    ],
-  },
-  {
-    title: "Profile",
-    items: [
-      { href: "/profile/me", label: "My Profile", icon: "👤" },
-      { href: "/profile/settings", label: "Edit Profile", icon: "✏️" },
-      { href: "/profile/security", label: "Security", icon: "🔐" },
-      { href: "/profile/privacy", label: "Privacy", icon: "🛡️" },
-      { href: "/profile/orders", label: "My Orders", icon: "📦" },
-      { href: "/profile/subscription", label: "Subscription", icon: "💳" },
-      { href: "/profile/verification", label: "Verification", icon: "🪪" },
-    ],
-  },
-];
+const getNavSections = (): { title: string; items: NavItem[] }[] => {
+  const sections = [
+    {
+      title: "Overview",
+      items: [
+        { href: "/dashboard", label: "Dashboard", icon: "📊" },
+        { href: "/chapter", label: "My Chapter", icon: "🏛️" },
+        { href: "/shop", label: "Shop", icon: "🛒" },
+      ],
+    },
+    {
+      title: "Community",
+      items: [
+        { href: "/community/feed", label: "Feed", icon: "📰" },
+        { href: "/community/groups", label: "Groups", icon: "👥" },
+        ...(FEATURE_DIRECT_MESSAGING
+          ? [{ href: "/community/messages", label: "Messages", icon: "💬" }]
+          : []),
+        { href: "/community/directory", label: "Directory", icon: "📇" },
+      ],
+    },
+    {
+      title: "Learning",
+      items: [
+        { href: "/learning/courses", label: "Courses", icon: "📚" },
+        { href: "/learning/my-learning", label: "My Learning", icon: "📖" },
+      ],
+    },
+    {
+      title: "Mentorship",
+      items: [
+        { href: "/mentorship/find", label: "Find a Mentor", icon: "🧑‍🏫" },
+        { href: "/mentorship/my-mentors", label: "My Mentors", icon: "🤝" },
+        { href: "/mentorship/requests", label: "Request Inbox", icon: "📥" },
+      ],
+    },
+    {
+      title: "Events",
+      items: [
+        { href: "/events", label: "Events", icon: "📅" },
+        { href: "/meetings", label: "Meetings", icon: "🎥" },
+      ],
+    },
+    {
+      title: "Finance",
+      items: [
+        ...(FEATURE_VIRTUAL_ASSETS
+          ? [{ href: "/wallet", label: "Wallet", icon: "💳" }]
+          : []),
+        { href: "/savings", label: "Savings", icon: "💰" },
+        { href: "/credit", label: "Credit", icon: "💳" },
+        { href: "/credit/my-loans", label: "My Loans", icon: "📋" },
+        { href: "/credit/guarantees", label: "Guarantees", icon: "🛡️" },
+      ],
+    },
+  ];
 
-// Flat list for bottom mobile nav
-const mobileNavItems: NavItem[] = [
-  { href: "/dashboard", label: "Home", icon: "🏠" },
-  { href: "/community/feed", label: "Feed", icon: "📰" },
-  { href: "/learning/courses", label: "Learn", icon: "📚" },
-  { href: "/events", label: "Events", icon: "📅" },
-  { href: "/shop", label: "Shop", icon: "🛒" },
-  { href: "/savings", label: "Savings", icon: "💰" },
-  { href: "/profile/me", label: "Profile", icon: "👤" },
-];
+  // Add OTC section if virtual assets are enabled
+  if (FEATURE_VIRTUAL_ASSETS) {
+    sections.push({
+      title: "OTC",
+      items: [
+        { href: "/otc/buy", label: "Buy USDT", icon: "📈" },
+        { href: "/otc/sell", label: "Sell USDT", icon: "📉" },
+        { href: "/otc/orders", label: "My Orders", icon: "📋" },
+      ],
+    });
+  }
+
+  // Add Remittance section if virtual assets are enabled
+  if (FEATURE_VIRTUAL_ASSETS) {
+    sections.push({
+      title: "Remittance",
+      items: [
+        { href: "/remit", label: "Send Money", icon: "💸" },
+        { href: "/remit/transfers", label: "My Transfers", icon: "📋" },
+        { href: "/remit/recipients", label: "Saved Recipients", icon: "👤" },
+      ],
+    });
+  }
+
+  // Add Giving & Support and Profile sections
+  sections.push(
+    {
+      title: "Giving & Support",
+      items: [
+        { href: "/giving", label: "Give", icon: "❤️" },
+        { href: "/profile/giving", label: "Giving History", icon: "📜" },
+      ],
+    },
+    {
+      title: "Profile",
+      items: [
+        { href: "/profile/me", label: "My Profile", icon: "👤" },
+        { href: "/profile/settings", label: "Edit Profile", icon: "✏️" },
+        { href: "/profile/security", label: "Security", icon: "🔐" },
+        { href: "/profile/privacy", label: "Privacy", icon: "🛡️" },
+        { href: "/profile/orders", label: "My Orders", icon: "📦" },
+        { href: "/profile/subscription", label: "Subscription", icon: "💳" },
+        { href: "/profile/verification", label: "Verification", icon: "🪪" },
+      ],
+    }
+  );
+
+  return sections;
+};
+
+// Flat list for bottom mobile nav – conditionally include R5 items
+const getMobileNavItems = (): NavItem[] => {
+  const base: NavItem[] = [
+    { href: "/dashboard", label: "Home", icon: "🏠" },
+    { href: "/community/feed", label: "Feed", icon: "📰" },
+    { href: "/learning/courses", label: "Learn", icon: "📚" },
+    { href: "/events", label: "Events", icon: "📅" },
+    { href: "/shop", label: "Shop", icon: "🛒" },
+    { href: "/savings", label: "Savings", icon: "💰" },
+  ];
+
+  if (FEATURE_VIRTUAL_ASSETS) {
+    base.push({ href: "/wallet", label: "Wallet", icon: "💳" });
+    base.push({ href: "/otc/buy", label: "OTC", icon: "💱" });
+    base.push({ href: "/remit", label: "Send", icon: "💸" });
+  }
+
+  base.push({ href: "/profile/me", label: "Profile", icon: "👤" });
+  return base;
+};
 
 export function MemberLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -131,6 +178,9 @@ export function MemberLayout({ children }: { children: ReactNode }) {
   // Helper to check active route
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
+
+  const navSections = getNavSections();
+  const mobileNavItems = getMobileNavItems();
 
   return (
     <div className="min-h-screen bg-paper flex flex-col md:flex-row">

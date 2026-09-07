@@ -3,10 +3,10 @@
 
 import React, { useState, useMemo } from 'react';
 import { mockOrders } from '@/components/mock/data';
-import { Order } from '@/components/mock/data';
+import type { Order } from '@/components/mock/data';
 import { OrderCard } from '@/components/orders/OrderCard';
 import { Button } from '@/components/button';
-import { SelectInput } from '@/components/input';
+import { Select } from '@/components/select'; // fixed import
 
 type StatusFilter = 'all' | 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
 
@@ -65,13 +65,12 @@ export default function OrdersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Orders</h1>
         <div className="sm:w-48">
-          <SelectInput
+          <Select
             id="statusFilter"
             label="Status"
             value={statusFilter}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value as StatusFilter)}
             options={STATUS_FILTERS}
-            aria-label="Filter orders by status"
           />
         </div>
       </div>
