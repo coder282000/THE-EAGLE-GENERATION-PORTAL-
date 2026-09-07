@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ReactNode, useState, useRef, useEffect } from "react";
 import Link from "next/link";
@@ -19,60 +19,60 @@ interface NavItem {
   icon: string;
 }
 
-// Main navigation – grouped sections
+// Main navigation â€“ grouped sections
 const getNavSections = (): { title: string; items: NavItem[] }[] => {
   const sections = [
     {
       title: "Overview",
       items: [
-        { href: "/dashboard", label: "Dashboard", icon: "📊" },
-        { href: "/chapter", label: "My Chapter", icon: "🏛️" },
-        { href: "/shop", label: "Shop", icon: "🛒" },
+        { href: "/dashboard", label: "Dashboard", icon: "ðŸ“Š" },
+        { href: "/chapter", label: "My Chapter", icon: "ðŸ›ï¸" },
+        { href: "/shop", label: "Shop", icon: "ðŸ›’" },
       ],
     },
     {
       title: "Community",
       items: [
-        { href: "/community/feed", label: "Feed", icon: "📰" },
-        { href: "/community/groups", label: "Groups", icon: "👥" },
+        { href: "/community/feed", label: "Feed", icon: "ðŸ“°" },
+        { href: "/community/groups", label: "Groups", icon: "ðŸ‘¥" },
         ...(FEATURE_DIRECT_MESSAGING
-          ? [{ href: "/community/messages", label: "Messages", icon: "💬" }]
+          ? [{ href: "/community/messages", label: "Messages", icon: "ðŸ’¬" }]
           : []),
-        { href: "/community/directory", label: "Directory", icon: "📇" },
+        { href: "/community/directory", label: "Directory", icon: "ðŸ“‡" },
       ],
     },
     {
       title: "Learning",
       items: [
-        { href: "/learning/courses", label: "Courses", icon: "📚" },
-        { href: "/learning/my-learning", label: "My Learning", icon: "📖" },
+        { href: "/learning/courses", label: "Courses", icon: "ðŸ“š" },
+        { href: "/learning/my-learning", label: "My Learning", icon: "ðŸ“–" },
       ],
     },
     {
       title: "Mentorship",
       items: [
-        { href: "/mentorship/find", label: "Find a Mentor", icon: "🧑‍🏫" },
-        { href: "/mentorship/my-mentors", label: "My Mentors", icon: "🤝" },
-        { href: "/mentorship/requests", label: "Request Inbox", icon: "📥" },
+        { href: "/mentorship/find", label: "Find a Mentor", icon: "ðŸ§‘â€ðŸ«" },
+        { href: "/mentorship/my-mentors", label: "My Mentors", icon: "ðŸ¤" },
+        { href: "/mentorship/requests", label: "Request Inbox", icon: "ðŸ“¥" },
       ],
     },
     {
       title: "Events",
       items: [
-        { href: "/events", label: "Events", icon: "📅" },
-        { href: "/meetings", label: "Meetings", icon: "🎥" },
+        { href: "/events", label: "Events", icon: "ðŸ“…" },
+        { href: "/meetings", label: "Meetings", icon: "ðŸŽ¥" },
       ],
     },
     {
       title: "Finance",
       items: [
         ...(FEATURE_VIRTUAL_ASSETS
-          ? [{ href: "/wallet", label: "Wallet", icon: "💳" }]
+          ? [{ href: "/wallet", label: "Wallet", icon: "ðŸ’³" }]
           : []),
-        { href: "/savings", label: "Savings", icon: "💰" },
-        { href: "/credit", label: "Credit", icon: "💳" },
-        { href: "/credit/my-loans", label: "My Loans", icon: "📋" },
-        { href: "/credit/guarantees", label: "Guarantees", icon: "🛡️" },
+        { href: "/savings", label: "Savings", icon: "ðŸ’°" },
+        { href: "/credit", label: "Credit", icon: "ðŸ’³" },
+        { href: "/credit/my-loans", label: "My Loans", icon: "ðŸ“‹" },
+        { href: "/credit/guarantees", label: "Guarantees", icon: "ðŸ›¡ï¸" },
       ],
     },
   ];
@@ -82,9 +82,9 @@ const getNavSections = (): { title: string; items: NavItem[] }[] => {
     sections.push({
       title: "OTC",
       items: [
-        { href: "/otc/buy", label: "Buy USDT", icon: "📈" },
-        { href: "/otc/sell", label: "Sell USDT", icon: "📉" },
-        { href: "/otc/orders", label: "My Orders", icon: "📋" },
+        { href: "/otc/buy", label: "Buy USDT", icon: "ðŸ“ˆ" },
+        { href: "/otc/sell", label: "Sell USDT", icon: "ðŸ“‰" },
+        { href: "/otc/orders", label: "My Orders", icon: "ðŸ“‹" },
       ],
     });
   }
@@ -94,9 +94,9 @@ const getNavSections = (): { title: string; items: NavItem[] }[] => {
     sections.push({
       title: "Remittance",
       items: [
-        { href: "/remit", label: "Send Money", icon: "💸" },
-        { href: "/remit/transfers", label: "My Transfers", icon: "📋" },
-        { href: "/remit/recipients", label: "Saved Recipients", icon: "👤" },
+        { href: "/remit", label: "Send Money", icon: "ðŸ’¸" },
+        { href: "/remit/transfers", label: "My Transfers", icon: "ðŸ“‹" },
+        { href: "/remit/recipients", label: "Saved Recipients", icon: "ðŸ‘¤" },
       ],
     });
   }
@@ -106,20 +106,20 @@ const getNavSections = (): { title: string; items: NavItem[] }[] => {
     {
       title: "Giving & Support",
       items: [
-        { href: "/giving", label: "Give", icon: "❤️" },
-        { href: "/profile/giving", label: "Giving History", icon: "📜" },
+        { href: "/giving", label: "Give", icon: "â¤ï¸" },
+        { href: "/profile/giving", label: "Giving History", icon: "ðŸ“œ" },
       ],
     },
     {
       title: "Profile",
       items: [
-        { href: "/profile/me", label: "My Profile", icon: "👤" },
-        { href: "/profile/settings", label: "Edit Profile", icon: "✏️" },
-        { href: "/profile/security", label: "Security", icon: "🔐" },
-        { href: "/profile/privacy", label: "Privacy", icon: "🛡️" },
-        { href: "/profile/orders", label: "My Orders", icon: "📦" },
-        { href: "/profile/subscription", label: "Subscription", icon: "💳" },
-        { href: "/profile/verification", label: "Verification", icon: "🪪" },
+        { href: "/profile/me", label: "My Profile", icon: "ðŸ‘¤" },
+        { href: "/profile/settings", label: "Edit Profile", icon: "âœï¸" },
+        { href: "/profile/security", label: "Security", icon: "ðŸ”" },
+        { href: "/profile/privacy", label: "Privacy", icon: "ðŸ›¡ï¸" },
+        { href: "/profile/orders", label: "My Orders", icon: "ðŸ“¦" },
+        { href: "/profile/subscription", label: "Subscription", icon: "ðŸ’³" },
+        { href: "/profile/verification", label: "Verification", icon: "ðŸªª" },
       ],
     }
   );
@@ -127,24 +127,24 @@ const getNavSections = (): { title: string; items: NavItem[] }[] => {
   return sections;
 };
 
-// Flat list for bottom mobile nav – conditionally include R5 items
+// Flat list for bottom mobile nav â€“ conditionally include R5 items
 const getMobileNavItems = (): NavItem[] => {
   const base: NavItem[] = [
-    { href: "/dashboard", label: "Home", icon: "🏠" },
-    { href: "/community/feed", label: "Feed", icon: "📰" },
-    { href: "/learning/courses", label: "Learn", icon: "📚" },
-    { href: "/events", label: "Events", icon: "📅" },
-    { href: "/shop", label: "Shop", icon: "🛒" },
-    { href: "/savings", label: "Savings", icon: "💰" },
+    { href: "/dashboard", label: "Home", icon: "ðŸ " },
+    { href: "/community/feed", label: "Feed", icon: "ðŸ“°" },
+    { href: "/learning/courses", label: "Learn", icon: "ðŸ“š" },
+    { href: "/events", label: "Events", icon: "ðŸ“…" },
+    { href: "/shop", label: "Shop", icon: "ðŸ›’" },
+    { href: "/savings", label: "Savings", icon: "ðŸ’°" },
   ];
 
   if (FEATURE_VIRTUAL_ASSETS) {
-    base.push({ href: "/wallet", label: "Wallet", icon: "💳" });
-    base.push({ href: "/otc/buy", label: "OTC", icon: "💱" });
-    base.push({ href: "/remit", label: "Send", icon: "💸" });
+    base.push({ href: "/wallet", label: "Wallet", icon: "ðŸ’³" });
+    base.push({ href: "/otc/buy", label: "OTC", icon: "ðŸ’±" });
+    base.push({ href: "/remit", label: "Send", icon: "ðŸ’¸" });
   }
 
-  base.push({ href: "/profile/me", label: "Profile", icon: "👤" });
+  base.push({ href: "/profile/me", label: "Profile", icon: "ðŸ‘¤" });
   return base;
 };
 
@@ -221,7 +221,7 @@ export function MemberLayout({ children }: { children: ReactNode }) {
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-ink-300 hover:bg-ink-800 hover:text-white transition-colors"
           >
-            <span className="text-lg">🚪</span>
+            <span className="text-lg">ðŸšª</span>
             Sign Out
           </button>
         </div>
@@ -246,7 +246,7 @@ export function MemberLayout({ children }: { children: ReactNode }) {
                 className="relative text-ink-400 hover:text-ink-600 transition-colors"
                 aria-label="Shopping cart"
               >
-                <span className="text-xl">🛒</span>
+                <span className="text-xl">ðŸ›’</span>
                 {cartTotalItems > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-clay-500 text-[10px] font-bold text-white">
                     {cartTotalItems}
@@ -259,7 +259,7 @@ export function MemberLayout({ children }: { children: ReactNode }) {
                 href="/notifications"
                 className="relative text-ink-400 hover:text-ink-600 transition-colors"
               >
-                <span className="text-xl">🔔</span>
+                <span className="text-xl">ðŸ””</span>
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-clay-500 text-[10px] font-bold text-white">
                     {unreadCount}
@@ -291,70 +291,70 @@ export function MemberLayout({ children }: { children: ReactNode }) {
                         className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
-                        <span>👤</span> My Profile
+                        <span>ðŸ‘¤</span> My Profile
                       </Link>
                       <Link
                         href="/profile/settings"
                         className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
-                        <span>✏️</span> Edit Profile
+                        <span>âœï¸</span> Edit Profile
                       </Link>
                       <Link
                         href="/profile/security"
                         className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
-                        <span>🔐</span> Security
+                        <span>ðŸ”</span> Security
                       </Link>
                       <Link
                         href="/profile/privacy"
                         className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
-                        <span>🛡️</span> Privacy
+                        <span>ðŸ›¡ï¸</span> Privacy
                       </Link>
                       <Link
                         href="/profile/orders"
                         className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
-                        <span>📦</span> My Orders
+                        <span>ðŸ“¦</span> My Orders
                       </Link>
                       <Link
                         href="/profile/subscription"
                         className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
-                        <span>💳</span> Subscription
+                        <span>ðŸ’³</span> Subscription
                       </Link>
                       <Link
                         href="/profile/verification"
                         className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
-                        <span>🪪</span> Verification
+                        <span>ðŸªª</span> Verification
                       </Link>
                       <Link
                         href="/profile/giving"
                         className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
-                        <span>❤️</span> Giving History
+                        <span>â¤ï¸</span> Giving History
                       </Link>
                       <Link
                         href="/giving"
                         className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-700 hover:bg-ink-50 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
-                        <span>🙏</span> Give Now
+                        <span>ðŸ™</span> Give Now
                       </Link>
                       <hr className="my-1 border-ink-100" />
                       <button
                         onClick={handleLogout}
                         className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-clay-600 hover:bg-clay-50 transition-colors"
                       >
-                        <span>🚪</span> Sign Out
+                        <span>ðŸšª</span> Sign Out
                       </button>
                     </div>
                   </div>
