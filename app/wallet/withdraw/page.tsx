@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/card";
 import { Button } from "@/components/button";
-import TextInput from "@/components/input"; // default import
+import {TextInput} from "@/components/input"; // default import
 import { Select } from "@/components/select";
 import {
   mockWalletBalances,

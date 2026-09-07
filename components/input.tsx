@@ -1,76 +1,70 @@
-"use client";
-
-import { InputHTMLAttributes, forwardRef, useId } from "react";
+// components/input.tsx
+import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export interface TextInputProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(
+          "flex h-10 w-full rounded-md border border-ink-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-ink-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+Input.displayName = "Input";
+
+export { Input };
+
+export interface TextInputProps extends InputProps {
   label?: string;
-  error?: string;
-  leftElement?: React.ReactNode;
-  rightElement?: React.ReactNode;
+  id?: string;
+  leftElement?: React.ReactNode;   // e.g., icon or button on the left
+  rightElement?: React.ReactNode;  // e.g., icon or button on the right
 }
 
-export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
-  (
-    {
-      id,
-      label,
-      error,
-      leftElement,
-      rightElement,
-      className = "",
-      ...props
-    },
-    ref
-  ) => {
-    const generatedId = useId();
-    const inputId = id ?? generatedId;
-
+const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(
+  ({ className, label, id, leftElement, rightElement, ...props }, ref) => {
     return (
-      <div className="w-full">
+      <div className="space-y-1">
         {label && (
-          <label
-            htmlFor={inputId}
-            className="block text-sm font-medium text-ink-700 mb-1.5"
-          >
+          <label htmlFor={id} className="block text-sm font-medium text-ink">
             {label}
           </label>
         )}
-        <div className="relative flex items-center">
+        <div className="relative">
           {leftElement && (
-            <div className="absolute left-3 flex items-center pointer-events-none text-ink-400">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               {leftElement}
             </div>
           )}
-          <input
-            id={inputId}
-            ref={ref}
+          <Input
+            id={id}
             className={cn(
-              "w-full h-11 rounded-md border border-ink-200 bg-white px-3 text-ink-900",
-              "placeholder:text-ink-300",
-              "focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500",
-              "disabled:bg-ink-50 disabled:text-ink-300 disabled:cursor-not-allowed",
-              leftElement && "pl-9",
-              rightElement && "pr-12",
-              error && "border-clay-500 focus:ring-clay-500 focus:border-clay-500",
-              className
+              className,
+              leftElement && "pl-10",
+              rightElement && "pr-10"
             )}
+            ref={ref}
             {...props}
           />
           {rightElement && (
-            <div className="absolute right-3 flex items-center">
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
               {rightElement}
             </div>
           )}
         </div>
-        {error && (
-          <p className="mt-1 text-sm text-clay-600">{error}</p>
-        )}
       </div>
     );
   }
 );
 TextInput.displayName = "TextInput";
 
-export default TextInput;
+export { TextInput };

@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/card";
 import { Button } from "@/components/button";
-import TextInput from "@/components/input"; // default import
+import {TextInput} from "@/components/input"; // default import
 import { Select } from "@/components/select";
 import { Avatar } from "@/components/avatar";
 import { formatCurrency, cn } from "@/lib/utils";
