@@ -1,496 +1,513 @@
-'use client';
 "use client";
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { AdminLayout } from "@/components/layout/adminLayout";
-import { Card } from "@/components/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/button";
-import { mockMembers, Member } from "@/components/mock/data";
+import { SearchInput } from "@/components/ui/search-input";
+import { BulkActionBar } from "@/components/ui/bulk-action-bar";
+import { Pagination } from "@/components/ui/pagination";
+import { ShieldAlert, Download, RefreshCw, Users } from "lucide-react";
+import {
+  getMembers,
+  getChapterOptions,
+  getChapterName,
+  canViewMembers,
+  canSuspendMember,
+  canExportMembers,
+  MEMBER_TIER_LABELS,
+  MEMBER_STATUS_LABELS,
+  type Member,
+} from "@/lib/mock/members";
 
 type SortField = "name" | "memberNumber" | "tier" | "chapter" | "status" | "joinedAt";
 type SortDirection = "asc" | "desc";
 
-const TIER_FILTERS = [
-  { value: "all", label: "All Tiers" },
-  { value: "Eagle", label: "🦅 Eagle" },
-  { value: "Rising", label: "⬆️ Rising" },
-  { value: "Nestling", label: "🐣 Nestling" },
+const STATUS_FILTERS: { value: Member["status"] | "ALL"; label: string }[] = [
+  { value: "ALL", label: "All statuses" },
+  { value: "active", label: "Active" },
+  { value: "pending", label: "Pending" },
+  { value: "inactive", label: "Inactive" },
 ];
 
-const STATUS_FILTERS = [
-  { value: "all", label: "All Status" },
-  { value: "active", label: "✅ Active" },
-  { value: "pending", label: "⏳ Pending" },
-  { value: "inactive", label: "⛔ Inactive" },
+const TIER_FILTERS: { value: Member["tier"] | "ALL"; label: string }[] = [
+  { value: "ALL", label: "All tiers" },
+  { value: "Eagle", label: "Eagle" },
+  { value: "Rising", label: "Rising" },
+  { value: "Nestling", label: "Nestling" },
 ];
+
+const STATUS_BADGE: Record<Member["status"], string> = {
+  active: "bg-green-50 text-green-700",
+  pending: "bg-dawn-50 text-dawn-700",
+  inactive: "bg-ink-100 text-ink-500",
+};
+
+const PAGE_SIZE = 10;
 
 export default function AdminMembersPage() {
-  // State
-  const [searchQuery, setSearchQuery] = useState("");
-  const [tierFilter, setTierFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<Member["status"] | "ALL">("ALL");
+  const [tierFilter, setTierFilter] = useState<Member["tier"] | "ALL">("ALL");
+  const [chapterFilter, setChapterFilter] = useState<string | "ALL">("ALL");
   const [sortField, setSortField] = useState<SortField>("joinedAt");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [sortDir, setSortDir] = useState<SortDirection>("desc");
+  const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const pageSize = 10;
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // Filter and sort members
-  const filteredAndSorted = useMemo(() => {
-    let result = [...mockMembers];
+  const canView = canViewMembers();
+  const canSuspend = canSuspendMember();
+  const canExport = canExportMembers();
 
-    // Search
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      result = result.filter(
-        (m) =>
-          m.firstName.toLowerCase().includes(query) ||
-          m.lastName.toLowerCase().includes(query) ||
-          m.email.toLowerCase().includes(query) ||
-          m.memberNumber.toLowerCase().includes(query) ||
-          m.chapter.toLowerCase().includes(query)
-      );
-    }
+  const chapters = useMemo(() => getChapterOptions(), []);
 
-    // Tier filter
-    if (tierFilter !== "all") {
-      result = result.filter((m) => m.tier === tierFilter);
-    }
-
-    // Status filter
-    if (statusFilter !== "all") {
-      result = result.filter((m) => m.status === statusFilter);
-    }
-
-    // Sort
-    result = [...result].sort((a, b) => {
-      let aVal: string | number, bVal: string | number;
-      switch (sortField) {
-        case "name":
-          aVal = `${a.firstName} ${a.lastName}`;
-          bVal = `${b.firstName} ${b.lastName}`;
-          break;
-        case "memberNumber":
-          aVal = a.memberNumber;
-          bVal = b.memberNumber;
-          break;
-        case "tier":
-          aVal = a.tier;
-          bVal = b.tier;
-          break;
-        case "chapter":
-          aVal = a.chapter;
-          bVal = b.chapter;
-          break;
-        case "status":
-          aVal = a.status;
-          bVal = b.status;
-          break;
-        case "joinedAt":
-          aVal = new Date(a.joinedAt).getTime();
-          bVal = new Date(b.joinedAt).getTime();
-          break;
-        default:
-          aVal = a.memberNumber;
-          bVal = b.memberNumber;
-      }
-      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    return result;
-  }, [searchQuery, tierFilter, statusFilter, sortField, sortDirection]);
-
-  // Pagination
-  const totalItems = filteredAndSorted.length;
-  const totalPages = Math.ceil(totalItems / pageSize);
-  const paginatedItems = filteredAndSorted.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
+  const allMembers = useMemo(
+    () =>
+      canView
+        ? getMembers({
+            search,
+            status: statusFilter,
+            tier: tierFilter,
+            chapterCode: chapterFilter,
+          })
+        : [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [canView, search, statusFilter, tierFilter, chapterFilter, refreshKey]
   );
 
-  // Stats
-  const stats = {
-    total: mockMembers.length,
-    active: mockMembers.filter((m) => m.status === "active").length,
-    pending: mockMembers.filter((m) => m.status === "pending").length,
-    inactive: mockMembers.filter((m) => m.status === "inactive").length,
-  };
+  const sorted = useMemo(() => {
+    const copy = [...allMembers];
+    copy.sort((a, b) => {
+      const aVal = getSortValue(a, sortField);
+      const bVal = getSortValue(b, sortField);
+      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return copy;
+  }, [allMembers, sortField, sortDir]);
 
-  // Handlers
+  const totalItems = sorted.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const visible = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const stats = useMemo(() => {
+    const source = canView ? getMembers({}) : [];
+    return {
+      total: source.length,
+      active: source.filter((m) => m.status === "active").length,
+      pending: source.filter((m) => m.status === "pending").length,
+      inactive: source.filter((m) => m.status === "inactive").length,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canView, refreshKey]);
+
   const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
+    if (sortField === field) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else {
       setSortField(field);
-      setSortDirection("asc");
+      setSortDir("asc");
     }
   };
 
-  const toggleSelectAll = () => {
-    if (selectedIds.length === paginatedItems.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(paginatedItems.map((m) => m.id));
-    }
-  };
-
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+  const toggleAll = () => {
+    const visibleIds = visible.map((m) => m.id);
+    const allSelected = visibleIds.every((id) => selectedIds.includes(id));
+    setSelectedIds(
+      allSelected
+        ? selectedIds.filter((id) => !visibleIds.includes(id))
+        : Array.from(new Set([...selectedIds, ...visibleIds]))
     );
   };
 
-  const handleBulkAction = (action: "activate" | "deactivate" | "delete") => {
-    const count = selectedIds.length;
-    if (count === 0) return;
-    const actionLabels = {
-      activate: "activated",
-      deactivate: "deactivated",
-      delete: "deleted",
-    };
-    // In production, this would call an API
-    alert(`✅ ${count} member${count > 1 ? "s" : ""} ${actionLabels[action]}.`);
+  const toggleOne = (id: string) =>
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+
+  const handleBulkSuspend = () => {
+    const n = selectedIds.length;
+    // eslint-disable-next-line no-alert
+    alert(`Suspended ${n} member${n === 1 ? "" : "s"}. (Mock — API not wired.)`);
     setSelectedIds([]);
   };
 
-  const handleDeleteMember = (id: string) => {
-    if (confirm("Are you sure you want to delete this member? This action cannot be undone.")) {
-      alert(`✅ Member deleted.`);
-    }
-  };
-
-  // Status badge
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      active: "bg-green-50 text-green-700",
-      pending: "bg-dawn-50 text-dawn-700",
-      inactive: "bg-gray-100 text-gray-600",
-    };
-    return styles[status] || "bg-ink-50 text-ink-600";
-  };
+  if (!canView) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-16">
+        <Card className="p-8 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-clay-50">
+            <ShieldAlert className="h-6 w-6 text-clay-600" aria-hidden="true" />
+          </div>
+          <h1 className="mt-4 font-display text-xl text-ink-900">Permission denied</h1>
+          <p className="mt-2 text-sm text-ink-500">
+            You do not have access to the members panel.
+          </p>
+          <div className="mt-6">
+            <Link href="/admin/dashboard">
+              <Button variant="primary">Return to dashboard</Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="font-display text-2xl font-semibold tracking-tight text-ink-900">
-              Members
-            </h1>
-            <p className="mt-1 text-sm text-ink-500">
-              Manage all Eagle Generation members.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="secondary" size="md" onClick={() => alert("📥 Exporting members...")}>
-              📥 Export
-            </Button>
-            <Button variant="primary" size="md" onClick={() => alert("➕ Add member form would open here.")}>
-              ➕ Add Member
-            </Button>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-ink-900">
+            Members
+          </h1>
+          <p className="mt-1 text-sm text-ink-500">
+            Browse, filter and manage the member directory.
+          </p>
         </div>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-lg bg-white p-4 text-center shadow-card">
-            <p className="text-xl font-semibold text-ink-900">{stats.total}</p>
-            <p className="text-xs text-ink-400">Total</p>
-          </div>
-          <div className="rounded-lg bg-green-50 p-4 text-center shadow-card">
-            <p className="text-xl font-semibold text-green-700">{stats.active}</p>
-            <p className="text-xs text-green-500">Active</p>
-          </div>
-          <div className="rounded-lg bg-dawn-50 p-4 text-center shadow-card">
-            <p className="text-xl font-semibold text-dawn-700">{stats.pending}</p>
-            <p className="text-xs text-dawn-500">Pending</p>
-          </div>
-          <div className="rounded-lg bg-gray-50 p-4 text-center shadow-card">
-            <p className="text-xl font-semibold text-gray-600">{stats.inactive}</p>
-            <p className="text-xs text-gray-500">Inactive</p>
-          </div>
-        </div>
-
-        {/* Filters and search */}
-        <Card className="p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            {/* Search */}
-            <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300">🔍</span>
-              <input
-                type="text"
-                placeholder="Search by name, email, member number, or chapter..."
-                className="w-full rounded-md border border-ink-200 py-2 pl-9 pr-4 text-sm outline-none transition-colors placeholder:text-ink-300 focus:border-sky-500"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {/* Tier filter */}
-              <select
-                className="rounded-md border border-ink-200 px-3 py-2 text-sm outline-none focus:border-sky-500"
-                value={tierFilter}
-                onChange={(e) => {
-                  setTierFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-              >
-                {TIER_FILTERS.map((f) => (
-                  <option key={f.value} value={f.value}>{f.label}</option>
-                ))}
-              </select>
-              {/* Status filter */}
-              <select
-                className="rounded-md border border-ink-200 px-3 py-2 text-sm outline-none focus:border-sky-500"
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-              >
-                {STATUS_FILTERS.map((f) => (
-                  <option key={f.value} value={f.value}>{f.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Bulk actions */}
-          {selectedIds.length > 0 && (
-            <div className="mt-4 flex items-center gap-3 rounded-md bg-ink-50 p-3 flex-wrap">
-              <span className="text-sm font-medium text-ink-700">
-                {selectedIds.length} selected
-              </span>
-              <button
-                onClick={() => handleBulkAction("activate")}
-                className="rounded-md bg-green-100 px-3 py-1.5 text-sm font-medium text-green-700 hover:bg-green-200 transition-colors"
-              >
-                ✅ Activate
-              </button>
-              <button
-                onClick={() => handleBulkAction("deactivate")}
-                className="rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
-              >
-                ⛔ Deactivate
-              </button>
-              <button
-                onClick={() => handleBulkAction("delete")}
-                className="rounded-md bg-clay-100 px-3 py-1.5 text-sm font-medium text-clay-700 hover:bg-clay-200 transition-colors"
-              >
-                🗑️ Delete
-              </button>
-              <button
-                onClick={() => setSelectedIds([])}
-                className="ml-auto text-sm text-ink-400 hover:text-ink-600"
-              >
-                Clear
-              </button>
-            </div>
+        <div className="flex flex-wrap gap-2">
+          {canExport && (
+            <Button variant="outline" onClick={() => alert("Export coming soon.")}>
+              <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+              Export
+            </Button>
           )}
-        </Card>
+          <Button
+            variant="ghost"
+            onClick={() => setRefreshKey((k) => k + 1)}
+            aria-label="Refresh"
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
 
-        {/* Table */}
-        <Card className="overflow-hidden p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-ink-100 bg-ink-50">
-                <tr>
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatCard label="Total" value={stats.total} icon={<Users className="h-4 w-4" />} />
+        <StatCard label="Active" value={stats.active} tone="green" />
+        <StatCard label="Pending" value={stats.pending} tone="dawn" />
+        <StatCard label="Inactive" value={stats.inactive} tone="ink" />
+      </div>
+
+      {/* Filters */}
+      <Card className="p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="flex-1">
+            <SearchInput
+              value={search}
+              onValueChange={(v) => {
+                setSearch(v);
+                setPage(1);
+              }}
+              placeholder="Search by name, email, member number or chapter…"
+              aria-label="Search members"
+            />
+          </div>
+          <select
+            aria-label="Filter by status"
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value as Member["status"] | "ALL");
+              setPage(1);
+            }}
+            className="rounded-md border border-ink-200 bg-white px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"
+          >
+            {STATUS_FILTERS.map((f) => (
+              <option key={f.value} value={f.value}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Filter by tier"
+            value={tierFilter}
+            onChange={(e) => {
+              setTierFilter(e.target.value as Member["tier"] | "ALL");
+              setPage(1);
+            }}
+            className="rounded-md border border-ink-200 bg-white px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"
+          >
+            {TIER_FILTERS.map((f) => (
+              <option key={f.value} value={f.value}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Filter by chapter"
+            value={chapterFilter}
+            onChange={(e) => {
+              setChapterFilter(e.target.value);
+              setPage(1);
+            }}
+            className="rounded-md border border-ink-200 bg-white px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"
+          >
+            <option value="ALL">All chapters</option>
+            {chapters.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </Card>
+
+      {/* Bulk actions */}
+      {canSuspend && (
+        <BulkActionBar
+          selectedCount={selectedIds.length}
+          onClear={() => setSelectedIds([])}
+          itemNoun="member"
+          actions={[
+            {
+              label: "Suspend",
+              onClick: handleBulkSuspend,
+              variant: "danger",
+            },
+          ]}
+        />
+      )}
+
+      {/* Table */}
+      <Card className="overflow-hidden p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="border-b border-ink-100 bg-ink-50">
+              <tr>
+                {canSuspend && (
                   <th className="w-10 px-4 py-3">
                     <input
                       type="checkbox"
-                      checked={paginatedItems.length > 0 && selectedIds.length === paginatedItems.length}
-                      onChange={toggleSelectAll}
+                      aria-label="Select all on this page"
+                      checked={
+                        visible.length > 0 &&
+                        visible.every((m) => selectedIds.includes(m.id))
+                      }
+                      onChange={toggleAll}
                       className="h-4 w-4 rounded border-ink-200 text-sky-600 focus:ring-sky-500"
                     />
                   </th>
-                  <th
-                    className="px-4 py-3 text-left font-medium text-ink-500 cursor-pointer hover:text-ink-700 transition-colors"
-                    onClick={() => handleSort("name")}
-                  >
-                    <span className="flex items-center gap-1">
-                      Member
-                      {sortField === "name" && (
-                        <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
-                      )}
-                    </span>
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left font-medium text-ink-500 cursor-pointer hover:text-ink-700 transition-colors hidden sm:table-cell"
-                    onClick={() => handleSort("memberNumber")}
-                  >
-                    <span className="flex items-center gap-1">
-                      Number
-                      {sortField === "memberNumber" && (
-                        <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
-                      )}
-                    </span>
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left font-medium text-ink-500 cursor-pointer hover:text-ink-700 transition-colors hidden md:table-cell"
-                    onClick={() => handleSort("tier")}
-                  >
-                    <span className="flex items-center gap-1">
-                      Tier
-                      {sortField === "tier" && (
-                        <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
-                      )}
-                    </span>
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left font-medium text-ink-500 cursor-pointer hover:text-ink-700 transition-colors hidden lg:table-cell"
-                    onClick={() => handleSort("chapter")}
-                  >
-                    <span className="flex items-center gap-1">
-                      Chapter
-                      {sortField === "chapter" && (
-                        <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
-                      )}
-                    </span>
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left font-medium text-ink-500 cursor-pointer hover:text-ink-700 transition-colors"
-                    onClick={() => handleSort("status")}
-                  >
-                    <span className="flex items-center gap-1">
-                      Status
-                      {sortField === "status" && (
-                        <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
-                      )}
-                    </span>
-                  </th>
-                  <th className="px-4 py-3 text-right font-medium text-ink-500">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-ink-50">
-                {paginatedItems.map((member) => (
-                  <tr key={member.id} className="hover:bg-ink-50/50 transition-colors">
+                )}
+                <SortableTH
+                  field="name"
+                  current={sortField}
+                  dir={sortDir}
+                  onClick={handleSort}
+                >
+                  Member
+                </SortableTH>
+                <SortableTH
+                  field="memberNumber"
+                  current={sortField}
+                  dir={sortDir}
+                  onClick={handleSort}
+                  className="hidden sm:table-cell"
+                >
+                  Member #
+                </SortableTH>
+                <SortableTH
+                  field="tier"
+                  current={sortField}
+                  dir={sortDir}
+                  onClick={handleSort}
+                  className="hidden md:table-cell"
+                >
+                  Tier
+                </SortableTH>
+                <SortableTH
+                  field="chapter"
+                  current={sortField}
+                  dir={sortDir}
+                  onClick={handleSort}
+                  className="hidden md:table-cell"
+                >
+                  Chapter
+                </SortableTH>
+                <SortableTH
+                  field="status"
+                  current={sortField}
+                  dir={sortDir}
+                  onClick={handleSort}
+                >
+                  Status
+                </SortableTH>
+                <SortableTH
+                  field="joinedAt"
+                  current={sortField}
+                  dir={sortDir}
+                  onClick={handleSort}
+                  className="hidden sm:table-cell"
+                >
+                  Joined
+                </SortableTH>
+                <th className="px-4 py-3 text-right font-medium text-ink-500">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-ink-50">
+              {visible.map((m) => (
+                <tr key={m.id} className="hover:bg-ink-50/50">
+                  {canSuspend && (
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
-                        checked={selectedIds.includes(member.id)}
-                        onChange={() => toggleSelect(member.id)}
+                        aria-label={`Select ${m.firstName} ${m.lastName}`}
+                        checked={selectedIds.includes(m.id)}
+                        onChange={() => toggleOne(m.id)}
                         className="h-4 w-4 rounded border-ink-200 text-sky-600 focus:ring-sky-500"
                       />
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-xs font-bold text-sky-700">
-                          {member.firstName[0]}{member.lastName[0]}
-                        </div>
-                        <div>
-                          <p className="font-medium text-ink-900">
-                            {member.firstName} {member.lastName}
-                          </p>
-                          <p className="text-xs text-ink-400">{member.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 hidden sm:table-cell font-mono text-xs text-ink-500">
-                      {member.memberNumber}
-                    </td>
-                    <td className="px-4 py-3 hidden md:table-cell">
-                      <span className="text-xs font-medium text-ink-600">{member.tier}</span>
-                    </td>
-                    <td className="px-4 py-3 hidden lg:table-cell text-ink-600">
-                      {member.chapter}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${getStatusBadge(
-                          member.status
-                        )}`}
-                      >
-                        {member.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/profile/${member.id}`}
-                          className="text-xs font-medium text-sky-600 hover:underline"
-                        >
-                          View
-                        </Link>
-                        <Link
-                          href={`/admin/members/${member.id}/edit`}
-                          className="text-xs font-medium text-ink-500 hover:text-ink-700"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          onClick={() => handleDeleteMember(member.id)}
-                          className="text-xs font-medium text-clay-500 hover:text-clay-700"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Empty state */}
-          {paginatedItems.length === 0 && (
-            <div className="py-12 text-center">
-              <p className="text-ink-400">No members match your filters.</p>
-            </div>
-          )}
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex flex-wrap items-center justify-between border-t border-ink-100 px-4 py-3 gap-2">
-              <p className="text-xs text-ink-400">
-                Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, totalItems)} of {totalItems}
-              </p>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="rounded-md px-3 py-1 text-sm text-ink-400 hover:bg-ink-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Previous
-                </button>
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  let page = i + 1;
-                  if (totalPages > 5) {
-                    if (currentPage > 3) page = currentPage - 2 + i;
-                    if (page > totalPages) page = totalPages - (4 - i);
-                  }
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`rounded-md px-3 py-1 text-sm transition-colors ${
-                        currentPage === page
-                          ? "bg-ink-900 text-white"
-                          : "text-ink-600 hover:bg-ink-50"
-                      }`}
+                  )}
+                  <td className="px-4 py-3">
+                    <p className="font-medium text-ink-900">
+                      {m.firstName} {m.lastName}
+                    </p>
+                    <p className="text-xs text-ink-400">{m.email}</p>
+                  </td>
+                  <td className="hidden px-4 py-3 font-mono text-xs text-ink-500 sm:table-cell">
+                    {m.memberNumber}
+                  </td>
+                  <td className="hidden px-4 py-3 md:table-cell">
+                    <span className="text-xs font-medium text-ink-600">
+                      {MEMBER_TIER_LABELS[m.tier]}
+                    </span>
+                  </td>
+                  <td className="hidden px-4 py-3 text-ink-600 md:table-cell">
+                    {getChapterName(m.chapter)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE[m.status]}`}
                     >
-                      {page}
-                    </button>
-                  );
-                })}
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="rounded-md px-3 py-1 text-sm text-ink-400 hover:bg-ink-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
-        </Card>
-      </div>
-    </AdminLayout>
+                      {MEMBER_STATUS_LABELS[m.status]}
+                    </span>
+                  </td>
+                  <td className="hidden px-4 py-3 text-xs text-ink-500 sm:table-cell">
+                    {formatDate(m.joinedAt)}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/admin/members/${m.id}`}
+                      className="text-sm font-medium text-sky-600 hover:underline"
+                    >
+                      View
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {visible.length === 0 && (
+          <div className="py-16 text-center">
+            <p className="font-display text-lg text-ink-900">No members found</p>
+            <p className="mt-1 text-sm text-ink-500">
+              {search || statusFilter !== "ALL" || tierFilter !== "ALL" || chapterFilter !== "ALL"
+                ? "Try adjusting your filters."
+                : "Members will appear here as they join."}
+            </p>
+          </div>
+        )}
+
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          pageSize={PAGE_SIZE}
+          totalItems={totalItems}
+        />
+      </Card>
+    </div>
   );
+}
+
+// ─────────────────────────────────────────────────────────
+
+function StatCard({
+  label,
+  value,
+  tone = "ink",
+  icon,
+}: {
+  label: string;
+  value: number;
+  tone?: "ink" | "green" | "dawn";
+  icon?: React.ReactNode;
+}) {
+  const toneClass =
+    tone === "green"
+      ? "text-green-700"
+      : tone === "dawn"
+      ? "text-dawn-700"
+      : "text-ink-900";
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-2 text-ink-500">
+        {icon}
+        <p className="text-xs font-medium uppercase tracking-wider">{label}</p>
+      </div>
+      <p className={`mt-2 text-2xl font-semibold ${toneClass}`}>
+        {value.toLocaleString()}
+      </p>
+    </Card>
+  );
+}
+
+function SortableTH({
+  field,
+  current,
+  dir,
+  onClick,
+  children,
+  className = "",
+}: {
+  field: SortField;
+  current: SortField;
+  dir: SortDirection;
+  onClick: (f: SortField) => void;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const active = current === field;
+  return (
+    <th className={`px-4 py-3 text-left font-medium ${className}`}>
+      <button
+        type="button"
+        onClick={() => onClick(field)}
+        className="flex items-center gap-1 text-ink-500 transition-colors hover:text-ink-700"
+      >
+        {children}
+        {active && <span aria-hidden="true">{dir === "asc" ? "↑" : "↓"}</span>}
+      </button>
+    </th>
+  );
+}
+
+function getSortValue(m: Member, field: SortField): string {
+  switch (field) {
+    case "name":
+      return `${m.firstName} ${m.lastName}`.toLowerCase();
+    case "memberNumber":
+      return m.memberNumber;
+    case "tier":
+      return m.tier;
+    case "chapter":
+      return getChapterName(m.chapter);
+    case "status":
+      return m.status;
+    case "joinedAt":
+      return m.joinedAt;
+  }
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
