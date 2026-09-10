@@ -12,6 +12,7 @@ import {
   TabsContent,
 } from "@/components/ui/tabs";
 import { AuditTrail, type AuditEntry } from "@/components/applications/audit-trail";
+import { ImpersonateModal } from "@/components/admin/impersonate-modal";
 import {
   getMemberById,
   getChapterName,
@@ -52,6 +53,7 @@ export default function MemberDetailPage() {
   const [suspendReason, setSuspendReason] = useState("");
   const [suspendError, setSuspendError] = useState<string | null>(null);
   const [suspendBusy, setSuspendBusy] = useState(false);
+  const [impersonateOpen, setImpersonateOpen] = useState(false);
 
   if (!member) {
     return (
@@ -167,7 +169,7 @@ export default function MemberDetailPage() {
             {canImpersonateFlag && (
               <Button
                 variant="outline"
-                onClick={() => alert("Impersonation coming soon.")}
+                onClick={() => setImpersonateOpen(true)}
               >
                 <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
                 Impersonate
@@ -549,6 +551,13 @@ export default function MemberDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Impersonate modal */}
+      <ImpersonateModal
+        open={impersonateOpen}
+        onOpenChange={setImpersonateOpen}
+        member={member}
+      />
     </div>
   );
 }
