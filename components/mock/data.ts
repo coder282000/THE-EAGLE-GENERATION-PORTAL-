@@ -290,7 +290,7 @@ export interface Meeting {
 }
 
 // ============================================================
-// R2 – E‑Learning (All Data Added)
+// R2 – E‑Learning
 // ============================================================
 
 export interface Course {
@@ -364,12 +364,11 @@ export interface LessonProgress {
   assignmentSubmitted?: boolean;
 }
 
-// ---- NEW: Quiz Interfaces ----
 export interface QuizQuestion {
   id: string;
   question: string;
   options: string[];
-  correctAnswer: number; // index of correct option
+  correctAnswer: number;
   explanation?: string;
 }
 
@@ -383,7 +382,6 @@ export interface Quiz {
   passingScore: number;
 }
 
-// ---- NEW: Assignment Interfaces ----
 export interface Assignment {
   id: string;
   lessonId: string;
@@ -400,7 +398,6 @@ export interface Assignment {
   feedback?: string;
 }
 
-// ---- NEW: Certificate Interfaces ----
 export interface Certificate {
   id: string;
   certificateNumber: string;
@@ -415,25 +412,24 @@ export interface Certificate {
 // PHASE 1 – COMMERCE & KYC DATA MODELS (R3)
 // ============================================================
 
-// ---------- Orders ----------
 export interface OrderItem {
   productId: string;
   productName: string;
   quantity: number;
-  price: number;        // minor units (e.g., 1000 = KES 10.00)
-  total: number;        // price * quantity
-  variant?: string;     // e.g., "Large", "Blue"
+  price: number;
+  total: number;
+  variant?: string;
 }
 
 export interface Order {
   id: string;
-  userId: string;                     // reference to mockMembers
+  userId: string;
   items: OrderItem[];
-  subtotal: number;                  // minor units
-  tax: number;                       // minor units
-  shipping: number;                  // minor units
-  total: number;                     // minor units
-  currency: string;                  // "KES", "USD", etc.
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  total: number;
+  currency: string;
   status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
   paymentMethod: 'mpesa' | 'card' | 'bank_transfer' | 'wallet';
   paymentReference?: string;
@@ -445,11 +441,10 @@ export interface Order {
     postalCode: string;
     country: string;
   };
-  createdAt: string;                 // ISO date
+  createdAt: string;
   updatedAt: string;
 }
 
-// ---------- Subscriptions ----------
 export interface Subscription {
   id: string;
   userId: string;
@@ -457,30 +452,28 @@ export interface Subscription {
   status: 'active' | 'paused' | 'cancelled' | 'expired';
   startDate: string;
   renewalDate: string;
-  price: number;                     // minor units per billing cycle
+  price: number;
   currency: string;
   billingCycle: 'monthly' | 'annually';
   autoRenew: boolean;
 }
 
-// ---------- Donations ----------
 export interface Donation {
   id: string;
   userId: string;
-  supportPackId?: string;           // if a predefined pack was chosen
-  amount: number;                   // minor units
+  supportPackId?: string;
+  amount: number;
   currency: string;
   message?: string;
   isAnonymous: boolean;
   status: 'pending' | 'success' | 'failed';
-  receiptUrl?: string;              // mock PDF link
+  receiptUrl?: string;
   createdAt: string;
 }
 
-// ---------- KYC Submissions ----------
 export interface KYCDocument {
   type: 'national_id' | 'passport' | 'drivers_license' | 'proof_of_address' | 'selfie';
-  url: string;                      // mock CDN URL
+  url: string;
   status: 'pending' | 'verified' | 'rejected';
   rejectionReason?: string;
   uploadedAt: string;
@@ -489,50 +482,48 @@ export interface KYCDocument {
 export interface KYCSubmission {
   id: string;
   userId: string;
-  tier: 'basic' | 'enhanced';       // verification level requested
+  tier: 'basic' | 'enhanced';
   status: 'not_started' | 'pending' | 'approved' | 'rejected';
   documents: KYCDocument[];
   submittedAt?: string;
   reviewedAt?: string;
-  rejectionReason?: string;         // overall rejection reason
+  rejectionReason?: string;
 }
 
-// ---------- Payment Transactions (for ledger) ----------
 export interface PaymentTransaction {
   id: string;
   userId: string;
-  orderId?: string;                 // link to Order if applicable
-  donationId?: string;              // link to Donation if applicable
-  amount: number;                   // minor units
+  orderId?: string;
+  donationId?: string;
+  amount: number;
   currency: string;
   type: 'debit' | 'credit';
   method: 'mpesa' | 'card' | 'bank_transfer' | 'wallet' | 'refund';
   status: 'initiated' | 'pending' | 'success' | 'failed' | 'reversed';
-  reference: string;                // external reference (M-Pesa transaction ID, etc.)
-  metadata?: Record<string, any>;   // extra info (e.g., STK push request ID)
+  reference: string;
+  metadata?: Record<string, any>;
   createdAt: string;
 }
 
 // ============================================================
-// R4 – SAVINGS & CREDIT (NEW)
+// R4 – SAVINGS & CREDIT
 // ============================================================
 
-// ---------- Savings ----------
 export interface Circle {
   id: string;
   name: string;
   description: string;
   type: 'ROTATING' | 'INVESTMENT' | 'GOAL';
-  contributionAmount: number; // in minor units (cents)
-  currency: string; // e.g., 'KES'
+  contributionAmount: number;
+  currency: string;
   frequency: 'WEEKLY' | 'MONTHLY' | 'QUARTERLY';
   payoutOrder: 'ROTATIONAL' | 'RANDOM' | 'BIDDING';
   status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'DISBANDED';
-  leaderId: string; // userId of CIRCLE_LEADER
-  memberIds: string[]; // userIds
+  leaderId: string;
+  memberIds: string[];
   createdAt: string;
   nextPayoutDate?: string;
-  totalBalance: number; // in minor units (derived from ledger)
+  totalBalance: number;
   contributionCount?: number;
   memberCount?: number;
 }
@@ -541,7 +532,7 @@ export interface Contribution {
   id: string;
   circleId: string;
   memberId: string;
-  amount: number; // minor units
+  amount: number;
   currency: string;
   status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REVERSED';
   transactionId?: string;
@@ -554,11 +545,11 @@ export interface Payout {
   id: string;
   circleId: string;
   memberId: string;
-  amount: number; // minor units
+  amount: number;
   currency: string;
   status: 'PENDING' | 'APPROVED' | 'EXECUTED' | 'FAILED' | 'REVERSED';
-  initiatedBy: string; // userId
-  approvedBy?: string; // userId (four‑eyes)
+  initiatedBy: string;
+  approvedBy?: string;
   scheduledDate: string;
   executedAt?: string;
   createdAt: string;
@@ -567,7 +558,7 @@ export interface Payout {
 export interface Dispute {
   id: string;
   circleId: string;
-  raisedBy: string; // userId
+  raisedBy: string;
   title: string;
   description: string;
   status: 'OPEN' | 'IN_REVIEW' | 'RESOLVED' | 'CLOSED';
@@ -576,17 +567,16 @@ export interface Dispute {
   updatedAt: string;
 }
 
-// ---------- Credit / Loans ----------
 export interface LoanProduct {
   id: string;
   name: string;
   description: string;
-  minAmount: number; // minor units
+  minAmount: number;
   maxAmount: number;
-  minTenor: number; // months
+  minTenor: number;
   maxTenor: number;
-  interestRate: number; // annual percentage
-  serviceFee: number; // flat fee in minor units
+  interestRate: number;
+  serviceFee: number;
   eligibilityCriteria: {
     minKycLevel: 0 | 1 | 2;
     minSavingsBalance?: number;
@@ -600,16 +590,16 @@ export interface LoanApplication {
   productId: string;
   memberId: string;
   amount: number;
-  tenor: number; // months
+  tenor: number;
   purpose: string;
   affordabilityNotes?: string;
-  guarantorIds: string[]; // userIds
+  guarantorIds: string[];
   status: 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'OFFERED' | 'DISBURSED' | 'REPAID';
   submittedAt?: string;
   decisionAt?: string;
   offer?: {
     interestRate: number;
-    totalCost: number; // total cost of credit (minor units)
+    totalCost: number;
     monthlyPayment: number;
     approvedAmount: number;
     approvedTenor: number;
@@ -646,7 +636,7 @@ export interface Repayment {
 export interface Guarantee {
   id: string;
   loanId: string;
-  guarantorId: string; // userId
+  guarantorId: string;
   borrowerId: string;
   amount: number;
   status: 'PENDING' | 'ACTIVE' | 'RELEASED' | 'CALLED';
@@ -654,14 +644,14 @@ export interface Guarantee {
 }
 
 // ============================================================
-// R5 – WALLET & OTC & REMITTANCE (NEW)
+// R5 – WALLET & OTC & REMITTANCE
 // ============================================================
 
 export interface WalletBalance {
   asset: 'USDT';
   network: 'TRC20' | 'ERC20' | 'BEP20';
-  available: number; // stored in minor units (cents)
-  pending: number;   // minor units
+  available: number;
+  pending: number;
 }
 
 export interface WalletTransaction {
@@ -669,28 +659,27 @@ export interface WalletTransaction {
   type: 'DEPOSIT' | 'WITHDRAWAL' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'OTC_BUY' | 'OTC_SELL';
   asset: 'USDT';
   network: 'TRC20' | 'ERC20' | 'BEP20' | null;
-  amount: number; // minor units
-  fee: number;    // minor units
+  amount: number;
+  fee: number;
   status: 'PENDING' | 'CONFIRMING' | 'CONFIRMED' | 'FAILED' | 'REJECTED';
   txHash?: string;
   confirmations?: number;
   confirmationThreshold?: number;
   timestamp: string;
-  counterparty?: string; // for transfers
+  counterparty?: string;
   memo?: string;
 }
 
 export interface KYCStatus {
-  tier: 0 | 1 | 2; // 0=none, 1=basic, 2=full
-  dailyLimit: number; // in minor units
-  dailyUsed: number;  // in minor units
+  tier: 0 | 1 | 2;
+  dailyLimit: number;
+  dailyUsed: number;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
-// ---- OTC Desk ----
 export interface OTCRate {
   pair: 'USDT/KES';
-  buyRate: number;      // KES per USDT
+  buyRate: number;
   sellRate: number;
   spread: number;
   lastUpdated: string;
@@ -699,10 +688,10 @@ export interface OTCRate {
 export interface OTCQuote {
   id: string;
   type: 'BUY' | 'SELL';
-  amount: number;       // USDT (minor units)
+  amount: number;
   rate: number;
-  fee: number;          // KES (minor units)
-  total: number;        // KES (minor units)
+  fee: number;
+  total: number;
   expiresAt: string;
   status: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REJECTED';
 }
@@ -723,7 +712,6 @@ export interface OTCOrder {
   completedAt?: string;
 }
 
-// ---- Remittance ----
 export interface RemittanceCorridor {
   id: string;
   fromCountry: string;
@@ -773,6 +761,85 @@ export interface RemittanceTransfer {
   updatedAt: string;
   completedAt?: string;
   failureReason?: string;
+}
+
+// ============================================================
+// LAYER 3 – ADMIN CONSOLE (PNL-01: Administration Overview)
+// ============================================================
+
+export interface AdminStat {
+  id: string;
+  label: string;
+  value: string;
+  change: string;
+  trend: 'up' | 'down' | 'flat';
+  icon: 'members' | 'applications' | 'chapters' | 'revenue';
+  href: string;
+}
+
+export type AdminPriority = 'critical' | 'high' | 'medium' | 'low';
+
+export interface QueueDepth {
+  id: string;
+  label: string;
+  count: number;
+  priority: AdminPriority;
+  href: string;
+  description: string;
+}
+
+export type AdminTaskType =
+  | 'application'
+  | 'refund'
+  | 'moderation'
+  | 'kyc'
+  | 'aml'
+  | 'payout'
+  | 'dispute';
+
+export interface AdminTask {
+  id: string;
+  title: string;
+  description: string;
+  type: AdminTaskType;
+  priority: AdminPriority;
+  dueIn: string;
+  entityId: string;
+  entityLabel: string;
+  href: string;
+  assignedTo?: string;
+}
+
+export type AdminActivityCategory =
+  | 'member'
+  | 'finance'
+  | 'content'
+  | 'compliance';
+
+export interface AdminActivityItem {
+  id: string;
+  action: string;
+  actor: string;
+  target: string;
+  timestamp: string;
+  category: AdminActivityCategory;
+}
+
+export type AdminSearchEntityType =
+  | 'member'
+  | 'application'
+  | 'order'
+  | 'transaction'
+  | 'chapter'
+  | 'course';
+
+export interface AdminSearchResult {
+  id: string;
+  type: AdminSearchEntityType;
+  title: string;
+  subtitle: string;
+  href: string;
+  metadata?: string;
 }
 
 // ============================================================
@@ -1694,26 +1761,21 @@ export const mockGroups: Group[] = [
 
 // ---- Group Members ----
 export let mockGroupMembers: GroupMember[] = [
-  // Governance Leaders Circle
   { userId: '1', groupId: 'group-1', role: 'ADMIN', joinedAt: '2026-01-10T08:00:00Z' },
   { userId: '2', groupId: 'group-1', role: 'MEMBER', joinedAt: '2026-01-12T09:00:00Z' },
   { userId: '4', groupId: 'group-1', role: 'MEMBER', joinedAt: '2026-01-15T10:00:00Z' },
   { userId: '5', groupId: 'group-1', role: 'MODERATOR', joinedAt: '2026-01-18T11:00:00Z' },
   { userId: '6', groupId: 'group-1', role: 'MEMBER', joinedAt: '2026-01-20T12:00:00Z' },
-  // Tech Innovators Hub
   { userId: '3', groupId: 'group-2', role: 'ADMIN', joinedAt: '2026-01-15T08:00:00Z' },
   { userId: '1', groupId: 'group-2', role: 'MEMBER', joinedAt: '2026-01-16T09:00:00Z' },
   { userId: '6', groupId: 'group-2', role: 'MEMBER', joinedAt: '2026-01-17T10:00:00Z' },
   { userId: '8', groupId: 'group-2', role: 'MEMBER', joinedAt: '2026-01-18T11:00:00Z' },
-  // Marketplace Mentorship Cohort
   { userId: '5', groupId: 'group-3', role: 'ADMIN', joinedAt: '2026-01-20T08:00:00Z' },
   { userId: '2', groupId: 'group-3', role: 'MEMBER', joinedAt: '2026-01-21T09:00:00Z' },
   { userId: '4', groupId: 'group-3', role: 'MEMBER', joinedAt: '2026-01-22T10:00:00Z' },
-  // Kenyatta University Eagles
   { userId: '1', groupId: 'group-4', role: 'ADMIN', joinedAt: '2025-11-01T08:00:00Z' },
   { userId: '4', groupId: 'group-4', role: 'MEMBER', joinedAt: '2025-11-02T09:00:00Z' },
   { userId: '5', groupId: 'group-4', role: 'MODERATOR', joinedAt: '2025-11-03T10:00:00Z' },
-  // Faith & Work Integration
   { userId: '5', groupId: 'group-5', role: 'ADMIN', joinedAt: '2026-02-01T08:00:00Z' },
   { userId: '1', groupId: 'group-5', role: 'MEMBER', joinedAt: '2026-02-02T09:00:00Z' },
   { userId: '3', groupId: 'group-5', role: 'MEMBER', joinedAt: '2026-02-03T10:00:00Z' },
@@ -2115,18 +2177,15 @@ export const mockEnrollments: Enrollment[] = [
 ];
 
 export const mockCohortMembers: CohortMember[] = [
-  // Governance Cohort Q1 2026 (cohort-1)
   { userId: '1', cohortId: 'cohort-1', progress: 65, status: 'ACTIVE', enrolledAt: '2026-01-15T08:00:00Z' },
   { userId: '2', cohortId: 'cohort-1', progress: 80, status: 'ACTIVE', enrolledAt: '2026-01-15T08:30:00Z' },
   { userId: '4', cohortId: 'cohort-1', progress: 45, status: 'ACTIVE', enrolledAt: '2026-01-16T09:00:00Z' },
   { userId: '5', cohortId: 'cohort-1', progress: 100, status: 'COMPLETED', enrolledAt: '2026-01-15T10:00:00Z', completedAt: '2026-03-10T10:00:00Z' },
   { userId: '6', cohortId: 'cohort-1', progress: 20, status: 'ACTIVE', enrolledAt: '2026-01-17T11:00:00Z' },
-  // Marketplace Cohort Q1 2026 (cohort-2)
   { userId: '3', cohortId: 'cohort-2', progress: 70, status: 'ACTIVE', enrolledAt: '2026-02-01T08:00:00Z' },
   { userId: '2', cohortId: 'cohort-2', progress: 90, status: 'ACTIVE', enrolledAt: '2026-02-01T08:30:00Z' },
   { userId: '8', cohortId: 'cohort-2', progress: 35, status: 'ACTIVE', enrolledAt: '2026-02-02T09:00:00Z' },
   { userId: '5', cohortId: 'cohort-2', progress: 55, status: 'ACTIVE', enrolledAt: '2026-02-03T10:00:00Z' },
-  // Tech Cohort Q1 2026 (cohort-3)
   { userId: '7', cohortId: 'cohort-3', progress: 95, status: 'ACTIVE', enrolledAt: '2026-01-20T08:00:00Z' },
   { userId: '3', cohortId: 'cohort-3', progress: 100, status: 'COMPLETED', enrolledAt: '2026-01-20T08:30:00Z', completedAt: '2026-03-18T10:00:00Z' },
   { userId: '1', cohortId: 'cohort-3', progress: 85, status: 'ACTIVE', enrolledAt: '2026-01-21T09:00:00Z' },
@@ -2134,19 +2193,16 @@ export const mockCohortMembers: CohortMember[] = [
 ];
 
 export const mockLessons: Lesson[] = [
-  // Course 1: Foundations of Governance
   { id: 'lesson-1-1', courseId: 'course-1', title: 'Introduction to Governance', content: 'This lesson introduces the core concepts of governance, including definitions, key principles, and the role of ethical leadership in public service. We will explore the historical context and modern challenges facing governance in Africa.', type: 'text', order: 1, durationMinutes: 15 },
   { id: 'lesson-1-2', courseId: 'course-1', title: 'Ethical Leadership Frameworks', content: 'In this lesson, we dive into various ethical leadership frameworks, including servant leadership, transformational leadership, and the biblical foundations of leadership. We will examine case studies from African leaders.', type: 'text', order: 2, durationMinutes: 20 },
   { id: 'lesson-1-3', courseId: 'course-1', title: 'Public Policy & Governance', content: 'This lesson covers the policy-making process, stakeholder analysis, and the importance of evidence-based policy. We will also discuss the role of civil society and citizen participation.', type: 'video', order: 3, durationMinutes: 25, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
   { id: 'lesson-1-4', courseId: 'course-1', title: 'Governance Quiz', content: 'Test your understanding of the governance principles covered in this module.', type: 'quiz', order: 4, durationMinutes: 10 },
   { id: 'lesson-1-5', courseId: 'course-1', title: 'Assignment: Governance Case Study', content: 'Write a 500-word analysis of a governance challenge in your community or country.', type: 'assignment', order: 5, durationMinutes: 60 },
-  // Course 2: Marketplace Ethics & Entrepreneurship
   { id: 'lesson-2-1', courseId: 'course-2', title: 'Introduction to Marketplace Ethics', content: 'This lesson defines marketplace ethics, explores the difference between legal and ethical compliance, and introduces the concept of business as a force for good.', type: 'text', order: 1, durationMinutes: 15 },
   { id: 'lesson-2-2', courseId: 'course-2', title: 'Entrepreneurial Mindset', content: 'Learn about the key traits of successful entrepreneurs, opportunity recognition, and the role of innovation in creating value. We will also discuss social entrepreneurship.', type: 'text', order: 2, durationMinutes: 20 },
   { id: 'lesson-2-3', courseId: 'course-2', title: 'Financial Stewardship in Business', content: 'This lesson covers financial management principles, budgeting, cash flow, and the importance of ethical financial practices. We will also discuss the concept of "stewardship" as a business owner.', type: 'video', order: 3, durationMinutes: 25, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
   { id: 'lesson-2-4', courseId: 'course-2', title: 'Marketplace Ethics Quiz', content: 'Test your understanding of ethical business practices.', type: 'quiz', order: 4, durationMinutes: 10 },
   { id: 'lesson-2-5', courseId: 'course-2', title: 'Assignment: Business Plan', content: 'Develop a one-page business plan for a socially responsible venture.', type: 'assignment', order: 5, durationMinutes: 60 },
-  // Course 3: Technology & Society
   { id: 'lesson-3-1', courseId: 'course-3', title: 'Technology and Social Impact', content: 'This lesson explores the dual nature of technology as a tool for empowerment and a source of ethical challenges. We will examine case studies in AI, data privacy, and digital inclusion.', type: 'text', order: 1, durationMinutes: 15 },
   { id: 'lesson-3-2', courseId: 'course-3', title: 'AI Ethics and Governance', content: 'Dive into the ethical considerations around artificial intelligence, including bias, transparency, and accountability. We will also discuss regulatory frameworks and the role of AI in Africa.', type: 'text', order: 2, durationMinutes: 20 },
   { id: 'lesson-3-3', courseId: 'course-3', title: 'Data Sovereignty and Privacy', content: 'This lesson covers the importance of data protection, the Kenya Data Protection Act, and the concept of data sovereignty. We will also explore practical steps for protecting personal data.', type: 'video', order: 3, durationMinutes: 25, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
@@ -2160,10 +2216,6 @@ export const mockLessonProgress: LessonProgress[] = [
   { userId: '1', lessonId: 'lesson-1-3', completed: false },
   { userId: '1', lessonId: 'lesson-2-1', completed: false },
 ];
-
-// ============================================================
-// NEW: Quiz, Assignment, Certificate Mock Data
-// ============================================================
 
 // ---- Quizzes ----
 export const mockQuizzes: Quiz[] = [
@@ -2435,7 +2487,6 @@ export const mockCertificates: Certificate[] = [
 // PHASE 1 – MOCK DATA (Commerce & KYC)
 // ============================================================
 
-// ---- Mock Orders ----
 export const mockOrders: Order[] = [
   {
     id: 'ord_001',
@@ -2611,7 +2662,6 @@ export const mockOrders: Order[] = [
   },
 ];
 
-// ---- Mock Subscriptions ----
 export const mockSubscriptions: Subscription[] = [
   {
     id: 'sub_001',
@@ -2663,7 +2713,6 @@ export const mockSubscriptions: Subscription[] = [
   },
 ];
 
-// ---- Mock Donations ----
 export const mockDonations: Donation[] = [
   {
     id: 'don_001',
@@ -2727,7 +2776,6 @@ export const mockDonations: Donation[] = [
   },
 ];
 
-// ---- Mock KYC Submissions ----
 export const mockKYCSubmissions: KYCSubmission[] = [
   {
     id: 'kyc_001',
@@ -2835,7 +2883,6 @@ export const mockKYCSubmissions: KYCSubmission[] = [
   },
 ];
 
-// ---- Mock Payment Transactions (ledger entries) ----
 export const mockPaymentTransactions: PaymentTransaction[] = [
   {
     id: 'txn_001',
@@ -2943,7 +2990,6 @@ export const mockPaymentTransactions: PaymentTransaction[] = [
 // R4 – MOCK DATA (Savings & Credit)
 // ============================================================
 
-// ---- Mock Circles ----
 export const mockCircles: Circle[] = [
   {
     id: 'c1',
@@ -3000,7 +3046,6 @@ export const mockCircles: Circle[] = [
   },
 ];
 
-// ---- Mock Contributions ----
 export const mockContributions: Contribution[] = [
   {
     id: 'ct1',
@@ -3038,7 +3083,6 @@ export const mockContributions: Contribution[] = [
   },
 ];
 
-// ---- Mock Payouts ----
 export const mockPayouts: Payout[] = [
   {
     id: 'p1',
@@ -3065,7 +3109,6 @@ export const mockPayouts: Payout[] = [
   },
 ];
 
-// ---- Mock Disputes ----
 export const mockDisputes: Dispute[] = [
   {
     id: 'd1',
@@ -3079,7 +3122,6 @@ export const mockDisputes: Dispute[] = [
   },
 ];
 
-// ---- Mock Loan Products ----
 export const mockLoanProducts: LoanProduct[] = [
   {
     id: 'lp1',
@@ -3131,7 +3173,6 @@ export const mockLoanProducts: LoanProduct[] = [
   },
 ];
 
-// ---- Mock Loan Applications ----
 export const mockLoanApplications: LoanApplication[] = [
   {
     id: 'la1',
@@ -3169,7 +3210,6 @@ export const mockLoanApplications: LoanApplication[] = [
   },
 ];
 
-// ---- Mock Loans ----
 export const mockLoans: Loan[] = [
   {
     id: 'l1',
@@ -3202,7 +3242,6 @@ export const mockLoans: Loan[] = [
   },
 ];
 
-// ---- Mock Guarantees ----
 export const mockGuarantees: Guarantee[] = [
   {
     id: 'g1',
@@ -3228,14 +3267,12 @@ export const mockGuarantees: Guarantee[] = [
 // R5 – MOCK DATA (Wallet, OTC & Remittance)
 // ============================================================
 
-// ---- Mock Wallet Balances ----
 export const mockWalletBalances: WalletBalance[] = [
   { asset: 'USDT', network: 'TRC20', available: 123456, pending: 0 },
   { asset: 'USDT', network: 'ERC20', available: 45678, pending: 1000 },
   { asset: 'USDT', network: 'BEP20', available: 78901, pending: 2500 },
 ];
 
-// ---- Mock Wallet Transactions ----
 export const mockWalletTransactions: WalletTransaction[] = [
   {
     id: 'tx_1',
@@ -3300,7 +3337,6 @@ export const mockWalletTransactions: WalletTransaction[] = [
   },
 ];
 
-// ---- Mock KYC Status (for wallet) ----
 export const mockKYCStatus: KYCStatus = {
   tier: 2,
   dailyLimit: 500000,
@@ -3308,7 +3344,6 @@ export const mockKYCStatus: KYCStatus = {
   status: 'APPROVED',
 };
 
-// ---- Mock OTC Rate & Orders ----
 export const mockOTCRate: OTCRate = {
   pair: 'USDT/KES',
   buyRate: 150.50,
@@ -3377,7 +3412,6 @@ export const mockOTCOrders: OTCOrder[] = [
   },
 ];
 
-// ---- Mock Remittance Corridors ----
 export const mockRemittanceCorridors: RemittanceCorridor[] = [
   {
     id: 'corr-001',
@@ -3437,7 +3471,6 @@ export const mockRemittanceCorridors: RemittanceCorridor[] = [
   },
 ];
 
-// ---- Mock Remittance Recipients ----
 export const mockRemittanceRecipients: RemittanceRecipient[] = [
   {
     id: 'rec-001',
@@ -3475,7 +3508,6 @@ export const mockRemittanceRecipients: RemittanceRecipient[] = [
   },
 ];
 
-// ---- Mock Remittance Transfers ----
 export const mockRemittanceTransfers: RemittanceTransfer[] = [
   {
     id: 'rem-001',
@@ -3539,10 +3571,303 @@ export const getCorridorById = (id: string) => mockRemittanceCorridors.find(c =>
 export const getRecipientById = (id: string) => mockRemittanceRecipients.find(r => r.id === id);
 
 // ============================================================
+// LAYER 3 – ADMIN CONSOLE (PNL-01)
+// ============================================================
+
+// ---- Admin Dashboard Stats ----
+export const mockAdminStats: AdminStat[] = [
+  {
+    id: 'stat-members',
+    label: 'Total Members',
+    value: '1,247',
+    change: '+12.4%',
+    trend: 'up',
+    icon: 'members',
+    href: '/admin/members',
+  },
+  {
+    id: 'stat-applications',
+    label: 'Pending Applications',
+    value: String(mockApplications.filter((a) => a.status === 'pending').length),
+    change: '+3',
+    trend: 'up',
+    icon: 'applications',
+    href: '/admin/applications',
+  },
+  {
+    id: 'stat-chapters',
+    label: 'Active Chapters',
+    value: String(mockChapters.length),
+    change: '+2',
+    trend: 'up',
+    icon: 'chapters',
+    href: '/admin/chapters',
+  },
+  {
+    id: 'stat-revenue',
+    label: 'Revenue (Month)',
+    value: 'KES 847K',
+    change: '+8.2%',
+    trend: 'up',
+    icon: 'revenue',
+    href: '/admin/finance',
+  },
+];
+
+// ---- Admin Action Queues ----
+export const mockQueueDepths: QueueDepth[] = [
+  {
+    id: 'queue-applications',
+    label: 'Applications',
+    count: mockApplications.filter((a) => a.status === 'pending').length,
+    priority: 'high',
+    href: '/admin/applications',
+    description: 'Awaiting review',
+  },
+  {
+    id: 'queue-refunds',
+    label: 'Refund Approvals',
+    count: 8,
+    priority: 'high',
+    href: '/admin/finance/refunds',
+    description: 'Four-eyes required',
+  },
+  {
+    id: 'queue-moderation',
+    label: 'Moderation Reports',
+    count: 12,
+    priority: 'critical',
+    href: '/admin/moderation',
+    description: 'Pending triage',
+  },
+  {
+    id: 'queue-kyc',
+    label: 'KYC Verification',
+    count: mockKYCSubmissions.filter((k) => k.status === 'pending').length,
+    priority: 'medium',
+    href: '/admin/compliance/kyc',
+    description: 'Awaiting review',
+  },
+  {
+    id: 'queue-aml',
+    label: 'AML Alerts',
+    count: 5,
+    priority: 'critical',
+    href: '/admin/compliance/aml',
+    description: 'SLA-tracked',
+  },
+  {
+    id: 'queue-payouts',
+    label: 'Payout Approvals',
+    count: mockPayouts.filter((p) => p.status === 'PENDING').length,
+    priority: 'high',
+    href: '/admin/savings/payouts',
+    description: 'Four-eyes required',
+  },
+];
+
+// ---- Admin Recent Activity ----
+export const mockAdminRecentActivity: AdminActivityItem[] = [
+  {
+    id: 'act-1',
+    action: 'Application approved',
+    actor: 'Solomon A.',
+    target: 'Peter Odhiambo — TEG-2026-001',
+    timestamp: '2 min ago',
+    category: 'member',
+  },
+  {
+    id: 'act-2',
+    action: 'Refund approved',
+    actor: 'Miriam',
+    target: 'Order ord_003 — KES 213.32',
+    timestamp: '18 min ago',
+    category: 'finance',
+  },
+  {
+    id: 'act-3',
+    action: 'KYC submission received',
+    actor: 'Peter Odhiambo',
+    target: 'kyc_003 — Enhanced tier',
+    timestamp: '1 hour ago',
+    category: 'compliance',
+  },
+  {
+    id: 'act-4',
+    action: 'Payout initiated',
+    actor: 'Mary Wanjiru',
+    target: 'Nairobi Professional Circle — KES 50.00',
+    timestamp: '2 hours ago',
+    category: 'finance',
+  },
+  {
+    id: 'act-5',
+    action: 'Chapter leader assigned',
+    actor: 'Solomon A.',
+    target: 'Esther Achieng → Strathmore Chapter',
+    timestamp: '3 hours ago',
+    category: 'member',
+  },
+];
+
+// ---- Admin My Tasks ----
+export const mockAdminMyTasks: AdminTask[] = [
+  {
+    id: 'task-1',
+    title: 'Review application',
+    description: 'Interview completed, decision pending',
+    type: 'application',
+    priority: 'high',
+    dueIn: 'Today',
+    entityId: 'TEG-2026-002',
+    entityLabel: 'Esther Achieng',
+    href: '/admin/applications/TEG-2026-002',
+    assignedTo: 'solomon',
+  },
+  {
+    id: 'task-2',
+    title: 'Approve refund',
+    description: 'Four-eyes approval required',
+    type: 'refund',
+    priority: 'high',
+    dueIn: 'Today',
+    entityId: 'ord_003',
+    entityLabel: 'KES 213.32 — Faith Akinyi',
+    href: '/admin/finance/refunds/ord_003',
+    assignedTo: 'miriam',
+  },
+  {
+    id: 'task-3',
+    title: 'Triage moderation report',
+    description: 'Safeguarding concern flagged',
+    type: 'moderation',
+    priority: 'critical',
+    dueIn: '2 hours',
+    entityId: 'RPT-2026-0142',
+    entityLabel: 'Reported post',
+    href: '/admin/moderation/RPT-2026-0142',
+    assignedTo: 'solomon',
+  },
+  {
+    id: 'task-4',
+    title: 'Review KYC submission',
+    description: 'Documents uploaded, awaiting check',
+    type: 'kyc',
+    priority: 'medium',
+    dueIn: 'Tomorrow',
+    entityId: 'kyc_003',
+    entityLabel: 'Peter Odhiambo — Enhanced tier',
+    href: '/admin/compliance/kyc/kyc_003',
+    assignedTo: 'solomon',
+  },
+  {
+    id: 'task-5',
+    title: 'Investigate AML alert',
+    description: 'Velocity threshold breached',
+    type: 'aml',
+    priority: 'critical',
+    dueIn: 'Within 4 hours',
+    entityId: 'AML-2026-0119',
+    entityLabel: 'TXN-2026-1129',
+    href: '/admin/compliance/aml/AML-2026-0119',
+    assignedTo: 'solomon',
+  },
+  {
+    id: 'task-6',
+    title: 'Approve savings payout',
+    description: 'Circle payout due, four-eyes required',
+    type: 'payout',
+    priority: 'high',
+    dueIn: 'Today',
+    entityId: 'p1',
+    entityLabel: 'Nairobi Professional Circle — KES 50.00',
+    href: '/admin/savings/payouts/p1',
+    assignedTo: 'miriam',
+  },
+];
+
+// ---- Admin Global Search Index ----
+export const mockAdminSearchIndex: AdminSearchResult[] = [
+  ...mockMembers.map<AdminSearchResult>((m) => ({
+    id: `search-member-${m.id}`,
+    type: 'member',
+    title: `${m.firstName} ${m.lastName}`,
+    subtitle: m.memberNumber,
+    href: `/admin/members/${m.id}`,
+    metadata: `${m.chapter} · ${m.tier} · ${m.status}`,
+  })),
+
+  ...mockApplications.map<AdminSearchResult>((a) => ({
+    id: `search-application-${a.reference}`,
+    type: 'application',
+    title: a.reference,
+    subtitle: `${a.name} — ${a.status.toUpperCase()}`,
+    href: `/admin/applications/${a.reference}`,
+    metadata: `${a.tier} · ${a.chapter}`,
+  })),
+
+  ...mockOrders.map<AdminSearchResult>((o) => ({
+    id: `search-order-${o.id}`,
+    type: 'order',
+    title: o.id.toUpperCase(),
+    subtitle: `${o.currency} ${(o.total / 100).toFixed(2)} — ${o.status}`,
+    href: `/admin/finance/orders/${o.id}`,
+    metadata: `${o.items.length} item${o.items.length !== 1 ? 's' : ''} · ${o.paymentMethod}`,
+  })),
+
+  ...mockPaymentTransactions.map<AdminSearchResult>((t) => ({
+    id: `search-transaction-${t.id}`,
+    type: 'transaction',
+    title: t.id.toUpperCase(),
+    subtitle: `${t.currency} ${(t.amount / 100).toFixed(2)} — ${t.status}`,
+    href: `/admin/finance/transactions/${t.id}`,
+    metadata: `${t.type} · ${t.method}`,
+  })),
+
+  ...mockChapters.map<AdminSearchResult>((c) => ({
+    id: `search-chapter-${c.code}`,
+    type: 'chapter',
+    title: c.name,
+    subtitle: `${c.code} — ${c.type}`,
+    href: `/admin/chapters/${c.code}`,
+    metadata: `${c.location} · ${c.memberCount} members`,
+  })),
+
+  ...mockCourses.map<AdminSearchResult>((c) => ({
+    id: `search-course-${c.id}`,
+    type: 'course',
+    title: c.title,
+    subtitle: `${c.pillar} — ${c.level}`,
+    href: `/admin/learning/courses/${c.id}`,
+    metadata: `${c.status} · ${c.enrolledCount} enrolled`,
+  })),
+];
+
+// ---- Admin Search Metadata (for rendering) ----
+export const adminSearchLabels: Record<AdminSearchEntityType, string> = {
+  member: 'Members',
+  application: 'Applications',
+  order: 'Orders',
+  transaction: 'Transactions',
+  chapter: 'Chapters',
+  course: 'Courses',
+};
+
+export const adminSearchIcons: Record<AdminSearchEntityType, string> = {
+  member: '👤',
+  application: '📋',
+  order: '📦',
+  transaction: '💳',
+  chapter: '🏛️',
+  course: '📚',
+};
+
+// ============================================================
 // 3. EXPORT ALL (for convenience)
 // ============================================================
 
 export const mockData = {
+  // ---- Layer 1 & 2 (existing) ----
   members: mockMembers,
   chapters: mockChapters,
   applications: mockApplications,
@@ -3555,7 +3880,8 @@ export const mockData = {
   faq: mockFAQ,
   supportPacks: mockSupportPacks,
   blockedUsers: mockBlockedUsers,
-  // R2
+
+  // ---- R2: Community, Mentorship, Messaging ----
   posts: mockPosts,
   comments: mockComments,
   groups: mockGroups,
@@ -3567,23 +3893,26 @@ export const mockData = {
   mentorshipRequests: mockMentorshipRequests,
   mentorshipSessions: mockMentorshipSessions,
   meetings: mockMeetings,
+
+  // ---- R2: E-Learning ----
   courses: mockCourses,
   cohorts: mockCohorts,
   enrollments: mockEnrollments,
   cohortMembers: mockCohortMembers,
   lessons: mockLessons,
   lessonProgress: mockLessonProgress,
-  // R2 – E-Learning
   quizzes: mockQuizzes,
   assignments: mockAssignments,
   certificates: mockCertificates,
-  // R3 – Commerce & KYC
+
+  // ---- R3: Commerce & KYC ----
   orders: mockOrders,
   subscriptions: mockSubscriptions,
   donations: mockDonations,
   kycSubmissions: mockKYCSubmissions,
   paymentTransactions: mockPaymentTransactions,
-  // R4 – Savings & Credit
+
+  // ---- R4: Savings & Credit ----
   circles: mockCircles,
   contributions: mockContributions,
   payouts: mockPayouts,
@@ -3592,15 +3921,27 @@ export const mockData = {
   loanApplications: mockLoanApplications,
   loans: mockLoans,
   guarantees: mockGuarantees,
-  // R5 – Wallet
+
+  // ---- R5: Wallet ----
   walletBalances: mockWalletBalances,
   walletTransactions: mockWalletTransactions,
   kycStatus: mockKYCStatus,
-  // R5 – OTC
+
+  // ---- R5: OTC ----
   otcRate: mockOTCRate,
   otcOrders: mockOTCOrders,
-  // R5 – Remittance
+
+  // ---- R5: Remittance ----
   remittanceCorridors: mockRemittanceCorridors,
   remittanceRecipients: mockRemittanceRecipients,
   remittanceTransfers: mockRemittanceTransfers,
+
+  // ---- Layer 3: Admin Console (PNL-01) ----
+  adminStats: mockAdminStats,
+  queueDepths: mockQueueDepths,
+  adminRecentActivity: mockAdminRecentActivity,
+  adminMyTasks: mockAdminMyTasks,
+  adminSearchIndex: mockAdminSearchIndex,
+  adminSearchLabels,
+  adminSearchIcons,
 };
