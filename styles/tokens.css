@@ -143,3 +143,44 @@ body {
     animation: none;
   }
 }
+
+/* ============================================================
+ * Drawer animations (Radix-driven, side-dependent)
+ * ============================================================ */
+@keyframes drawer-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes drawer-out-right {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+@keyframes drawer-in-left {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes drawer-out-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+@keyframes drawer-in-bottom {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes drawer-out-bottom {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+
+.drawer-content[data-state='open'][data-side='right']  { animation: drawer-in-right  var(--duration-default) var(--ease-out); }
+.drawer-content[data-state='closed'][data-side='right'] { animation: drawer-out-right 180ms var(--ease-in); }
+.drawer-content[data-state='open'][data-side='left']   { animation: drawer-in-left   var(--duration-default) var(--ease-out); }
+.drawer-content[data-state='closed'][data-side='left']  { animation: drawer-out-left  180ms var(--ease-in); }
+.drawer-content[data-state='open'][data-side='bottom'] { animation: drawer-in-bottom var(--duration-default) var(--ease-out); }
+.drawer-content[data-state='closed'][data-side='bottom']{ animation: drawer-out-bottom 180ms var(--ease-in); }
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-content[data-state] {
+    animation: none;
+  }
+}
