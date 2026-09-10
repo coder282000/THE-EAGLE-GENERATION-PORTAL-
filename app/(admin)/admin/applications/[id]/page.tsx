@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 "use client";
 
 import { useState, useMemo } from "react";
@@ -8,6 +8,7 @@ import { AdminLayout } from "@/components/layout/adminLayout";
 import { Card } from "@/components/card";
 import { Button } from "@/components/button";
 import { mockApplications, mockMembers } from "@/components/mock/data";
+import { PENDING_APPLICATION_STATUSES } from "@/components/mock/data";
 
 type Decision = "approve" | "reject" | null;
 
@@ -35,7 +36,7 @@ export default function ApplicationDetailPage() {
     const items = [];
     const submittedDate = new Date();
     // Use interviewDate if available, else generate a date
-    if (application.interviewDate) {
+    if (application.interviewAt) {
       submittedDate.setDate(submittedDate.getDate() - 5);
     } else {
       submittedDate.setDate(submittedDate.getDate() - 7);
@@ -48,7 +49,7 @@ export default function ApplicationDetailPage() {
       status: "submitted"
     });
 
-    if (application.status === "pending") {
+    if (PENDING_APPLICATION_STATUSES.includes(application.status)) {
       // If pending, add "Under review" step
       const reviewDate = new Date(submittedDate);
       reviewDate.setDate(reviewDate.getDate() + 2);
@@ -58,7 +59,7 @@ export default function ApplicationDetailPage() {
         date: reviewDate.toISOString().split('T')[0],
         status: "reviewing"
       });
-    } else if (application.status === "approved") {
+    } else if (application.status === "APPROVED") {
       // Approved: add review and approved steps
       const reviewDate = new Date(submittedDate);
       reviewDate.setDate(reviewDate.getDate() + 2);
@@ -76,16 +77,16 @@ export default function ApplicationDetailPage() {
         date: approvedDate.toISOString().split('T')[0],
         status: "approved"
       });
-      if (application.interviewDate) {
-        const interviewDateObj = new Date(application.interviewDate);
+      if (application.interviewAt) {
+        const interviewDateObj = new Date(application.interviewAt);
         items.push({
           action: "Interview scheduled",
           by: "Admin",
-          date: application.interviewDate,
+          date: application.interviewAt,
           status: "interview"
         });
       }
-    } else if (application.status === "rejected") {
+    } else if (application.status === "REJECTED") {
       // Rejected: add review and reject steps
       const reviewDate = new Date(submittedDate);
       reviewDate.setDate(reviewDate.getDate() + 2);
@@ -124,7 +125,7 @@ export default function ApplicationDetailPage() {
         <div className="flex h-64 flex-col items-center justify-center">
           <p className="text-ink-500">Application not found.</p>
           <Link href="/admin/applications" className="mt-3 text-sm font-medium text-sky-600 hover:underline">
-            ← Back to applications
+            â† Back to applications
           </Link>
         </div>
       </AdminLayout>
@@ -170,7 +171,7 @@ export default function ApplicationDetailPage() {
                 href="/admin/applications"
                 className="text-ink-400 hover:text-ink-600 transition-colors"
               >
-                ←
+                â†
               </Link>
               <h1 className="font-display text-2xl font-semibold tracking-tight text-ink-900">
                 Application Details
@@ -182,7 +183,7 @@ export default function ApplicationDetailPage() {
           </div>
           <div className="flex gap-2">
             <Button variant="secondary" size="md" onClick={() => window.print()}>
-              🖨️ Print
+              ðŸ–¨ï¸ Print
             </Button>
           </div>
         </div>
@@ -196,7 +197,7 @@ export default function ApplicationDetailPage() {
                 : "border border-clay-200 bg-clay-50 text-clay-700"
             }`}
           >
-            <span>{toast.type === "success" ? "✅" : "❌"}</span>
+            <span>{toast.type === "success" ? "âœ…" : "âŒ"}</span>
             {toast.message}
           </div>
         )}
@@ -231,11 +232,11 @@ export default function ApplicationDetailPage() {
                     {application.motivation}
                   </dd>
                 </div>
-                {application.interviewDate && (
+                {application.interviewAt && (
                   <div className="sm:col-span-2">
                     <dt className="text-xs text-ink-400">Interview Date</dt>
                     <dd className="text-sm text-ink-900">
-                      {new Date(application.interviewDate).toLocaleDateString("en-KE", {
+                      {new Date(application.interviewAt).toLocaleDateString("en-KE", {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
@@ -250,7 +251,7 @@ export default function ApplicationDetailPage() {
             <Card>
               <h2 className="font-display text-sm font-semibold text-ink-900">Pillar Interests</h2>
               <div className="mt-3 flex flex-wrap gap-2">
-                {/* Mock pillar interests for demonstration – you could store these in mock data */}
+                {/* Mock pillar interests for demonstration â€“ you could store these in mock data */}
                 <span className="rounded-full bg-dawn-50 px-3 py-1 text-xs font-medium text-dawn-700">Marketplace</span>
                 <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">Governance</span>
                 <span className="rounded-full bg-ink-50 px-3 py-1 text-xs font-medium text-ink-700">Technology</span>
@@ -263,9 +264,9 @@ export default function ApplicationDetailPage() {
               <div className="mt-4 space-y-4 border-l border-ink-100 pl-4">
                 {timeline.map((item, index) => {
                   const dotColor =
-                    item.status === "approved"
+                    item.status === "APPROVED"
                       ? "bg-green-400"
-                      : item.status === "rejected"
+                      : item.status === "REJECTED"
                       ? "bg-clay-400"
                       : item.status === "interview"
                       ? "bg-sky-400"
@@ -279,7 +280,7 @@ export default function ApplicationDetailPage() {
                         <span className="font-medium">{item.action}</span>
                       </p>
                       <p className="text-xs text-ink-400">
-                        {item.by} · {new Date(item.date).toLocaleDateString("en-KE", {
+                        {item.by} Â· {new Date(item.date).toLocaleDateString("en-KE", {
                           year: "numeric",
                           month: "short",
                           day: "numeric",
@@ -312,7 +313,7 @@ export default function ApplicationDetailPage() {
             </Card>
 
             {/* Decision actions */}
-            {application.status === "pending" && (
+            {PENDING_APPLICATION_STATUSES.includes(application.status) && (
               <Card>
                 <h2 className="font-display text-sm font-semibold text-ink-900">Actions</h2>
                 <div className="mt-4 space-y-3">
@@ -323,7 +324,7 @@ export default function ApplicationDetailPage() {
                     onClick={() => handleDecision("approve")}
                     disabled={!!decision}
                   >
-                    ✅ Approve
+                    âœ… Approve
                   </Button>
                   <Button
                     variant="danger"
@@ -332,7 +333,7 @@ export default function ApplicationDetailPage() {
                     onClick={() => handleDecision("reject")}
                     disabled={!!decision}
                   >
-                    ❌ Reject
+                    âŒ Reject
                   </Button>
 
                   {showReason && (
@@ -382,19 +383,19 @@ export default function ApplicationDetailPage() {
                   href={`mailto:${application.email}`}
                   className="flex items-center gap-2 text-sm text-sky-600 hover:underline"
                 >
-                  ✉️ Email Applicant
+                  âœ‰ï¸ Email Applicant
                 </Link>
                 <button
                   onClick={() => alert("Interview scheduling form would open here.")}
                   className="flex items-center gap-2 text-sm text-sky-600 hover:underline"
                 >
-                  📅 Schedule Interview
+                  ðŸ“… Schedule Interview
                 </button>
                 <Link
                   href="/admin/audit"
                   className="flex items-center gap-2 text-sm text-sky-600 hover:underline"
                 >
-                  📋 View Audit Trail
+                  ðŸ“‹ View Audit Trail
                 </Link>
               </div>
             </Card>

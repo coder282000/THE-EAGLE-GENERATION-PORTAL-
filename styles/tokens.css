@@ -1,0 +1,105 @@
+﻿/* ============================================================
+ * styles/tokens.css
+ * D3.1a - Design Tokens
+ * Light + dark semantic layer. Imported once in app/layout.tsx.
+ * Source of truth for CSS custom properties.
+ * ============================================================ */
+
+:root {
+  /* Surfaces */
+  --bg-page:      #F3F5F8;
+  --bg-muted:     #E7E9ED;
+  --bg-elevated:  #FFFFFF;
+  --bg-inverse:   #141B2E;
+
+  /* Foreground */
+  --fg:           #141B2E;
+  --fg-muted:     #363C56;
+  --fg-subtle:    #6B7390;
+  --fg-inverse:   #F4F5F7;
+
+  /* Borders */
+  --border:        #C7CBD6;
+  --border-strong: #9CA3B5;
+
+  /* Brand */
+  --primary:         #3B5985;
+  --primary-hover:   #2D4465;
+  --primary-fg:      #FFFFFF;
+
+  --secondary:       #E29B3D;
+  --secondary-hover: #C67F27;
+  --secondary-fg:    #141B2E;
+
+  --accent:          #B8493D;
+  --accent-fg:       #FFFFFF;
+
+  /* Status */
+  --success:  #15803D;
+  --warning:  #B45309;
+  --danger:   #B8493D;
+  --info:     #3B5985;
+
+  /* Focus */
+  --focus-ring:        #4A6FA5;
+  --focus-ring-offset: #F3F5F8;
+
+  /* Motion */
+  --duration-fast:    120ms;
+  --duration-default: 200ms;
+  --duration-slow:    300ms;
+  --ease-out:         cubic-bezier(0, 0, 0.2, 1);
+  --ease-in:          cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out:      cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark {
+  --bg-page:      #0D1220;
+  --bg-muted:     #141B2E;
+  --bg-elevated:  #1B2135;
+  --bg-inverse:   #F4F5F7;
+
+  --fg:           #F4F5F7;
+  --fg-muted:     #C7CBD6;
+  --fg-subtle:    #9CA3B5;
+  --fg-inverse:   #141B2E;
+
+  --border:        #262B41;
+  --border-strong: #363C56;
+
+  --primary:         #87A4C7;
+  --primary-hover:   #AFC2DA;
+  --primary-fg:      #0D1220;
+
+  --secondary:       #EFB86C;
+  --secondary-hover: #F5D19E;
+  --secondary-fg:    #0D1220;
+
+  --accent:          #D77F6C;
+  --accent-fg:       #0D1220;
+
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger:  #EF4444;
+  --info:    #87A4C7;
+
+  --focus-ring:        #87A4C7;
+  --focus-ring-offset: #0D1220;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast:    0ms;
+    --duration-default: 0ms;
+    --duration-slow:    0ms;
+  }
+}
+
+body {
+  background-color: var(--bg-page);
+  color:            var(--fg);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

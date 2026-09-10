@@ -1,7 +1,8 @@
-// app/layout.tsx
+﻿// app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter, IBM_Plex_Mono } from "next/font/google";
-// @ts-ignore – CSS import
+import "@/styles/tokens.css";
+// @ts-ignore â€“ CSS import
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -29,7 +30,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Eagle Generation Portal",
   description:
-    "The Eagle Generation — membership, learning, and chapters for Kingdom leaders in the marketplace, governance, and technology.",
+    "The Eagle Generation â€” membership, learning, and chapters for Kingdom leaders in the marketplace, governance, and technology.",
 };
 
 export const viewport: Viewport = {

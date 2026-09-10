@@ -1,6 +1,79 @@
 // components/mock/data.ts
 
 // ============================================================
+// 0. MOCK USERS & ROLES (for dev role switching / permission testing)
+// ============================================================
+
+export type MockRole =
+  | 'MEMBER'
+  | 'MENTOR'
+  | 'CIRCLE_LEADER'
+  | 'CHAPTER_LEADER'
+  | 'FINANCE_OFFICER'
+  | 'ADMIN'
+  | 'SUPER_ADMIN';
+
+export interface MockUser {
+  id: string;
+  name: string;
+  initials: string;
+  email: string;
+  role: MockRole;
+  /** For CHAPTER_LEADER scoping — matches Application.chapterCode */
+  chapterCode?: string;
+  /** Human-readable label for the role switcher */
+  label: string;
+}
+
+export const mockUsers: MockUser[] = [
+  {
+    id: 'user-solomon',
+    name: 'Solomon A.',
+    initials: 'SA',
+    email: 'solomon@eaglegeneration.org',
+    role: 'SUPER_ADMIN',
+    label: 'Solomon — SUPER_ADMIN',
+  },
+  {
+    id: 'user-admin-miriam',
+    name: 'Miriam K.',
+    initials: 'MK',
+    email: 'miriam@eaglegeneration.org',
+    role: 'FINANCE_OFFICER',
+    label: 'Miriam — Finance Officer',
+  },
+  {
+    id: 'user-esther',
+    name: 'Esther W.',
+    initials: 'EW',
+    email: 'esther@eaglegeneration.org',
+    role: 'CHAPTER_LEADER',
+    chapterCode: 'KU',
+    label: 'Esther — Chapter Leader (KU)',
+  },
+  {
+    id: 'user-daniel',
+    name: 'Daniel M.',
+    initials: 'DM',
+    email: 'daniel@eaglegeneration.org',
+    role: 'CHAPTER_LEADER',
+    chapterCode: 'UON',
+    label: 'Daniel — Chapter Leader (UON)',
+  },
+  {
+    id: 'user-faith',
+    name: 'Faith A.',
+    initials: 'FA',
+    email: 'faith@eaglegeneration.org',
+    role: 'CHAPTER_LEADER',
+    chapterCode: 'Strathmore',
+    label: 'Faith — Chapter Leader (Strathmore)',
+  },
+];
+
+export const DEFAULT_MOCK_USER_ID = 'user-solomon';
+
+// ============================================================
 // 1. INTERFACES
 // ============================================================
 
@@ -30,15 +103,154 @@ export interface Chapter {
   description?: string;
 }
 
+// ---- Application state machine (Charter §15, J1) ----
+export type ApplicationStatus =
+  | 'DRAFT'
+  | 'SUBMITTED'
+  | 'UNDER_REVIEW'
+  | 'INTERVIEW_SCHEDULED'
+  | 'INTERVIEWED'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'WITHDRAWN'
+  | 'LAPSED';
+
+export type ApplicationTier = 'STUDENT' | 'PROFESSIONAL' | 'ASSOCIATE';
+
+export type ApplicationPillar = 'MARKETPLACE' | 'GOVERNANCE' | 'TECHNOLOGY';
+
+export type ApplicationRecommendation =
+  | 'STRONG_YES'
+  | 'YES'
+  | 'NO'
+  | 'STRONG_NO';
+
+export interface ApplicationOutcome {
+  strengths: string;
+  concerns?: string;
+  recommendation: ApplicationRecommendation;
+  score: number; // 1-5
+  recordedBy: string;
+  recordedAt: string;
+}
+
 export interface Application {
+  id: string;
   reference: string;
+  status: ApplicationStatus;
+  tier: ApplicationTier;
+
+  // Identity
+  firstName: string;
+  lastName: string;
+  /** Convenience: `${firstName} ${lastName}` */
   name: string;
   email: string;
-  tier: string;
-  status: 'pending' | 'approved' | 'rejected';
-  motivation: string;
+  phone?: string;
+  dateOfBirth: string; // ISO date
+
+  // Chapter & pillar
+  /** Chapter code — used for RLS scoping. Matches MockUser.chapterCode. */
+  chapterCode: string;
+  /** Display convenience (chapter name) */
   chapter: string;
-  interviewDate?: string;
+  pillarInterest: ApplicationPillar[];
+
+  // Submission
+  motivation: string;
+  referralSource?: string;
+
+  // Interview
+  interviewAt?: string;
+  interviewNotes?: string;
+  outcome?: ApplicationOutcome;
+
+  // Decision
+  decisionReason?: string; // internal only, required for REJECTED
+  decidedBy?: string;
+  decidedAt?: string;
+
+  // Reversal (SUPER_ADMIN only, within 30 days)
+  reopenedAt?: string;
+  reopenedBy?: string;
+  reopenReason?: string;
+
+  // Lifecycle
+  createdAt: string;
+  expiresAt: string; // createdAt + 90 days
+}
+
+/** Statuses considered "in the queue, not yet decided" */
+export const PENDING_APPLICATION_STATUSES: ApplicationStatus[] = [
+  'SUBMITTED',
+  'UNDER_REVIEW',
+  'INTERVIEW_SCHEDULED',
+  'INTERVIEWED',
+];
+
+export const APPLICATION_STATUS_ORDER: ApplicationStatus[] = [
+  'DRAFT',
+  'SUBMITTED',
+  'UNDER_REVIEW',
+  'INTERVIEW_SCHEDULED',
+  'INTERVIEWED',
+  'APPROVED',
+  'REJECTED',
+  'WITHDRAWN',
+  'LAPSED',
+];
+
+export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
+  DRAFT: 'Draft',
+  SUBMITTED: 'Submitted',
+  UNDER_REVIEW: 'Under review',
+  INTERVIEW_SCHEDULED: 'Interview scheduled',
+  INTERVIEWED: 'Interviewed',
+  APPROVED: 'Approved',
+  REJECTED: 'Rejected',
+  WITHDRAWN: 'Withdrawn',
+  LAPSED: 'Lapsed',
+};
+
+export const APPLICATION_TIER_LABELS: Record<ApplicationTier, string> = {
+  STUDENT: 'Student',
+  PROFESSIONAL: 'Professional',
+  ASSOCIATE: 'Associate',
+};
+
+export interface ApplicationNote {
+  id: string;
+  applicationId: string;
+  authorId: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface ApplicationFunnelStage {
+  stage: ApplicationStatus | 'TOTAL';
+  label: string;
+  count: number;
+}
+
+export interface ApplicationSourceRow {
+  source: string;
+  count: number;
+}
+
+export interface ApplicationTierRow {
+  tier: ApplicationTier;
+  count: number;
+}
+
+export interface ApplicationAnalytics {
+  total: number;
+  conversionRate: number; // approved / submitted
+  avgTimeToDecisionDays: number;
+  rejectionRate: number;
+  funnel: ApplicationFunnelStage[];
+  bySource: ApplicationSourceRow[];
+  byTier: ApplicationTierRow[];
 }
 
 export interface Announcement {
@@ -1012,45 +1224,643 @@ export const mockChapters: Chapter[] = [
 ];
 
 // ---- Applications ----
+// Chapter codes match mockUsers[].chapterCode for RLS simulation.
+// Tiers: STUDENT (18–25) | PROFESSIONAL (25–40, 2+ yrs) | ASSOCIATE (any)
+const now = Date.now();
+const daysAgo = (n: number) => new Date(now - 1000 * 60 * 60 * 24 * n).toISOString();
+const daysAhead = (n: number) => new Date(now + 1000 * 60 * 60 * 24 * n).toISOString();
+
 export const mockApplications: Application[] = [
+  // ── KU chapter (Esther's scope) ──────────────────────────────
   {
-    reference: 'TEG-2026-001',
-    name: 'Peter',
-    email: 'peter@example.com',
-    tier: 'Eagle',
-    status: 'approved',
-    motivation: 'I want to lead in technology.',
-    chapter: 'UON',
-    interviewDate: '2026-02-20',
+    id: 'app-001',
+    reference: 'APP-26-100001',
+    status: 'SUBMITTED',
+    tier: 'STUDENT',
+    firstName: 'Grace',
+    lastName: 'Njeri',
+    name: 'Grace Njeri',
+    email: 'grace.njeri@example.com',
+    phone: '+254712345001',
+    dateOfBirth: '2003-04-12',
+    chapterCode: 'KU',
+    chapter: 'Kenyatta University',
+    pillarInterest: ['GOVERNANCE', 'TECHNOLOGY'],
+    motivation:
+      'I want to lead ethical change in the public sector and see technology serve citizens fairly.',
+    referralSource: 'Chapter referral',
+    createdAt: daysAgo(3),
+    expiresAt: daysAhead(87),
   },
   {
-    reference: 'TEG-2026-002',
-    name: 'Esther',
-    email: 'esther@example.com',
-    tier: 'Rising',
-    status: 'pending',
-    motivation: 'Eager to grow in governance.',
-    chapter: 'Strathmore',
+    id: 'app-002',
+    reference: 'APP-26-100002',
+    status: 'UNDER_REVIEW',
+    tier: 'STUDENT',
+    firstName: 'Brian',
+    lastName: 'Otieno',
+    name: 'Brian Otieno',
+    email: 'brian.otieno@example.com',
+    phone: '+254712345002',
+    dateOfBirth: '2002-09-30',
+    chapterCode: 'KU',
+    chapter: 'Kenyatta University',
+    pillarInterest: ['MARKETPLACE'],
+    motivation: 'Building my first venture and I need Kingdom-centred marketplace foundations.',
+    referralSource: 'Word of mouth',
+    createdAt: daysAgo(8),
+    expiresAt: daysAhead(82),
   },
   {
-    reference: 'TEG-2026-003',
-    name: 'Samuel',
-    email: 'samuel@example.com',
-    tier: 'Eagle',
-    status: 'rejected',
-    motivation: 'Interested in marketplace transformation.',
-    chapter: 'Nairobi Professional',
+    id: 'app-003',
+    reference: 'APP-26-100003',
+    status: 'INTERVIEW_SCHEDULED',
+    tier: 'STUDENT',
+    firstName: 'Cynthia',
+    lastName: 'Wambui',
+    name: 'Cynthia Wambui',
+    email: 'cynthia.w@example.com',
+    phone: '+254712345003',
+    dateOfBirth: '2004-01-20',
+    chapterCode: 'KU',
+    chapter: 'Kenyatta University',
+    pillarInterest: ['TECHNOLOGY'],
+    motivation: 'Learning software engineering and want a community that holds me accountable.',
+    referralSource: 'Social media',
+    interviewAt: daysAhead(2),
+    createdAt: daysAgo(12),
+    expiresAt: daysAhead(78),
   },
   {
-    reference: 'TEG-2026-004',
-    name: 'James',
-    email: 'james@example.com',
-    tier: 'Nestling',
-    status: 'pending',
-    motivation: 'New to leadership.',
-    chapter: 'KU',
+    id: 'app-004',
+    reference: 'APP-26-100004',
+    status: 'INTERVIEWED',
+    tier: 'STUDENT',
+    firstName: 'Dennis',
+    lastName: 'Kimani',
+    name: 'Dennis Kimani',
+    email: 'dennis.k@example.com',
+    phone: '+254712345004',
+    dateOfBirth: '2003-07-15',
+    chapterCode: 'KU',
+    chapter: 'Kenyatta University',
+    pillarInterest: ['GOVERNANCE'],
+    motivation: 'Interested in policy and civic engagement at the county level.',
+    referralSource: 'Event',
+    interviewAt: daysAgo(3),
+    interviewNotes: 'Strong communicator. Clear about wanting to serve in county government.',
+    outcome: {
+      strengths: 'Articulate, clear motivation, existing local network in county youth office.',
+      concerns: 'Needs to demonstrate follow-through on long commitments.',
+      recommendation: 'YES',
+      score: 4,
+      recordedBy: 'user-esther',
+      recordedAt: daysAgo(3),
+    },
+    createdAt: daysAgo(20),
+    expiresAt: daysAhead(70),
+  },
+  {
+    id: 'app-005',
+    reference: 'APP-26-100005',
+    status: 'APPROVED',
+    tier: 'STUDENT',
+    firstName: 'Eunice',
+    lastName: 'Mueni',
+    name: 'Eunice Mueni',
+    email: 'eunice.m@example.com',
+    phone: '+254712345005',
+    dateOfBirth: '2002-11-05',
+    chapterCode: 'KU',
+    chapter: 'Kenyatta University',
+    pillarInterest: ['MARKETPLACE', 'GOVERNANCE'],
+    motivation: 'I run a small agribusiness and want to integrate ethical leadership.',
+    referralSource: 'Chapter referral',
+    interviewAt: daysAgo(10),
+    interviewNotes: 'Excellent business instincts. Recommending approval.',
+    outcome: {
+      strengths: 'Entrepreneurial, already operating a business, ethical commitment clear.',
+      recommendation: 'STRONG_YES',
+      score: 5,
+      recordedBy: 'user-esther',
+      recordedAt: daysAgo(10),
+    },
+    decidedBy: 'user-solomon',
+    decidedAt: daysAgo(7),
+    createdAt: daysAgo(30),
+    expiresAt: daysAhead(60),
+  },
+  {
+    id: 'app-006',
+    reference: 'APP-26-100006',
+    status: 'REJECTED',
+    tier: 'STUDENT',
+    firstName: 'Felix',
+    lastName: 'Maina',
+    name: 'Felix Maina',
+    email: 'felix.maina@example.com',
+    phone: '+254712345006',
+    dateOfBirth: '2001-03-12',
+    chapterCode: 'KU',
+    chapter: 'Kenyatta University',
+    pillarInterest: ['TECHNOLOGY'],
+    motivation: 'Want to learn AI.',
+    referralSource: 'Unknown',
+    interviewAt: daysAgo(15),
+    interviewNotes: 'Motivation unclear; did not attend scheduled follow-up.',
+    outcome: {
+      strengths: 'Technical interest is genuine.',
+      concerns: 'Motivation is too thin; skipped the follow-up interview.',
+      recommendation: 'NO',
+      score: 2,
+      recordedBy: 'user-esther',
+      recordedAt: daysAgo(14),
+    },
+    decisionReason: 'Applicant did not demonstrate commitment to the programme values.',
+    decidedBy: 'user-solomon',
+    decidedAt: daysAgo(12),
+    createdAt: daysAgo(45),
+    expiresAt: daysAhead(45),
+  },
+  {
+    id: 'app-007',
+    reference: 'APP-26-100007',
+    status: 'LAPSED',
+    tier: 'STUDENT',
+    firstName: 'Grace',
+    lastName: 'Atieno',
+    name: 'Grace Atieno',
+    email: 'grace.atieno@example.com',
+    phone: '+254712345007',
+    dateOfBirth: '2003-02-28',
+    chapterCode: 'KU',
+    chapter: 'Kenyatta University',
+    pillarInterest: ['GOVERNANCE'],
+    motivation: 'Interested in governance.',
+    createdAt: daysAgo(95),
+    expiresAt: daysAgo(5),
+  },
+
+  // ── UON chapter (Daniel's scope) ─────────────────────────────
+  {
+    id: 'app-008',
+    reference: 'APP-26-200001',
+    status: 'SUBMITTED',
+    tier: 'STUDENT',
+    firstName: 'George',
+    lastName: 'Mwenda',
+    name: 'George Mwenda',
+    email: 'george.m@example.com',
+    phone: '+254712345008',
+    dateOfBirth: '2002-08-14',
+    chapterCode: 'UON',
+    chapter: 'University of Nairobi',
+    pillarInterest: ['TECHNOLOGY', 'MARKETPLACE'],
+    motivation: 'Want to build fintech products that serve unbanked Kenyans.',
+    referralSource: 'Chapter referral',
+    createdAt: daysAgo(2),
+    expiresAt: daysAhead(88),
+  },
+  {
+    id: 'app-009',
+    reference: 'APP-26-200002',
+    status: 'UNDER_REVIEW',
+    tier: 'STUDENT',
+    firstName: 'Hannah',
+    lastName: 'Kilonzo',
+    name: 'Hannah Kilonzo',
+    email: 'hannah.k@example.com',
+    phone: '+254712345009',
+    dateOfBirth: '2003-05-22',
+    chapterCode: 'UON',
+    chapter: 'University of Nairobi',
+    pillarInterest: ['GOVERNANCE'],
+    motivation: 'Passionate about constitutional law and civic education.',
+    referralSource: 'Event',
+    createdAt: daysAgo(6),
+    expiresAt: daysAhead(84),
+  },
+  {
+    id: 'app-010',
+    reference: 'APP-26-200003',
+    status: 'INTERVIEW_SCHEDULED',
+    tier: 'PROFESSIONAL',
+    firstName: 'Isaac',
+    lastName: 'Mutiso',
+    name: 'Isaac Mutiso',
+    email: 'isaac.mutiso@example.com',
+    phone: '+254712345010',
+    dateOfBirth: '1995-12-01',
+    chapterCode: 'UON',
+    chapter: 'University of Nairobi',
+    pillarInterest: ['MARKETPLACE', 'TECHNOLOGY'],
+    motivation: 'Mid-career engineer looking to serve the movement with my skills.',
+    referralSource: 'Word of mouth',
+    interviewAt: daysAhead(4),
+    createdAt: daysAgo(10),
+    expiresAt: daysAhead(80),
+  },
+  {
+    id: 'app-011',
+    reference: 'APP-26-200004',
+    status: 'INTERVIEWED',
+    tier: 'STUDENT',
+    firstName: 'Joy',
+    lastName: 'Chebet',
+    name: 'Joy Chebet',
+    email: 'joy.chebet@example.com',
+    phone: '+254712345011',
+    dateOfBirth: '2002-10-18',
+    chapterCode: 'UON',
+    chapter: 'University of Nairobi',
+    pillarInterest: ['TECHNOLOGY'],
+    motivation: 'Data science student, want to use my skills for Kingdom purposes.',
+    referralSource: 'Social media',
+    interviewAt: daysAgo(4),
+    interviewNotes: 'Thoughtful, clear vision, ready to commit.',
+    outcome: {
+      strengths: 'Clear vision, strong technical foundation, teachable spirit.',
+      recommendation: 'STRONG_YES',
+      score: 5,
+      recordedBy: 'user-daniel',
+      recordedAt: daysAgo(4),
+    },
+    createdAt: daysAgo(22),
+    expiresAt: daysAhead(68),
+  },
+  {
+    id: 'app-012',
+    reference: 'APP-26-200005',
+    status: 'WITHDRAWN',
+    tier: 'STUDENT',
+    firstName: 'Kevin',
+    lastName: 'Omondi',
+    name: 'Kevin Omondi',
+    email: 'kevin.omondi@example.com',
+    phone: '+254712345012',
+    dateOfBirth: '2001-06-30',
+    chapterCode: 'UON',
+    chapter: 'University of Nairobi',
+    pillarInterest: ['GOVERNANCE'],
+    motivation: 'Interested in the movement.',
+    referralSource: 'Unknown',
+    createdAt: daysAgo(40),
+    expiresAt: daysAhead(50),
+  },
+
+  // ── Strathmore chapter (Faith's scope) ───────────────────────
+  {
+    id: 'app-013',
+    reference: 'APP-26-300001',
+    status: 'SUBMITTED',
+    tier: 'PROFESSIONAL',
+    firstName: 'Lydia',
+    lastName: 'Wafula',
+    name: 'Lydia Wafula',
+    email: 'lydia.w@example.com',
+    phone: '+254712345013',
+    dateOfBirth: '1994-04-04',
+    chapterCode: 'Strathmore',
+    chapter: 'Strathmore University',
+    pillarInterest: ['MARKETPLACE', 'GOVERNANCE'],
+    motivation: 'Senior accountant seeking to integrate faith with marketplace ethics.',
+    referralSource: 'Chapter referral',
+    createdAt: daysAgo(4),
+    expiresAt: daysAhead(86),
+  },
+  {
+    id: 'app-014',
+    reference: 'APP-26-300002',
+    status: 'APPROVED',
+    tier: 'PROFESSIONAL',
+    firstName: 'Martin',
+    lastName: 'Njoroge',
+    name: 'Martin Njoroge',
+    email: 'martin.nj@example.com',
+    phone: '+254712345014',
+    dateOfBirth: '1991-09-15',
+    chapterCode: 'Strathmore',
+    chapter: 'Strathmore University',
+    pillarInterest: ['TECHNOLOGY'],
+    motivation: 'Engineering manager, want to mentor and be mentored.',
+    referralSource: 'Event',
+    interviewAt: daysAgo(14),
+    interviewNotes: 'Strong fit for the technology pillar. Recommending approval.',
+    outcome: {
+      strengths: 'Experienced, humble, wants to give back.',
+      recommendation: 'STRONG_YES',
+      score: 5,
+      recordedBy: 'user-faith',
+      recordedAt: daysAgo(14),
+    },
+    decidedBy: 'user-solomon',
+    decidedAt: daysAgo(10),
+    createdAt: daysAgo(35),
+    expiresAt: daysAhead(55),
+  },
+  {
+    id: 'app-015',
+    reference: 'APP-26-300003',
+    status: 'REJECTED',
+    tier: 'STUDENT',
+    firstName: 'Nancy',
+    lastName: 'Wairimu',
+    name: 'Nancy Wairimu',
+    email: 'nancy.w@example.com',
+    phone: '+254712345015',
+    dateOfBirth: '2003-11-22',
+    chapterCode: 'Strathmore',
+    chapter: 'Strathmore University',
+    pillarInterest: ['MARKETPLACE'],
+    motivation: 'Just curious.',
+    referralSource: 'Social media',
+    decisionReason: 'Motivation insufficient; applicant is not aligned with movement values.',
+    decidedBy: 'user-solomon',
+    decidedAt: daysAgo(20),
+    createdAt: daysAgo(50),
+    expiresAt: daysAhead(40),
+  },
+  {
+    id: 'app-016',
+    reference: 'APP-26-300004',
+    status: 'UNDER_REVIEW',
+    tier: 'PROFESSIONAL',
+    firstName: 'Oliver',
+    lastName: 'Kariuki',
+    name: 'Oliver Kariuki',
+    email: 'oliver.k@example.com',
+    phone: '+254712345016',
+    dateOfBirth: '1988-02-08',
+    chapterCode: 'Strathmore',
+    chapter: 'Strathmore University',
+    pillarInterest: ['GOVERNANCE'],
+    motivation: 'Returning to Kenya after 5 years abroad, want to contribute locally.',
+    referralSource: 'Word of mouth',
+    createdAt: daysAgo(5),
+    expiresAt: daysAhead(85),
+  },
+
+  // ── Nairobi Professional ─────────────────────────────────────
+  {
+    id: 'app-017',
+    reference: 'APP-26-400001',
+    status: 'SUBMITTED',
+    tier: 'PROFESSIONAL',
+    firstName: 'Patricia',
+    lastName: 'Achieng',
+    name: 'Patricia Achieng',
+    email: 'patricia.a@example.com',
+    phone: '+254712345017',
+    dateOfBirth: '1993-07-19',
+    chapterCode: 'Nairobi Professional',
+    chapter: 'Nairobi Professional Chapter',
+    pillarInterest: ['MARKETPLACE'],
+    motivation: 'Business consultant, want to build a peer network in Nairobi.',
+    referralSource: 'Chapter referral',
+    createdAt: daysAgo(1),
+    expiresAt: daysAhead(89),
+  },
+  {
+    id: 'app-018',
+    reference: 'APP-26-400002',
+    status: 'UNDER_REVIEW',
+    tier: 'PROFESSIONAL',
+    firstName: 'Quinn',
+    lastName: 'Odhiambo',
+    name: 'Quinn Odhiambo',
+    email: 'quinn.o@example.com',
+    phone: '+254712345018',
+    dateOfBirth: '1990-03-27',
+    chapterCode: 'Nairobi Professional',
+    chapter: 'Nairobi Professional Chapter',
+    pillarInterest: ['TECHNOLOGY', 'MARKETPLACE'],
+    motivation: 'Startup founder, want mentoring and to mentor.',
+    referralSource: 'Event',
+    createdAt: daysAgo(7),
+    expiresAt: daysAhead(83),
+  },
+  {
+    id: 'app-019',
+    reference: 'APP-26-400003',
+    status: 'APPROVED',
+    tier: 'PROFESSIONAL',
+    firstName: 'Rachel',
+    lastName: 'Mutindi',
+    name: 'Rachel Mutindi',
+    email: 'rachel.m@example.com',
+    phone: '+254712345019',
+    dateOfBirth: '1992-06-10',
+    chapterCode: 'Nairobi Professional',
+    chapter: 'Nairobi Professional Chapter',
+    pillarInterest: ['GOVERNANCE'],
+    motivation: 'Policy analyst at a think tank.',
+    referralSource: 'Chapter referral',
+    interviewAt: daysAgo(18),
+    interviewNotes: 'Strong policy background.',
+    outcome: {
+      strengths: 'Deep policy expertise, clear Kingdom vision.',
+      recommendation: 'YES',
+      score: 4,
+      recordedBy: 'user-solomon',
+      recordedAt: daysAgo(18),
+    },
+    decidedBy: 'user-solomon',
+    decidedAt: daysAgo(15),
+    createdAt: daysAgo(40),
+    expiresAt: daysAhead(50),
+  },
+
+  // ── Kisumu Professional ──────────────────────────────────────
+  {
+    id: 'app-020',
+    reference: 'APP-26-500001',
+    status: 'SUBMITTED',
+    tier: 'PROFESSIONAL',
+    firstName: 'Samuel',
+    lastName: 'Owino',
+    name: 'Samuel Owino',
+    email: 'samuel.owino@example.com',
+    phone: '+254712345020',
+    dateOfBirth: '1989-12-05',
+    chapterCode: 'Kisumu',
+    chapter: 'Kisumu Professional Chapter',
+    pillarInterest: ['MARKETPLACE'],
+    motivation: 'Farmer and agripreneur, want to build a regional network.',
+    referralSource: 'Word of mouth',
+    createdAt: daysAgo(3),
+    expiresAt: daysAhead(87),
+  },
+  {
+    id: 'app-021',
+    reference: 'APP-26-500002',
+    status: 'INTERVIEW_SCHEDULED',
+    tier: 'ASSOCIATE',
+    firstName: 'Tabitha',
+    lastName: 'Nyambura',
+    name: 'Tabitha Nyambura',
+    email: 'tabitha.n@example.com',
+    phone: '+254712345021',
+    dateOfBirth: '1978-05-14',
+    chapterCode: 'Kisumu',
+    chapter: 'Kisumu Professional Chapter',
+    pillarInterest: ['GOVERNANCE'],
+    motivation: 'Retired civil servant, want to mentor young leaders in the region.',
+    referralSource: 'Event',
+    interviewAt: daysAhead(3),
+    createdAt: daysAgo(9),
+    expiresAt: daysAhead(81),
+  },
+  {
+    id: 'app-022',
+    reference: 'APP-26-500003',
+    status: 'REJECTED',
+    tier: 'STUDENT',
+    firstName: 'Victor',
+    lastName: 'Ochieng',
+    name: 'Victor Ochieng',
+    email: 'victor.o@example.com',
+    phone: '+254712345022',
+    dateOfBirth: '2002-01-30',
+    chapterCode: 'Kisumu',
+    chapter: 'Kisumu Professional Chapter',
+    pillarInterest: ['TECHNOLOGY'],
+    motivation: 'Want to learn to code.',
+    referralSource: 'Unknown',
+    decisionReason: 'Applicant is a minor per our age policy at time of submission.',
+    decidedBy: 'user-solomon',
+    decidedAt: daysAgo(25),
+    createdAt: daysAgo(55),
+    expiresAt: daysAhead(35),
   },
 ];
+
+// ---- Application Notes ----
+export const mockApplicationNotes: Record<string, ApplicationNote[]> = {
+  'app-002': [
+    {
+      id: 'note-001',
+      applicationId: 'app-002',
+      authorId: 'user-esther',
+      authorName: 'Esther W.',
+      body: 'Called applicant to confirm details. Left voicemail.',
+      createdAt: daysAgo(4),
+    },
+  ],
+  'app-004': [
+    {
+      id: 'note-002',
+      applicationId: 'app-004',
+      authorId: 'user-esther',
+      authorName: 'Esther W.',
+      body: 'Excellent interview. Strong local network. Recruited three other applicants informally.',
+      createdAt: daysAgo(3),
+    },
+    {
+      id: 'note-003',
+      applicationId: 'app-004',
+      authorId: 'user-solomon',
+      authorName: 'Solomon A.',
+      body: 'Concur with recommendation. Will issue decision after compliance confirms no PEP match.',
+      createdAt: daysAgo(2),
+    },
+  ],
+  'app-011': [
+    {
+      id: 'note-004',
+      applicationId: 'app-011',
+      authorId: 'user-daniel',
+      authorName: 'Daniel M.',
+      body: 'Best interview this cycle. Recommend fast-tracking to decision.',
+      createdAt: daysAgo(4),
+    },
+  ],
+};
+
+// ---- Application Analytics (mock) ----
+export const mockApplicationAnalytics: ApplicationAnalytics = {
+  total: mockApplications.length,
+  conversionRate:
+    mockApplications.filter((a) => a.status === 'APPROVED').length /
+    mockApplications.filter((a) => a.status !== 'DRAFT').length,
+  avgTimeToDecisionDays: 12.4,
+  rejectionRate:
+    mockApplications.filter((a) => a.status === 'REJECTED').length /
+    mockApplications.filter((a) => a.status !== 'DRAFT').length,
+  funnel: [
+    {
+      stage: 'TOTAL',
+      label: 'Submitted',
+      count: mockApplications.filter((a) => a.status !== 'DRAFT').length,
+    },
+    {
+      stage: 'UNDER_REVIEW',
+      label: 'Under review',
+      count: mockApplications.filter(
+        (a) =>
+          a.status === 'UNDER_REVIEW' ||
+          a.status === 'INTERVIEW_SCHEDULED' ||
+          a.status === 'INTERVIEWED' ||
+          a.status === 'APPROVED' ||
+          a.status === 'REJECTED'
+      ).length,
+    },
+    {
+      stage: 'INTERVIEWED',
+      label: 'Interviewed',
+      count: mockApplications.filter(
+        (a) =>
+          a.status === 'INTERVIEWED' ||
+          a.status === 'APPROVED' ||
+          a.status === 'REJECTED'
+      ).length,
+    },
+    {
+      stage: 'APPROVED',
+      label: 'Approved',
+      count: mockApplications.filter((a) => a.status === 'APPROVED').length,
+    },
+  ],
+  bySource: [
+    {
+      source: 'Chapter referral',
+      count: mockApplications.filter((a) => a.referralSource === 'Chapter referral')
+        .length,
+    },
+    {
+      source: 'Event',
+      count: mockApplications.filter((a) => a.referralSource === 'Event').length,
+    },
+    {
+      source: 'Social media',
+      count: mockApplications.filter((a) => a.referralSource === 'Social media').length,
+    },
+    {
+      source: 'Word of mouth',
+      count: mockApplications.filter((a) => a.referralSource === 'Word of mouth')
+        .length,
+    },
+    {
+      source: 'Unknown',
+      count: mockApplications.filter(
+        (a) => a.referralSource === 'Unknown' || !a.referralSource
+      ).length,
+    },
+  ],
+  byTier: [
+    {
+      tier: 'STUDENT',
+      count: mockApplications.filter((a) => a.tier === 'STUDENT').length,
+    },
+    {
+      tier: 'PROFESSIONAL',
+      count: mockApplications.filter((a) => a.tier === 'PROFESSIONAL').length,
+    },
+    {
+      tier: 'ASSOCIATE',
+      count: mockApplications.filter((a) => a.tier === 'ASSOCIATE').length,
+    },
+  ],
+};
 
 // ---- Announcements ----
 export const mockAnnouncements: Announcement[] = [
@@ -1367,7 +2177,7 @@ export const mockEvents: Event[] = [
   {
     id: 'evt-005',
     title: 'Annual General Meeting 2025',
-    description: 'Review of the year\'s achievements and planning for the next year.',
+    description: "Review of the year's achievements and planning for the next year.",
     date: '2025-12-10T14:00:00Z',
     location: 'Nairobi, Kenya',
     type: 'other',
@@ -1586,7 +2396,7 @@ export const mockPosts: Post[] = [
       chapterName: 'Strathmore University',
     },
     content:
-      'Who else is joining the Marketplace cohort this quarter? Let\'s connect and share insights on ethical business practices in Kenya.',
+      "Who else is joining the Marketplace cohort this quarter? Let's connect and share insights on ethical business practices in Kenya.",
     pillar: 'MARKETPLACE',
     createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
     likes: 8,
@@ -1640,7 +2450,7 @@ export const mockPosts: Post[] = [
       chapterName: 'Strathmore University',
     },
     content:
-      'The mentorship programme has been incredible. Shoutout to my mentor for guiding me through the Marketplace curriculum. I\'ve grown so much in just two months! 🙌',
+      "The mentorship programme has been incredible. Shoutout to my mentor for guiding me through the Marketplace curriculum. I've grown so much in just two months! 🙌",
     pillar: 'MARKETPLACE',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
     likes: 31,
@@ -1655,7 +2465,7 @@ export const mockComments: Comment[] = [
     id: 'comment-1',
     postId: 'post-1',
     author: { id: '2', firstName: 'Daniel', lastName: 'Omondi', avatar: '' },
-    content: 'Count me in! I\'ve been looking forward to this. When does it start?',
+    content: "Count me in! I've been looking forward to this. When does it start?",
     createdAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
     likes: 3,
     likedByUser: false,
@@ -1673,7 +2483,7 @@ export const mockComments: Comment[] = [
     id: 'comment-3',
     postId: 'post-1',
     author: { id: '5', firstName: 'Mary', lastName: 'Wanjiru', avatar: '' },
-    content: 'I\'m already enrolled! See you in the first session.',
+    content: "I'm already enrolled! See you in the first session.",
     createdAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
     likes: 2,
     likedByUser: false,
@@ -1788,7 +2598,8 @@ export const mockGroupPosts: GroupPost[] = [
     id: 'gpost-1',
     groupId: 'group-1',
     author: { id: '1', firstName: 'Grace', lastName: 'Mwangi', avatar: '' },
-    content: 'Welcome everyone to the Governance Leaders Circle! I\'m excited to dive into our first topic: "Ethical Leadership in the Public Sector." Please introduce yourselves and share what you hope to learn.',
+    content:
+      'Welcome everyone to the Governance Leaders Circle! I\'m excited to dive into our first topic: "Ethical Leadership in the Public Sector." Please introduce yourselves and share what you hope to learn.',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
     likes: 15,
     comments: 8,
@@ -1799,7 +2610,8 @@ export const mockGroupPosts: GroupPost[] = [
     id: 'gpost-2',
     groupId: 'group-1',
     author: { id: '5', firstName: 'Mary', lastName: 'Wanjiru', avatar: '' },
-    content: 'I just read an article on participatory governance in Kenya. Would love to discuss this in our next meeting!',
+    content:
+      'I just read an article on participatory governance in Kenya. Would love to discuss this in our next meeting!',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
     likes: 6,
     comments: 3,
@@ -1809,7 +2621,8 @@ export const mockGroupPosts: GroupPost[] = [
     id: 'gpost-3',
     groupId: 'group-2',
     author: { id: '3', firstName: 'Faith', lastName: 'Akinyi', avatar: '' },
-    content: 'Tech Innovators – our first project is building an AI ethics framework for East Africa. Who\'s interested in leading this effort?',
+    content:
+      "Tech Innovators – our first project is building an AI ethics framework for East Africa. Who's interested in leading this effort?",
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 36).toISOString(),
     likes: 22,
     comments: 12,
@@ -1819,7 +2632,8 @@ export const mockGroupPosts: GroupPost[] = [
     id: 'gpost-4',
     groupId: 'group-4',
     author: { id: '1', firstName: 'Grace', lastName: 'Mwangi', avatar: '' },
-    content: 'KU Eagles! Our chapter meeting is tomorrow at 5 PM in the Education Building. Please bring your course materials and questions.',
+    content:
+      'KU Eagles! Our chapter meeting is tomorrow at 5 PM in the Education Building. Please bring your course materials and questions.',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
     likes: 18,
     comments: 5,
@@ -1882,7 +2696,7 @@ export const mockMessages: Message[] = [
     id: 'msg-4',
     conversationId: 'conv-2',
     senderId: '3',
-    content: 'Everyone, let\'s meet on Thursday at 5 PM to discuss the reading.',
+    content: "Everyone, let's meet on Thursday at 5 PM to discuss the reading.",
     sentAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
     readAt: undefined,
     type: 'text',
@@ -1891,7 +2705,7 @@ export const mockMessages: Message[] = [
     id: 'msg-5',
     conversationId: 'conv-2',
     senderId: '5',
-    content: 'I\'ll be there! Looking forward to it.',
+    content: "I'll be there! Looking forward to it.",
     sentAt: new Date(Date.now() - 1000 * 60 * 60 * 1).toISOString(),
     readAt: undefined,
     type: 'text',
@@ -1908,7 +2722,7 @@ export const mockMentors: MentorProfile[] = [
     focusCategories: ['Leadership', 'Governance', 'Public Policy'],
     expertise: ['Policy Analysis', 'Public Administration', 'Ethical Leadership'],
     availability: 'Weekends and Tuesday evenings',
-    bio: 'I\'m passionate about mentoring the next generation of leaders in governance. I have 8 years of experience in public policy and am currently leading a digital transformation initiative.',
+    bio: "I'm passionate about mentoring the next generation of leaders in governance. I have 8 years of experience in public policy and am currently leading a digital transformation initiative.",
     isActive: true,
     capacity: 5,
     currentMentees: 2,
@@ -1923,7 +2737,7 @@ export const mockMentors: MentorProfile[] = [
     focusCategories: ['Entrepreneurship', 'Technology', 'Marketplace'],
     expertise: ['Business Development', 'AI Strategy', 'Product Management'],
     availability: 'Weekdays after 6 PM',
-    bio: 'I\'m an AI entrepreneur with a passion for building products that solve African challenges. I mentor on business strategy, product development, and tech ethics.',
+    bio: "I'm an AI entrepreneur with a passion for building products that solve African challenges. I mentor on business strategy, product development, and tech ethics.",
     isActive: true,
     capacity: 3,
     currentMentees: 1,
@@ -1938,7 +2752,7 @@ export const mockMentors: MentorProfile[] = [
     focusCategories: ['Technology', 'Software Engineering', 'Career Growth'],
     expertise: ['Full Stack Development', 'Mentoring Women in Tech', 'Cloud Architecture'],
     availability: 'Saturdays 10 AM – 2 PM',
-    bio: 'I\'ve been a software engineer for over 6 years and now lead a team. I love mentoring women in tech and helping people navigate their career paths.',
+    bio: "I've been a software engineer for over 6 years and now lead a team. I love mentoring women in tech and helping people navigate their career paths.",
     isActive: true,
     capacity: 4,
     currentMentees: 3,
@@ -1953,7 +2767,7 @@ export const mockMentors: MentorProfile[] = [
     focusCategories: ['Cloud Computing', 'DevOps', 'Infrastructure'],
     expertise: ['AWS', 'Kubernetes', 'CI/CD', 'Site Reliability'],
     availability: 'Monday – Thursday evenings',
-    bio: 'I\'m a cloud architect with experience at a major tech company. I can help you understand cloud infrastructure, DevOps practices, and how to build scalable systems.',
+    bio: "I'm a cloud architect with experience at a major tech company. I can help you understand cloud infrastructure, DevOps practices, and how to build scalable systems.",
     isActive: true,
     capacity: 3,
     currentMentees: 0,
@@ -1969,7 +2783,7 @@ export const mockMentorshipRequests: MentorshipRequest[] = [
     menteeId: '4',
     status: 'ACCEPTED',
     focusArea: 'Public Policy',
-    message: 'I\'m interested in learning more about how to get involved in public policy as a young leader.',
+    message: "I'm interested in learning more about how to get involved in public policy as a young leader.",
     requestedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
     respondedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
   },
@@ -1979,7 +2793,7 @@ export const mockMentorshipRequests: MentorshipRequest[] = [
     menteeId: '5',
     status: 'PENDING',
     focusArea: 'Entrepreneurship',
-    message: 'I\'m launching a startup and would love your guidance on product-market fit.',
+    message: "I'm launching a startup and would love your guidance on product-market fit.",
     requestedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
   },
   {
@@ -1988,7 +2802,7 @@ export const mockMentorshipRequests: MentorshipRequest[] = [
     menteeId: '8',
     status: 'PENDING',
     focusArea: 'Software Engineering',
-    message: 'I\'m looking to transition into tech. Can you help me figure out where to start?',
+    message: "I'm looking to transition into tech. Can you help me figure out where to start?",
     requestedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
   },
 ];
@@ -3588,7 +4402,11 @@ export const mockAdminStats: AdminStat[] = [
   {
     id: 'stat-applications',
     label: 'Pending Applications',
-    value: String(mockApplications.filter((a) => a.status === 'pending').length),
+    value: String(
+      mockApplications.filter((a) =>
+        PENDING_APPLICATION_STATUSES.includes(a.status)
+      ).length
+    ),
     change: '+3',
     trend: 'up',
     icon: 'applications',
@@ -3619,7 +4437,9 @@ export const mockQueueDepths: QueueDepth[] = [
   {
     id: 'queue-applications',
     label: 'Applications',
-    count: mockApplications.filter((a) => a.status === 'pending').length,
+    count: mockApplications.filter((a) =>
+      PENDING_APPLICATION_STATUSES.includes(a.status)
+    ).length,
     priority: 'high',
     href: '/admin/applications',
     description: 'Awaiting review',
@@ -3719,9 +4539,9 @@ export const mockAdminMyTasks: AdminTask[] = [
     type: 'application',
     priority: 'high',
     dueIn: 'Today',
-    entityId: 'TEG-2026-002',
-    entityLabel: 'Esther Achieng',
-    href: '/admin/applications/TEG-2026-002',
+    entityId: 'APP-26-100004',
+    entityLabel: 'Dennis Kimani',
+    href: '/admin/applications/app-004',
     assignedTo: 'solomon',
   },
   {
@@ -3801,9 +4621,9 @@ export const mockAdminSearchIndex: AdminSearchResult[] = [
     id: `search-application-${a.reference}`,
     type: 'application',
     title: a.reference,
-    subtitle: `${a.name} — ${a.status.toUpperCase()}`,
-    href: `/admin/applications/${a.reference}`,
-    metadata: `${a.tier} · ${a.chapter}`,
+    subtitle: `${a.name} — ${APPLICATION_STATUS_LABELS[a.status]}`,
+    href: `/admin/applications/${a.id}`,
+    metadata: `${APPLICATION_TIER_LABELS[a.tier]} · ${a.chapter}`,
   })),
 
   ...mockOrders.map<AdminSearchResult>((o) => ({
@@ -3867,6 +4687,9 @@ export const adminSearchIcons: Record<AdminSearchEntityType, string> = {
 // ============================================================
 
 export const mockData = {
+  // ---- Mock Users (dev role switching) ----
+  users: mockUsers,
+
   // ---- Layer 1 & 2 (existing) ----
   members: mockMembers,
   chapters: mockChapters,
@@ -3944,4 +4767,8 @@ export const mockData = {
   adminSearchIndex: mockAdminSearchIndex,
   adminSearchLabels,
   adminSearchIcons,
+
+  // ---- Layer 3: PNL-02 Applications ----
+  applicationNotes: mockApplicationNotes,
+  applicationAnalytics: mockApplicationAnalytics,
 };

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 "use client";
 
 import { useState } from "react";
@@ -15,19 +15,19 @@ const getStatusInfo = (status: string) => {
       label: "Approved",
       bg: "bg-green-100",
       text: "text-green-800",
-      icon: "✅",
+      icon: "âœ…",
     },
     pending: {
       label: "Under Review",
       bg: "bg-yellow-100",
       text: "text-yellow-800",
-      icon: "⏳",
+      icon: "â³",
     },
     rejected: {
       label: "Not Approved",
       bg: "bg-red-100",
       text: "text-red-800",
-      icon: "❌",
+      icon: "âŒ",
     },
   };
   return map[status] || map.pending;
@@ -114,12 +114,12 @@ export default function StatusCheckPage() {
           <Card className="p-6 animate-rise">
             {result.error ? (
               <div className="flex items-start gap-3 text-clay-700">
-                <span className="text-2xl">🔍</span>
+                <span className="text-2xl">ðŸ”</span>
                 <div>
                   <p className="font-semibold">Not Found</p>
                   <p className="text-sm">{result.error}</p>
                   <p className="mt-2 text-xs text-ink-400">
-                    Double‑check your reference number or contact support if you believe this is an error.
+                    Doubleâ€‘check your reference number or contact support if you believe this is an error.
                   </p>
                 </div>
               </div>
@@ -161,11 +161,11 @@ export default function StatusCheckPage() {
                     </div>
                   </div>
 
-                  {result.application.status === "approved" &&
-                    result.application.interviewDate && (
+                  {result.application.status === "APPROVED" &&
+                    result.application.interviewAt && (
                       <div className="rounded-md bg-sky-50 p-3 text-sm text-sky-700">
                         <span className="font-medium">Interview scheduled:</span>{" "}
-                        {new Date(result.application.interviewDate).toLocaleDateString(
+                        {new Date(result.application.interviewAt).toLocaleDateString(
                           "en-KE",
                           {
                             year: "numeric",
@@ -188,7 +188,7 @@ export default function StatusCheckPage() {
             href="/apply"
             className="font-medium text-sky-600 hover:underline"
           >
-            Start your application →
+            Start your application â†’
           </Link>
         </p>
       </div>
