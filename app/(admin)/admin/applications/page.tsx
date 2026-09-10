@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import { SearchInput } from "@/components/ui/search-input";
 import { BulkActionBar } from "@/components/ui/bulk-action-bar";
 import { Pagination } from "@/components/ui/pagination";

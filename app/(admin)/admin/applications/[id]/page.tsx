@@ -1,407 +1,557 @@
-'use client';
 "use client";
 
 import { useState, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { AdminLayout } from "@/components/layout/adminLayout";
-import { Card } from "@/components/card";
+import { useParams, useRouter } from "next/navigation";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/button";
-import { mockApplications, mockMembers } from "@/components/mock/data";
-import { PENDING_APPLICATION_STATUSES } from "@/components/mock/data";
+import { DetailSection, DetailField } from "@/components/applications/detail-section";
+import {
+  AuditTrail,
+  type AuditEntry,
+} from "@/components/applications/audit-trail";
+import {
+  NotesPanel,
+  type Note,
+} from "@/components/applications/notes-panel";
+import { ApplicationStatusStepper } from "@/components/applications/application-status-stepper";
+import {
+  getApplicationById,
+  getApplicationNotes,
+  canScheduleInterview,
+  canRecordOutcome,
+  canDecideApplication,
+  canAddNote,
+  canReverseDecision,
+  APPLICATION_STATUS_LABELS,
+  APPLICATION_TIER_LABELS,
+  type Application,
+  type ApplicationNote,
+} from "@/lib/mock/applications";
+import type { ApplicationRecommendation } from "@/components/mock/data";
+import {
+  ArrowLeft,
+  ShieldAlert,
+  Calendar,
+  ClipboardCheck,
+  CheckCircle2,
+  RotateCcw,
+} from "lucide-react";
 
-type Decision = "approve" | "reject" | null;
+const REVERSAL_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+
+const RECOMMENDATION_LABELS: Record<ApplicationRecommendation, string> = {
+  STRONG_YES: "Strong yes",
+  YES: "Yes",
+  NO: "No",
+  STRONG_NO: "Strong no",
+};
 
 export default function ApplicationDetailPage() {
-  const params = useParams();
+  const params = useParams<{ id: string }>();
   const router = useRouter();
-  const reference = params.id as string;
 
-  // Find the application by reference
-  const application = useMemo(() => {
-    return mockApplications.find((app) => app.reference === reference);
-  }, [reference]);
+  const app = useMemo(
+    () => (params.id ? getApplicationById(params.id) : null),
+    [params.id]
+  );
+  const notes = useMemo(
+    () => (params.id ? getApplicationNotes(params.id) : []),
+    [params.id]
+  );
 
-  // State for decision
-  const [decision, setDecision] = useState<Decision>(null);
-  const [decisionReason, setDecisionReason] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showReason, setShowReason] = useState(false);
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [localNotes, setLocalNotes] = useState<Note[] | null>(null);
+  const [reverseOpen, setReverseOpen] = useState(false);
+  const [reverseReason, setReverseReason] = useState("");
+  const [reverseError, setReverseError] = useState<string | null>(null);
+  const [reverseBusy, setReverseBusy] = useState(false);
 
-  // Generate mock timeline based on application status
-  const timeline = useMemo(() => {
-    if (!application) return [];
+  const effectiveNotes: Note[] = localNotes ?? notes;
 
-    const items = [];
-    const submittedDate = new Date();
-    // Use interviewDate if available, else generate a date
-    if (application.interviewAt) {
-      submittedDate.setDate(submittedDate.getDate() - 5);
-    } else {
-      submittedDate.setDate(submittedDate.getDate() - 7);
-    }
-
-    items.push({
-      action: "Application submitted",
-      by: application.name,
-      date: submittedDate.toISOString().split('T')[0],
-      status: "submitted"
-    });
-
-    if (PENDING_APPLICATION_STATUSES.includes(application.status)) {
-      // If pending, add "Under review" step
-      const reviewDate = new Date(submittedDate);
-      reviewDate.setDate(reviewDate.getDate() + 2);
-      items.push({
-        action: "Under review",
-        by: "Admin",
-        date: reviewDate.toISOString().split('T')[0],
-        status: "reviewing"
-      });
-    } else if (application.status === "APPROVED") {
-      // Approved: add review and approved steps
-      const reviewDate = new Date(submittedDate);
-      reviewDate.setDate(reviewDate.getDate() + 2);
-      items.push({
-        action: "Under review",
-        by: "Admin",
-        date: reviewDate.toISOString().split('T')[0],
-        status: "reviewing"
-      });
-      const approvedDate = new Date(reviewDate);
-      approvedDate.setDate(approvedDate.getDate() + 3);
-      items.push({
-        action: "Application approved",
-        by: "Admin",
-        date: approvedDate.toISOString().split('T')[0],
-        status: "approved"
-      });
-      if (application.interviewAt) {
-        const interviewDateObj = new Date(application.interviewAt);
-        items.push({
-          action: "Interview scheduled",
-          by: "Admin",
-          date: application.interviewAt,
-          status: "interview"
-        });
-      }
-    } else if (application.status === "REJECTED") {
-      // Rejected: add review and reject steps
-      const reviewDate = new Date(submittedDate);
-      reviewDate.setDate(reviewDate.getDate() + 2);
-      items.push({
-        action: "Under review",
-        by: "Admin",
-        date: reviewDate.toISOString().split('T')[0],
-        status: "reviewing"
-      });
-      const rejectDate = new Date(reviewDate);
-      rejectDate.setDate(rejectDate.getDate() + 1);
-      items.push({
-        action: "Application rejected",
-        by: "Admin",
-        date: rejectDate.toISOString().split('T')[0],
-        status: "rejected"
-      });
-    }
-
-    return items;
-  }, [application]);
-
-  // Status badge styles
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      pending: "bg-dawn-50 text-dawn-700",
-      approved: "bg-green-50 text-green-700",
-      rejected: "bg-clay-50 text-clay-700",
-    };
-    return styles[status] || "bg-ink-50 text-ink-600";
-  };
-
-  if (!application) {
+  if (!app) {
     return (
-      <AdminLayout>
-        <div className="flex h-64 flex-col items-center justify-center">
-          <p className="text-ink-500">Application not found.</p>
-          <Link href="/admin/applications" className="mt-3 text-sm font-medium text-sky-600 hover:underline">
-            â† Back to applications
-          </Link>
-        </div>
-      </AdminLayout>
+      <div className="mx-auto max-w-xl px-4 py-16">
+        <Card className="p-8 text-center">
+          <h1 className="font-display text-xl text-ink-900">Application not found</h1>
+          <p className="mt-2 text-sm text-ink-500">
+            The application does not exist, or you do not have permission to view it.
+          </p>
+          <div className="mt-6">
+            <Link href="/admin/applications">
+              <Button variant="primary">Back to applications</Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
     );
   }
 
-  const handleDecision = (action: "approve" | "reject") => {
-    setDecision(action);
-    setShowReason(true);
+  const canSchedule = canScheduleInterview();
+  const canOutcome = canRecordOutcome();
+  const canDecide = canDecideApplication();
+  const canNote = canAddNote();
+  const canReverse = canReverseDecision();
+  const reversalAvailable =
+    canReverse &&
+    app.status === "REJECTED" &&
+    !!app.decidedAt &&
+    Date.now() - new Date(app.decidedAt).getTime() < REVERSAL_WINDOW_MS;
+
+  const auditEntries = buildAuditEntries(app, effectiveNotes);
+
+  const handleAddNote = async (body: string) => {
+    // Mock — in production POST /api/v1/admin/applications/:id/notes
+    await new Promise((r) => setTimeout(r, 400));
+    const next: Note = {
+      id: `note_${Date.now().toString(36)}`,
+      authorId: "current_user",
+      authorName: "You",
+      body,
+      createdAt: new Date().toISOString(),
+    };
+    setLocalNotes((prev) => [next, ...(prev ?? notes)]);
   };
 
-  const handleSubmitDecision = async () => {
-    if (!decision) return;
-    if (!decisionReason.trim() && decision === "reject") {
-      setToast({ type: "error", message: "Please provide a reason for rejection." });
+  const handleReverse = async () => {
+    setReverseError(null);
+    if (reverseReason.trim().length < 10) {
+      setReverseError("A reason of at least 10 characters is required.");
       return;
     }
-
-    setIsSubmitting(true);
-    setToast(null);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setIsSubmitting(false);
-
-    setToast({
-      type: "success",
-      message: `Application ${decision === "approve" ? "approved" : "rejected"} successfully.`,
-    });
-
-    // In a real app, this would persist the decision
-    setTimeout(() => {
-      router.push("/admin/applications");
-    }, 1500);
+    setReverseBusy(true);
+    await new Promise((r) => setTimeout(r, 500));
+    // In production POST /api/v1/admin/applications/:id/reopen
+    setReverseBusy(false);
+    setReverseOpen(false);
+    setReverseReason("");
+    alert("Application reopened (mock).");
+    router.refresh();
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <Link
-                href="/admin/applications"
-                className="text-ink-400 hover:text-ink-600 transition-colors"
-              >
-                â†
-              </Link>
-              <h1 className="font-display text-2xl font-semibold tracking-tight text-ink-900">
-                Application Details
-              </h1>
-            </div>
-            <p className="mt-1 text-sm text-ink-500 font-mono">
-              {application.reference}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="secondary" size="md" onClick={() => window.print()}>
-              ðŸ–¨ï¸ Print
-            </Button>
-          </div>
-        </div>
-
-        {/* Toast */}
-        {toast && (
-          <div
-            className={`flex items-center gap-3 rounded-lg p-4 text-sm ${
-              toast.type === "success"
-                ? "border border-green-200 bg-green-50 text-green-700"
-                : "border border-clay-200 bg-clay-50 text-clay-700"
-            }`}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <Link
+            href="/admin/applications"
+            className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-700"
           >
-            <span>{toast.type === "success" ? "âœ…" : "âŒ"}</span>
-            {toast.message}
-          </div>
-        )}
-
-        {/* Two-column layout */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Main content - 2/3 */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Applicant info */}
-            <Card>
-              <h2 className="font-display text-sm font-semibold text-ink-900">Applicant Information</h2>
-              <dl className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <dt className="text-xs text-ink-400">Full Name</dt>
-                  <dd className="text-sm font-medium text-ink-900">{application.name}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-ink-400">Email</dt>
-                  <dd className="text-sm text-ink-900">{application.email}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-ink-400">Tier</dt>
-                  <dd className="text-sm font-medium text-ink-900">{application.tier}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-ink-400">Chapter</dt>
-                  <dd className="text-sm text-ink-900">{application.chapter}</dd>
-                </div>
-                <div className="sm:col-span-2">
-                  <dt className="text-xs text-ink-400">Motivation</dt>
-                  <dd className="mt-1 text-sm text-ink-700 leading-relaxed">
-                    {application.motivation}
-                  </dd>
-                </div>
-                {application.interviewAt && (
-                  <div className="sm:col-span-2">
-                    <dt className="text-xs text-ink-400">Interview Date</dt>
-                    <dd className="text-sm text-ink-900">
-                      {new Date(application.interviewAt).toLocaleDateString("en-KE", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </dd>
-                  </div>
-                )}
-              </dl>
-            </Card>
-
-            {/* Pillar interests */}
-            <Card>
-              <h2 className="font-display text-sm font-semibold text-ink-900">Pillar Interests</h2>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {/* Mock pillar interests for demonstration â€“ you could store these in mock data */}
-                <span className="rounded-full bg-dawn-50 px-3 py-1 text-xs font-medium text-dawn-700">Marketplace</span>
-                <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">Governance</span>
-                <span className="rounded-full bg-ink-50 px-3 py-1 text-xs font-medium text-ink-700">Technology</span>
-              </div>
-            </Card>
-
-            {/* Timeline */}
-            <Card>
-              <h2 className="font-display text-sm font-semibold text-ink-900">Application Timeline</h2>
-              <div className="mt-4 space-y-4 border-l border-ink-100 pl-4">
-                {timeline.map((item, index) => {
-                  const dotColor =
-                    item.status === "APPROVED"
-                      ? "bg-green-400"
-                      : item.status === "REJECTED"
-                      ? "bg-clay-400"
-                      : item.status === "interview"
-                      ? "bg-sky-400"
-                      : "bg-dawn-400";
-                  return (
-                    <div key={index} className="relative">
-                      <span
-                        className={`absolute -left-[21px] top-1.5 h-2 w-2 rounded-full ring-4 ring-white ${dotColor}`}
-                      />
-                      <p className="text-sm text-ink-700">
-                        <span className="font-medium">{item.action}</span>
-                      </p>
-                      <p className="text-xs text-ink-400">
-                        {item.by} Â· {new Date(item.date).toLocaleDateString("en-KE", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-          </div>
-
-          {/* Sidebar - 1/3 */}
-          <div className="space-y-6">
-            {/* Status card */}
-            <Card>
-              <h2 className="font-display text-sm font-semibold text-ink-900">Status</h2>
-              <div className="mt-3 flex items-center gap-2">
-                <span
-                  className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${getStatusBadge(
-                    application.status
-                  )}`}
-                >
-                  {application.status}
-                </span>
-                <span className="text-xs text-ink-400">
-                  Updated {new Date().toLocaleDateString()}
-                </span>
-              </div>
-            </Card>
-
-            {/* Decision actions */}
-            {PENDING_APPLICATION_STATUSES.includes(application.status) && (
-              <Card>
-                <h2 className="font-display text-sm font-semibold text-ink-900">Actions</h2>
-                <div className="mt-4 space-y-3">
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    fullWidth
-                    onClick={() => handleDecision("approve")}
-                    disabled={!!decision}
-                  >
-                    âœ… Approve
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="lg"
-                    fullWidth
-                    onClick={() => handleDecision("reject")}
-                    disabled={!!decision}
-                  >
-                    âŒ Reject
-                  </Button>
-
-                  {showReason && (
-                    <div className="mt-4 space-y-3 border-t border-ink-100 pt-4">
-                      <label className="text-sm font-medium text-ink-700">
-                        {decision === "approve" ? "Optional note" : "Reason for rejection *"}
-                      </label>
-                      <textarea
-                        rows={3}
-                        className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm outline-none focus:border-sky-500"
-                        placeholder={decision === "approve" ? "Add a note (optional)..." : "Provide reason for rejection..."}
-                        value={decisionReason}
-                        onChange={(e) => setDecisionReason(e.target.value)}
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          variant="primary"
-                          size="md"
-                          onClick={handleSubmitDecision}
-                          disabled={isSubmitting}
-                        >
-                          {isSubmitting ? "Submitting..." : `Confirm ${decision === "approve" ? "Approval" : "Rejection"}`}
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="md"
-                          onClick={() => {
-                            setShowReason(false);
-                            setDecision(null);
-                            setDecisionReason("");
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            )}
-
-            {/* Quick links */}
-            <Card>
-              <h2 className="font-display text-sm font-semibold text-ink-900">Quick Links</h2>
-              <div className="mt-3 space-y-2">
-                <Link
-                  href={`mailto:${application.email}`}
-                  className="flex items-center gap-2 text-sm text-sky-600 hover:underline"
-                >
-                  âœ‰ï¸ Email Applicant
-                </Link>
-                <button
-                  onClick={() => alert("Interview scheduling form would open here.")}
-                  className="flex items-center gap-2 text-sm text-sky-600 hover:underline"
-                >
-                  ðŸ“… Schedule Interview
-                </button>
-                <Link
-                  href="/admin/audit"
-                  className="flex items-center gap-2 text-sm text-sky-600 hover:underline"
-                >
-                  ðŸ“‹ View Audit Trail
-                </Link>
-              </div>
-            </Card>
-          </div>
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Applications
+          </Link>
+          <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight text-ink-900">
+            {app.firstName} {app.lastName}
+          </h1>
+          <p className="mt-1 text-sm text-ink-500">
+            <span className="font-mono">{app.reference}</span>
+            <span className="mx-2 text-ink-300">·</span>
+            {APPLICATION_TIER_LABELS[app.tier]}
+            <span className="mx-2 text-ink-300">·</span>
+            {app.chapter}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {reversalAvailable && (
+            <Button variant="outline" onClick={() => setReverseOpen(true)}>
+              <RotateCcw className="mr-2 h-4 w-4" aria-hidden="true" />
+              Reverse decision
+            </Button>
+          )}
+          {canSchedule && (app.status === "UNDER_REVIEW" || app.status === "SUBMITTED") && (
+            <Link href={`/admin/applications/${app.id}/schedule`}>
+              <Button variant="outline">
+                <Calendar className="mr-2 h-4 w-4" aria-hidden="true" />
+                Schedule interview
+              </Button>
+            </Link>
+          )}
+          {canOutcome && app.status === "INTERVIEW_SCHEDULED" && (
+            <Link href={`/admin/applications/${app.id}/outcome`}>
+              <Button variant="outline">
+                <ClipboardCheck className="mr-2 h-4 w-4" aria-hidden="true" />
+                Record outcome
+              </Button>
+            </Link>
+          )}
+          {canDecide && (app.status === "INTERVIEWED" || app.status === "UNDER_REVIEW") && (
+            <Link href={`/admin/applications/${app.id}/decide`}>
+              <Button variant="primary">
+                <CheckCircle2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                Decide
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
-    </AdminLayout>
+
+      {/* Stepper */}
+      <Card className="p-6">
+        <ApplicationStatusStepper
+          status={app.status}
+          reopened={!!app.reopenedAt}
+        />
+        {app.status === "LAPSED" && (
+          <p className="mt-4 text-sm text-ink-500">
+            This application auto-expired {formatDate(app.expiresAt)} without action.
+          </p>
+        )}
+      </Card>
+
+      {/* Body */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Main */}
+        <div className="space-y-6 lg:col-span-2">
+          <DetailSection title="Applicant">
+            <DetailField label="Full name" value={`${app.firstName} ${app.lastName}`} />
+            <DetailField label="Email" value={app.email} />
+            <DetailField
+              label="Phone"
+              value={app.phone ?? "—"}
+              empty={!app.phone}
+            />
+            <DetailField label="Date of birth" value={formatDate(app.dateOfBirth)} />
+            <DetailField
+              label="Membership tier"
+              value={APPLICATION_TIER_LABELS[app.tier]}
+            />
+            <DetailField label="Chapter preference" value={app.chapter} />
+          </DetailSection>
+
+          <DetailSection title="Pillar interests">
+            {app.pillarInterest.length === 0 ? (
+              <DetailField label="" value="None selected" empty />
+            ) : (
+              <div className="col-span-full flex flex-wrap gap-2">
+                {app.pillarInterest.map((p) => (
+                  <span
+                    key={p}
+                    className="rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700"
+                  >
+                    {p}
+                  </span>
+                ))}
+              </div>
+            )}
+          </DetailSection>
+
+          <DetailSection title="Submission" layout="stacked">
+            <DetailField
+              label="Motivation"
+              value={<p className="whitespace-pre-wrap text-sm text-ink-700">{app.motivation}</p>}
+            />
+            <DetailField
+              label="Referral source"
+              value={app.referralSource ?? "—"}
+              empty={!app.referralSource}
+            />
+            <DetailField label="Submitted" value={formatDateTime(app.createdAt)} />
+          </DetailSection>
+
+          {(app.interviewAt || app.interviewNotes || app.outcome) && (
+            <DetailSection title="Interview">
+              <DetailField
+                label="Scheduled for"
+                value={app.interviewAt ? formatDateTime(app.interviewAt) : "—"}
+                empty={!app.interviewAt}
+              />
+              <DetailField
+                label="Outcome recommendation"
+                value={app.outcome ? RECOMMENDATION_LABELS[app.outcome.recommendation] : "—"}
+                empty={!app.outcome}
+              />
+              <DetailField
+                label="Interview score"
+                value={app.outcome ? `${app.outcome.score} / 5` : "—"}
+                empty={!app.outcome}
+              />
+              {app.interviewNotes && (
+                <div className="col-span-full">
+                  <DetailField
+                    label="Interviewer notes"
+                    value={
+                      <p className="whitespace-pre-wrap text-sm text-ink-700">
+                        {app.interviewNotes}
+                      </p>
+                    }
+                  />
+                </div>
+              )}
+            </DetailSection>
+          )}
+
+          {(app.decidedAt || app.decisionReason || app.reopenedAt) && (
+            <DetailSection title="Decision">
+              <DetailField
+                label="Status"
+                value={APPLICATION_STATUS_LABELS[app.status]}
+              />
+              <DetailField
+                label="Decided"
+                value={app.decidedAt ? formatDateTime(app.decidedAt) : "—"}
+                empty={!app.decidedAt}
+              />
+              <DetailField
+                label="Decided by"
+                value={app.decidedBy ? <span className="font-mono text-xs">{app.decidedBy}</span> : "—"}
+                empty={!app.decidedBy}
+              />
+              {app.decisionReason && (
+                <div className="col-span-full">
+                  <DetailField
+                    label="Reason (internal)"
+                    value={
+                      <p className="whitespace-pre-wrap text-sm text-ink-700">
+                        {app.decisionReason}
+                      </p>
+                    }
+                  />
+                </div>
+              )}
+              {app.reopenedAt && (
+                <div className="col-span-full mt-2 rounded-md border border-dawn-200 bg-dawn-50 p-3 text-sm text-dawn-800">
+                  <strong>Reopened</strong> {formatDateTime(app.reopenedAt)}
+                  {app.reopenedBy && <> by <span className="font-mono text-xs">{app.reopenedBy}</span></>}
+                  {app.reopenReason && (
+                    <p className="mt-1 text-dawn-700">{app.reopenReason}</p>
+                  )}
+                </div>
+              )}
+            </DetailSection>
+          )}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Actions summary */}
+          <Card className="p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-fg-muted">
+              Actions
+            </h2>
+            {!canSchedule && !canOutcome && !canDecide && !canReverse && (
+              <p className="mt-3 text-sm text-ink-500">
+                You have read-only access to this application.
+              </p>
+            )}
+            {canSchedule && app.status === "SUBMITTED" && (
+              <p className="mt-3 text-sm text-ink-500">
+                Start by reviewing the submission, then schedule an interview.
+              </p>
+            )}
+            {app.status === "APPROVED" && (
+              <p className="mt-3 text-sm text-ink-500">
+                Member number issued. Onboarding email sent.
+              </p>
+            )}
+            {app.status === "REJECTED" && !reversalAvailable && canReverse && (
+              <p className="mt-3 text-sm text-ink-500">
+                Reversal window has closed (30 days from decision).
+              </p>
+            )}
+            <dl className="mt-4 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-ink-500">Expires</dt>
+                <dd className="text-ink-700">{formatDate(app.expiresAt)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-ink-500">Age</dt>
+                <dd className="text-ink-700">{daysSince(app.createdAt)}d</dd>
+              </div>
+            </dl>
+          </Card>
+
+          <NotesPanel
+            notes={effectiveNotes}
+            onAddNote={handleAddNote}
+            readOnly={!canNote}
+            placeholder="Add an internal note. Not shared with the applicant."
+            emptyMessage="No notes yet."
+          />
+
+          <Card className="p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-fg-muted">
+              Activity
+            </h2>
+            <div className="mt-4">
+              <AuditTrail
+                entries={auditEntries}
+                defaultVisible={5}
+                emptyMessage="No activity yet."
+              />
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Reverse modal */}
+      {reverseOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reverse-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4"
+        >
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-dawn-50">
+                <ShieldAlert className="h-5 w-5 text-dawn-700" aria-hidden="true" />
+              </div>
+              <div>
+                <h2 id="reverse-title" className="text-lg font-semibold text-ink-900">
+                  Reverse decision?
+                </h2>
+                <p className="mt-2 text-sm text-ink-600">
+                  The application will be returned to <strong>Under review</strong>.
+                  This action is audited and only available to Super Admins.
+                </p>
+              </div>
+            </div>
+
+            <label
+              htmlFor="reverse-reason"
+              className="mt-5 block text-sm font-medium text-ink-700"
+            >
+              Reason for reversal
+            </label>
+            <textarea
+              id="reverse-reason"
+              value={reverseReason}
+              onChange={(e) => setReverseReason(e.target.value)}
+              rows={3}
+              maxLength={500}
+              placeholder="e.g. Applicant provided additional documentation."
+              aria-invalid={!!reverseError}
+              aria-describedby={reverseError ? "reverse-error" : undefined}
+              className="mt-2 w-full rounded-md border border-ink-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"
+            />
+            {reverseError && (
+              <p id="reverse-error" className="mt-2 text-sm text-red-600">
+                {reverseError}
+              </p>
+            )}
+
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse">
+              <Button
+                variant="primary"
+                fullWidth
+                onClick={handleReverse}
+                disabled={reverseBusy}
+              >
+                {reverseBusy ? "Reopening…" : "Confirm reversal"}
+              </Button>
+              <Button
+                variant="outline"
+                fullWidth
+                onClick={() => {
+                  setReverseOpen(false);
+                  setReverseReason("");
+                  setReverseError(null);
+                }}
+                disabled={reverseBusy}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
+}
+
+// ─────────────────────────────────────────────────────────
+
+function buildAuditEntries(app: Application, notes: Note[]): AuditEntry[] {
+  const entries: AuditEntry[] = [];
+
+  entries.push({
+    id: `${app.id}-submitted`,
+    actor: `${app.firstName} ${app.lastName}`,
+    action: "submitted application",
+    timestamp: app.createdAt,
+    category: "status",
+  });
+
+  if (app.interviewAt) {
+    entries.push({
+      id: `${app.id}-interview-scheduled`,
+      actor: "Admin",
+      action: "scheduled interview",
+      target: formatDateTime(app.interviewAt),
+      timestamp: app.interviewAt,
+      category: "interview",
+    });
+  }
+
+  if (app.outcome) {
+    entries.push({
+      id: `${app.id}-outcome`,
+      actor: "Interviewer",
+      action: "recorded outcome",
+      target: RECOMMENDATION_LABELS[app.outcome.recommendation],
+      timestamp: app.outcome.recordedAt,
+      category: "interview",
+    });
+  }
+
+  if (app.decidedAt) {
+    entries.push({
+      id: `${app.id}-decision`,
+      actor: app.decidedBy ? "Admin" : "System",
+      action:
+        app.status === "APPROVED"
+          ? "approved application"
+          : app.status === "REJECTED"
+          ? "rejected application"
+          : "closed application",
+      timestamp: app.decidedAt,
+      category: "decision",
+    });
+  }
+
+  if (app.reopenedAt) {
+    entries.push({
+      id: `${app.id}-reopened`,
+      actor: "Super Admin",
+      action: "reopened application",
+      timestamp: app.reopenedAt,
+      category: "reopen",
+    });
+  }
+
+  for (const n of notes) {
+    entries.push({
+      id: n.id,
+      actor: n.authorName,
+      action: "added a note",
+      timestamp: n.createdAt,
+      category: "note",
+    });
+  }
+
+  return entries.sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatDateTime(iso: string) {
+  return new Date(iso).toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function daysSince(iso: string) {
+  return Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24));
 }
