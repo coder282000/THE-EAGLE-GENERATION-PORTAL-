@@ -79,6 +79,7 @@ module.exports = {
         md: '0.5rem',
       },
       boxShadow: {
+        'shadow-card': '0 1px 3px 0 rgb(13 18 32 / 0.06), 0 1px 2px -1px rgb(13 18 32 / 0.04)',
         xs:    '0 1px 2px 0 rgb(13 18 32 / 0.05)',
         sm:    '0 1px 3px 0 rgb(13 18 32 / 0.10), 0 1px 2px -1px rgb(13 18 32 / 0.06)',
         md:    '0 4px 6px -1px rgb(13 18 32 / 0.10), 0 2px 4px -2px rgb(13 18 32 / 0.06)',
