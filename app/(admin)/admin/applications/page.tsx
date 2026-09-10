@@ -1,5 +1,5 @@
-﻿// app/(admin)/admin/applications/page.tsx
 "use client";
+// app/(admin)/admin/applications/page.tsx
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
@@ -326,7 +326,7 @@ export default function ApplicationsPage() {
                   <span className="flex items-center gap-1">
                     Name
                     {sortField === "name" && (
-                      <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      <span>{sortDirection === "asc" ? "â†‘" : "â†“"}</span>
                     )}
                   </span>
                 </th>
@@ -337,7 +337,7 @@ export default function ApplicationsPage() {
                   <span className="flex items-center gap-1">
                     Tier
                     {sortField === "tier" && (
-                      <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      <span>{sortDirection === "asc" ? "â†‘" : "â†“"}</span>
                     )}
                   </span>
                 </th>
@@ -351,7 +351,7 @@ export default function ApplicationsPage() {
                   <span className="flex items-center gap-1">
                     Status
                     {sortField === "status" && (
-                      <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      <span>{sortDirection === "asc" ? "â†‘" : "â†“"}</span>
                     )}
                   </span>
                 </th>
@@ -362,7 +362,7 @@ export default function ApplicationsPage() {
                   <span className="flex items-center gap-1">
                     Reference
                     {sortField === "reference" && (
-                      <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      <span>{sortDirection === "asc" ? "â†‘" : "â†“"}</span>
                     )}
                   </span>
                 </th>
@@ -397,7 +397,7 @@ export default function ApplicationsPage() {
                   </td>
                   <td className="hidden px-4 py-3 text-ink-600 md:table-cell">
                     {app.chapter.length > 20
-                      ? `${app.chapter.slice(0, 20)}…`
+                      ? `${app.chapter.slice(0, 20)}â€¦`
                       : app.chapter}
                   </td>
                   <td className="px-4 py-3">
@@ -435,7 +435,7 @@ export default function ApplicationsPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-ink-100 px-4 py-3">
             <p className="text-xs text-ink-400">
-              Showing {(currentPage - 1) * pageSize + 1}–
+              Showing {(currentPage - 1) * pageSize + 1}â€“
               {Math.min(currentPage * pageSize, totalItems)} of {totalItems}
             </p>
             <div className="flex gap-1">

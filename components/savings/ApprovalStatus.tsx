@@ -1,4 +1,4 @@
-﻿interface ApprovalStatusProps {
+interface ApprovalStatusProps {
   status: string;
   initiatedBy?: string;
   approvedBy?: string;

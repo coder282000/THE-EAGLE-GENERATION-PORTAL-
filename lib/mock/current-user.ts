@@ -1,5 +1,5 @@
-// lib/mock/current-user.ts
 'use client';
+// lib/mock/current-user.ts
 
 import { useEffect, useState } from 'react';
 import {
