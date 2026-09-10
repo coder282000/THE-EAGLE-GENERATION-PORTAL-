@@ -4,7 +4,17 @@
 import {
   mockMembers,
   mockChapters,
+  mockEnrollments,
+  mockOrders,
+  mockPaymentTransactions,
+  mockAuditLogs,
+  mockCourses,
   type Member,
+  type Enrollment,
+  type Order,
+  type PaymentTransaction,
+  type AuditLog,
+  type Course,
 } from '@/components/mock/data';
 import { getCurrentUser } from './current-user';
 
@@ -125,6 +135,45 @@ export function getChapterName(code: string): string {
  */
 export function getChapterOptions(): { code: string; name: string }[] {
   return mockChapters.map((c) => ({ code: c.code, name: c.name }));
+}
+
+// ─────────────────────────────────────────────────────────
+// Related data (for ADM-031 tabs)
+// ─────────────────────────────────────────────────────────
+
+export function getMemberEnrollments(memberId: string): Enrollment[] {
+  return mockEnrollments.filter((e) => e.userId === memberId);
+}
+
+export function getMemberOrders(memberId: string): Order[] {
+  return mockOrders.filter((o) => o.userId === memberId);
+}
+
+export function getMemberTransactions(memberId: string): PaymentTransaction[] {
+  return mockPaymentTransactions.filter((t) => t.userId === memberId);
+}
+
+/**
+ * AuditLog has no direct memberId. We match against the member's full name
+ * appearing in either `actor` or `entity`. Approximate but adequate for mock.
+ */
+export function getMemberAuditEntries(member: Member): AuditLog[] {
+  const fullName = `${member.firstName} ${member.lastName}`.toLowerCase();
+  return mockAuditLogs
+    .filter(
+      (a) =>
+        a.actor.toLowerCase().includes(fullName) ||
+        a.entity.toLowerCase().includes(fullName) ||
+        a.entity.includes(member.memberNumber)
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+}
+
+export function getCourseById(id: string): Course | null {
+  return mockCourses.find((c) => c.id === id) ?? null;
 }
 
 // ─────────────────────────────────────────────────────────
