@@ -4772,3 +4772,168 @@ export const mockData = {
   applicationNotes: mockApplicationNotes,
   applicationAnalytics: mockApplicationAnalytics,
 };
+// ---------- R5: Wallet deposit sessions ----------
+
+export interface DepositSession {
+  id: string;
+  asset: "USDT";
+  network: "TRC20" | "ERC20" | "BEP20";
+  networkLabel: string;
+  address: string;
+  minimumDeposit: number; // minor units
+  confirmations: number;
+  requiredConfirmations: number;
+  createdAt: string;
+  expiresAt: string;
+}
+
+const _deposits: DepositSession[] = [
+  {
+    id: "dep_trc20_001",
+    asset: "USDT",
+    network: "TRC20",
+    networkLabel: "TRON (TRC20)",
+    address: "TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE",
+    minimumDeposit: 100, // 1.00 USDT
+    confirmations: 3,
+    requiredConfirmations: 19,
+    createdAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 23).toISOString(),
+  },
+  {
+    id: "dep_erc20_001",
+    asset: "USDT",
+    network: "ERC20",
+    networkLabel: "Ethereum (ERC20)",
+    address: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+    minimumDeposit: 500, // 5.00 USDT
+    confirmations: 0,
+    requiredConfirmations: 12,
+    createdAt: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
+  },
+  {
+    id: "dep_bep20_001",
+    asset: "USDT",
+    network: "BEP20",
+    networkLabel: "BNB Smart Chain (BEP20)",
+    address: "0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+    minimumDeposit: 500,
+    confirmations: 8,
+    requiredConfirmations: 15,
+    createdAt: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 23).toISOString(),
+  },
+];
+
+export function getDepositById(id: string): DepositSession | undefined {
+  return _deposits.find((d) => d.id === id);
+}
+
+// ---------- R5: Withdrawals ----------
+
+export type WithdrawalStatus =
+  | "PENDING_APPROVAL"
+  | "APPROVED"
+  | "BROADCASTING"
+  | "CONFIRMED"
+  | "REJECTED"
+  | "FAILED";
+
+export interface WithdrawalTimelineEntry {
+  status: WithdrawalStatus | "SUBMITTED";
+  at: string;
+  actor: string;
+  note?: string;
+}
+
+export interface Withdrawal {
+  id: string;
+  reference: string;
+  amount: number;      // minor units
+  currency: "USDT";
+  fee: number;         // minor units
+  total: number;       // amount + fee
+  address: string;
+  network: "TRC20" | "ERC20" | "BEP20";
+  networkLabel: string;
+  status: WithdrawalStatus;
+  initiatedBy: string;
+  approvedBy?: string;
+  createdAt: string;
+  decidedAt?: string;
+  timeline: WithdrawalTimelineEntry[];
+}
+
+export const seedWithdrawals: Withdrawal[] = [
+  {
+    id: "wd_seed_001",
+    reference: "WD-26-481203",
+    amount: 20000,
+    currency: "USDT",
+    fee: 100,
+    total: 20100,
+    address: "TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE",
+    network: "TRC20",
+    networkLabel: "TRON (TRC20)",
+    status: "PENDING_APPROVAL",
+    initiatedBy: "current_user",
+    createdAt: new Date(Date.now() - 1000 * 60 * 34).toISOString(),
+    timeline: [
+      { status: "SUBMITTED", at: new Date(Date.now() - 1000 * 60 * 34).toISOString(), actor: "You" },
+    ],
+  },
+];
+
+// ---------- R5: Saved recipients ----------
+
+export interface SavedRecipient {
+  id: string;
+  name: string;
+  phone: string;
+  country: string;
+  countryCode: string;
+  method: "MOBILE_MONEY" | "BANK";
+  provider: string;      // "M-Pesa" | "Airtel Money" | bank name
+  accountNumber: string; // phone or account number
+  lastUsedAt?: string;
+  createdAt: string;
+}
+
+export const seedSavedRecipients: SavedRecipient[] = [
+  {
+    id: "rec_001",
+    name: "Mary Wanjiku",
+    phone: "+254 712 345 678",
+    country: "Kenya",
+    countryCode: "KE",
+    method: "MOBILE_MONEY",
+    provider: "M-Pesa",
+    accountNumber: "+254712345678",
+    lastUsedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
+  },
+  {
+    id: "rec_002",
+    name: "John Otieno",
+    phone: "+254 733 987 654",
+    country: "Kenya",
+    countryCode: "KE",
+    method: "MOBILE_MONEY",
+    provider: "Airtel Money",
+    accountNumber: "+254733987654",
+    lastUsedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 60).toISOString(),
+  },
+  {
+    id: "rec_003",
+    name: "Alice Nakato",
+    phone: "+256 772 111 222",
+    country: "Uganda",
+    countryCode: "UG",
+    method: "MOBILE_MONEY",
+    provider: "MTN Mobile Money",
+    accountNumber: "+256772111222",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(),
+  },
+];
