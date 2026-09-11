@@ -12,6 +12,7 @@ export type MockRole =
   | 'FINANCE_OFFICER'
   | 'ADMIN'
   | 'COMPLIANCE_LEAD'
+  | 'COMPLIANCE_ANALYST'
   | 'SUPER_ADMIN';
 
 export interface MockUser {
