@@ -1,412 +1,424 @@
 'use client';
-"use client";
 
-import { useState, useMemo } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { AdminLayout } from "@/components/layout/adminLayout";
-import { Card } from "@/components/card";
-import { Button } from "@/components/button";
-import { mockAnnouncements } from "@/components/mock/data";
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useCurrentUser } from '@/lib/mock/current-user';
+import {
+  getAnnouncements,
+  getAnnouncementStats,
+  canCreateAnnouncement,
+  canArchiveAnnouncement,
+  ANNOUNCEMENT_STATUS_LABELS,
+  ANNOUNCEMENT_PRIORITY_LABELS,
+  ANNOUNCEMENT_AUDIENCE_LABELS,
+  getChapterName,
+  type AdminAnnouncement,
+  type AnnouncementAudience,
+  type AnnouncementPriority,
+  type AnnouncementStatus,
+} from '@/lib/mock/communications';
+import { AdminCard } from '@/components/admin/AdminCard';
+import { SearchInput } from '@/components/ui/search-input';
+import { Pagination } from '@/components/ui/pagination';
+import { EmptyState } from '@/components/admin/EmptyState';
+import { StatusBadge, type StatusKey } from '@/components/admin/StatusBadge';
 
-type SortField = "title" | "priority" | "createdAt" | "author";
-type SortDirection = "asc" | "desc";
+const PAGE_SIZE = 25;
 
-const PRIORITY_FILTERS = [
-  { value: "all", label: "All Priorities" },
-  { value: "HIGH", label: "🔴 High" },
-  { value: "MEDIUM", label: "🟠 Medium" },
-  { value: "LOW", label: "🟢 Low" },
+const STATUS_OPTIONS: Array<{ value: AnnouncementStatus | 'ALL'; label: string }> = [
+  { value: 'ALL', label: 'All statuses' },
+  { value: 'DRAFT', label: 'Draft' },
+  { value: 'SCHEDULED', label: 'Scheduled' },
+  { value: 'PUBLISHED', label: 'Published' },
+  { value: 'EXPIRED', label: 'Expired' },
 ];
 
-const priorityColors: Record<string, string> = {
-  HIGH: "bg-red-100 text-red-700",
-  MEDIUM: "bg-dawn-100 text-dawn-700",
-  LOW: "bg-green-100 text-green-700",
-};
+const PRIORITY_OPTIONS: Array<{ value: AnnouncementPriority | 'ALL'; label: string }> = [
+  { value: 'ALL', label: 'All priorities' },
+  { value: 'LOW', label: 'Low' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'HIGH', label: 'High' },
+];
 
-const priorityIcons: Record<string, string> = {
-  HIGH: "🔴",
-  MEDIUM: "🟠",
-  LOW: "🟢",
-};
+const AUDIENCE_OPTIONS: Array<{ value: AnnouncementAudience | 'ALL'; label: string }> = [
+  { value: 'ALL', label: 'All audiences' },
+  { value: 'CHAPTER', label: 'Chapter' },
+  { value: 'TIER', label: 'Tier' },
+  { value: 'COHORT', label: 'Cohort' },
+];
+
+function formatDate(iso: string | null): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+function statusToBadge(status: AnnouncementStatus): StatusKey {
+  switch (status) {
+    case 'DRAFT':
+      return 'draft';
+    case 'SCHEDULED':
+      return 'processing';
+    case 'PUBLISHED':
+      return 'approved';
+    case 'EXPIRED':
+      return 'inactive';
+  }
+}
+
+function priorityToBadge(priority: AnnouncementPriority): StatusKey {
+  switch (priority) {
+    case 'LOW':
+      return 'low';
+    case 'MEDIUM':
+      return 'medium';
+    case 'HIGH':
+      return 'high';
+  }
+}
+
+function audienceLabel(item: AdminAnnouncement): string {
+  if (item.audience === 'ALL') return 'All members';
+  if (item.audience === 'CHAPTER') {
+    return `Chapter · ${getChapterName(item.audienceRef)}`;
+  }
+  if (item.audience === 'TIER') return `Tier · ${item.audienceRef ?? '—'}`;
+  return `Cohort · ${item.audienceRef ?? '—'}`;
+}
+
+function readRate(item: AdminAnnouncement): { pct: number | null; read: number; total: number } {
+  const read = item.readBy.length;
+  const total = item.targetedCount;
+  if (total === 0) return { pct: null, read, total };
+  return { pct: Math.round((read / total) * 100), read, total };
+}
 
 export default function AnnouncementsPage() {
-  const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [sortField, setSortField] = useState<SortField>("createdAt");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const pageSize = 6;
+  const user = useCurrentUser();
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState<AnnouncementStatus | 'ALL'>('ALL');
+  const [priority, setPriority] = useState<AnnouncementPriority | 'ALL'>('ALL');
+  const [audience, setAudience] = useState<AnnouncementAudience | 'ALL'>('ALL');
+  const [page, setPage] = useState(1);
 
-  // Filter and sort announcements
-  const filteredAndSorted = useMemo(() => {
-    let result = [...mockAnnouncements];
-
-    // Search
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      result = result.filter(
-        (a) =>
-          a.title.toLowerCase().includes(query) ||
-          a.content.toLowerCase().includes(query) ||
-          a.author.toLowerCase().includes(query)
-      );
-    }
-
-    // Priority filter
-    if (priorityFilter !== "all") {
-      result = result.filter((a) => a.priority === priorityFilter);
-    }
-
-    // Sort
-    result = [...result].sort((a, b) => {
-      let aVal: string | number, bVal: string | number;
-      switch (sortField) {
-        case "title":
-          aVal = a.title;
-          bVal = b.title;
-          break;
-        case "priority":
-          const priorityOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
-          aVal = priorityOrder[a.priority as keyof typeof priorityOrder];
-          bVal = priorityOrder[b.priority as keyof typeof priorityOrder];
-          break;
-        case "createdAt":
-          aVal = new Date(a.createdAt).getTime();
-          bVal = new Date(b.createdAt).getTime();
-          break;
-        case "author":
-          aVal = a.author;
-          bVal = b.author;
-          break;
-        default:
-          aVal = a.createdAt;
-          bVal = b.createdAt;
-      }
-      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    return result;
-  }, [searchQuery, priorityFilter, sortField, sortDirection]);
-
-  // Pagination
-  const totalItems = filteredAndSorted.length;
-  const totalPages = Math.ceil(totalItems / pageSize);
-  const paginatedItems = filteredAndSorted.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
+  const items = useMemo(
+    () =>
+      getAnnouncements(user, {
+        status,
+        priority,
+        audience,
+        q: search,
+      }),
+    [user, status, priority, audience, search],
   );
 
-  // Stats
-  const stats = {
-    total: mockAnnouncements.length,
-    high: mockAnnouncements.filter((a) => a.priority === "HIGH").length,
-    medium: mockAnnouncements.filter((a) => a.priority === "MEDIUM").length,
-    low: mockAnnouncements.filter((a) => a.priority === "LOW").length,
-  };
+  const stats = useMemo(() => getAnnouncementStats(user), [user]);
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = items.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
 
-  const toggleSelectAll = () => {
-    if (selectedIds.length === paginatedItems.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(paginatedItems.map((a) => a.id));
-    }
-  };
-
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
-
-  const handleBulkDelete = () => {
-    const count = selectedIds.length;
-    if (count === 0) return;
-    if (confirm(`Are you sure you want to delete ${count} announcement${count > 1 ? "s" : ""}?`)) {
-      // In production, this would call an API
-      alert(`✅ ${count} announcement${count > 1 ? "s" : ""} deleted.`);
-      setSelectedIds([]);
-    }
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this announcement?")) {
-      alert("✅ Announcement deleted.");
-    }
-  };
-
-  const formatDate = (isoString: string) => {
-    return new Date(isoString).toLocaleDateString("en-KE", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  const truncate = (text: string, maxLength: number = 80) => {
-    if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength) + "...";
-  };
+  const canCreate = canCreateAnnouncement(user);
+  const canArchive = canArchiveAnnouncement(user);
+  const filtersActive =
+    search.trim().length > 0 ||
+    status !== 'ALL' ||
+    priority !== 'ALL' ||
+    audience !== 'ALL';
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="font-display text-2xl font-semibold tracking-tight text-ink-900">
-              Announcements
-            </h1>
-            <p className="mt-1 text-sm text-ink-500">
-              Create and manage announcements for all members.
-            </p>
-          </div>
-          <Button variant="primary" onClick={() => router.push("/admin/announcements/new")}>
-            📢 Post Announcement
-          </Button>
+    <div className="space-y-6">
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-ink">Announcements</h1>
+          <p className="mt-1 text-sm text-ink/60">
+            Compose, schedule and review messages for members.
+          </p>
         </div>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-lg bg-white p-4 text-center shadow-card">
-            <p className="text-xl font-semibold text-ink-900">{stats.total}</p>
-            <p className="text-xs text-ink-400">Total</p>
-          </div>
-          <div className="rounded-lg bg-red-50 p-4 text-center shadow-card">
-            <p className="text-xl font-semibold text-red-700">{stats.high}</p>
-            <p className="text-xs text-red-500">High Priority</p>
-          </div>
-          <div className="rounded-lg bg-dawn-50 p-4 text-center shadow-card">
-            <p className="text-xl font-semibold text-dawn-700">{stats.medium}</p>
-            <p className="text-xs text-dawn-500">Medium Priority</p>
-          </div>
-          <div className="rounded-lg bg-green-50 p-4 text-center shadow-card">
-            <p className="text-xl font-semibold text-green-700">{stats.low}</p>
-            <p className="text-xs text-green-500">Low Priority</p>
-          </div>
-        </div>
-
-        {/* Filters and search */}
-        <Card className="p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            {/* Search */}
-            <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300">🔍</span>
-              <input
-                type="text"
-                placeholder="Search by title, content, or author..."
-                className="w-full rounded-md border border-ink-200 py-2 pl-9 pr-4 text-sm outline-none transition-colors placeholder:text-ink-300 focus:border-sky-500"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
-            </div>
-            <div className="flex gap-2">
-              <select
-                className="rounded-md border border-ink-200 px-3 py-2 text-sm outline-none focus:border-sky-500"
-                value={priorityFilter}
-                onChange={(e) => {
-                  setPriorityFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-              >
-                {PRIORITY_FILTERS.map((f) => (
-                  <option key={f.value} value={f.value}>{f.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Bulk actions */}
-          {selectedIds.length > 0 && (
-            <div className="mt-4 flex items-center gap-3 rounded-md bg-ink-50 p-3">
-              <span className="text-sm font-medium text-ink-700">
-                {selectedIds.length} selected
-              </span>
-              <button
-                onClick={handleBulkDelete}
-                className="rounded-md bg-clay-100 px-3 py-1.5 text-sm font-medium text-clay-700 hover:bg-clay-200 transition-colors"
-              >
-                🗑️ Delete
-              </button>
-              <button
-                onClick={() => setSelectedIds([])}
-                className="ml-auto text-sm text-ink-400 hover:text-ink-600"
-              >
-                Clear
-              </button>
-            </div>
-          )}
-        </Card>
-
-        {/* Sort controls */}
-        <div className="flex flex-wrap items-center gap-3 text-xs">
-          <span className="font-medium text-ink-400">Sort by:</span>
-          <button
-            onClick={() => handleSort("createdAt")}
-            className={`rounded-md px-2.5 py-1 transition-colors ${
-              sortField === "createdAt"
-                ? "bg-ink-900 text-white"
-                : "text-ink-500 hover:bg-ink-100"
-            }`}
+        {canCreate && (
+          <Link
+            href="/admin/announcements/new"
+            className="inline-flex items-center gap-2 rounded-md bg-sky px-4 py-2 text-sm font-medium text-white hover:bg-sky/90 focus:outline-none focus:ring-2 focus:ring-sky/50"
           >
-            Date {sortField === "createdAt" && (sortDirection === "asc" ? "↑" : "↓")}
-          </button>
-          <button
-            onClick={() => handleSort("title")}
-            className={`rounded-md px-2.5 py-1 transition-colors ${
-              sortField === "title"
-                ? "bg-ink-900 text-white"
-                : "text-ink-500 hover:bg-ink-100"
-            }`}
-          >
-            Title {sortField === "title" && (sortDirection === "asc" ? "↑" : "↓")}
-          </button>
-          <button
-            onClick={() => handleSort("priority")}
-            className={`rounded-md px-2.5 py-1 transition-colors ${
-              sortField === "priority"
-                ? "bg-ink-900 text-white"
-                : "text-ink-500 hover:bg-ink-100"
-            }`}
-          >
-            Priority {sortField === "priority" && (sortDirection === "asc" ? "↑" : "↓")}
-          </button>
-          <button
-            onClick={() => handleSort("author")}
-            className={`rounded-md px-2.5 py-1 transition-colors ${
-              sortField === "author"
-                ? "bg-ink-900 text-white"
-                : "text-ink-500 hover:bg-ink-100"
-            }`}
-          >
-            Author {sortField === "author" && (sortDirection === "asc" ? "↑" : "↓")}
-          </button>
-        </div>
-
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {paginatedItems.map((announcement) => (
-            <Card
-              key={announcement.id}
-              className="p-5 transition-all hover:shadow-lg"
-            >
-              <div className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  checked={selectedIds.includes(announcement.id)}
-                  onChange={() => toggleSelect(announcement.id)}
-                  className="mt-1 h-4 w-4 rounded border-ink-200 text-sky-600 focus:ring-sky-500 shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <h3 className="font-display font-semibold text-ink-900 text-sm">
-                      {announcement.title}
-                    </h3>
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${priorityColors[announcement.priority]}`}
-                    >
-                      {priorityIcons[announcement.priority]}
-                      {announcement.priority}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-ink-600 leading-relaxed">
-                    {truncate(announcement.content)}
-                  </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-ink-400">
-                    <span>By {announcement.author}</span>
-                    <span>•</span>
-                    <span>{formatDate(announcement.createdAt)}</span>
-                  </div>
-                  <div className="mt-3 flex items-center gap-2">
-                    <Link
-                      href={`/admin/announcements/${announcement.id}/edit`}
-                      className="text-xs font-medium text-sky-600 hover:underline"
-                    >
-                      Edit
-                    </Link>
-                    <span className="text-ink-200">|</span>
-                    <button
-                      onClick={() => handleDelete(announcement.id)}
-                      className="text-xs font-medium text-clay-500 hover:text-clay-700"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* Empty state */}
-        {paginatedItems.length === 0 && (
-          <div className="py-12 text-center">
-            <p className="text-ink-400">No announcements match your filters.</p>
-          </div>
+            New announcement
+          </Link>
         )}
+      </header>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex flex-wrap items-center justify-between border-t border-ink-100 pt-4 gap-2">
-            <p className="text-xs text-ink-400">
-              Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, totalItems)} of {totalItems}
-            </p>
-            <div className="flex gap-1">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="rounded-md px-3 py-1 text-sm text-ink-400 hover:bg-ink-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Previous
-              </button>
-              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                let page = i + 1;
-                if (totalPages > 5) {
-                  if (currentPage > 3) page = currentPage - 2 + i;
-                  if (page > totalPages) page = totalPages - (4 - i);
-                }
-                return (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`rounded-md px-3 py-1 text-sm transition-colors ${
-                      currentPage === page
-                        ? "bg-ink-900 text-white"
-                        : "text-ink-600 hover:bg-ink-50"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="rounded-md px-3 py-1 text-sm text-ink-400 hover:bg-ink-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Next
-              </button>
-            </div>
+      <section
+        aria-label="Announcement statistics"
+        className="grid grid-cols-2 gap-4 lg:grid-cols-4"
+      >
+        <StatTile label="Published this month" value={stats.publishedThisMonth} />
+        <StatTile label="Scheduled" value={stats.scheduled} />
+        <StatTile label="Drafts" value={stats.drafts} />
+        <StatTile
+          label="Average read rate"
+          value={
+            stats.averageReadRate != null
+              ? `${stats.averageReadRate}%`
+              : '—'
+          }
+        />
+      </section>
+
+      <AdminCard
+        title="All announcements"
+        subtitle="Filter, sort and open any announcement."
+      >
+        <div className="flex flex-wrap items-center gap-3 border-b border-ink/10 px-4 py-3">
+          <div className="min-w-[220px] flex-1">
+            <SearchInput
+              value={search}
+              onValueChange={(v) => {
+                setSearch(v);
+                setPage(1);
+              }}
+              placeholder="Search title or body"
+            />
           </div>
+          <select
+            value={status}
+            onChange={(e) => {
+              setStatus(e.target.value as AnnouncementStatus | 'ALL');
+              setPage(1);
+            }}
+            className="rounded-md border border-ink/20 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky/50"
+            aria-label="Filter by status"
+          >
+            {STATUS_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={priority}
+            onChange={(e) => {
+              setPriority(e.target.value as AnnouncementPriority | 'ALL');
+              setPage(1);
+            }}
+            className="rounded-md border border-ink/20 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky/50"
+            aria-label="Filter by priority"
+          >
+            {PRIORITY_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={audience}
+            onChange={(e) => {
+              setAudience(e.target.value as AnnouncementAudience | 'ALL');
+              setPage(1);
+            }}
+            className="rounded-md border border-ink/20 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky/50"
+            aria-label="Filter by audience"
+          >
+            {AUDIENCE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {pageItems.length === 0 ? (
+          <div className="p-8">
+            <EmptyState
+              title={
+                filtersActive
+                  ? 'No announcements match these filters.'
+                  : 'No announcements yet'
+              }
+              description={
+                filtersActive
+                  ? 'Try clearing the filters.'
+                  : 'Compose the first one.'
+              }
+            />
+          </div>
+        ) : (
+          <>
+            <div className="hidden md:block">
+              <table className="w-full border-collapse text-sm">
+                <caption className="sr-only">List of announcements</caption>
+                <thead>
+                  <tr className="border-b border-ink/10 text-left text-xs uppercase tracking-wide text-ink/60">
+                    <th scope="col" className="px-4 py-3">Title</th>
+                    <th scope="col" className="px-4 py-3">Audience</th>
+                    <th scope="col" className="px-4 py-3">Priority</th>
+                    <th scope="col" className="px-4 py-3">Status</th>
+                    <th scope="col" className="px-4 py-3">Published</th>
+                    <th scope="col" className="px-4 py-3">Read rate</th>
+                    <th scope="col" className="px-4 py-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pageItems.map((item) => (
+                    <AnnouncementRow
+                      key={item.id}
+                      item={item}
+                      canArchive={canArchive}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <ul className="divide-y divide-ink/10 md:hidden">
+              {pageItems.map((item) => (
+                <li key={item.id} className="p-4">
+                  <AnnouncementCardMobile item={item} />
+                </li>
+              ))}
+            </ul>
+
+            {totalPages > 1 && (
+              <div className="border-t border-ink/10 px-4 py-3">
+                <Pagination
+                  currentPage={safePage}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                  totalItems={items.length}
+                  pageSize={PAGE_SIZE}
+                />
+              </div>
+            )}
+          </>
+        )}
+      </AdminCard>
+    </div>
+  );
+}
+
+function StatTile({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div className="rounded-lg border border-ink/10 bg-white p-4 shadow-sm">
+      <p className="text-sm text-ink/60">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-ink">{value}</p>
+    </div>
+  );
+}
+
+function AnnouncementRow({
+  item,
+  canArchive,
+}: {
+  item: AdminAnnouncement;
+  canArchive: boolean;
+}) {
+  const rate = readRate(item);
+  const isDraft = item.status === 'DRAFT';
+  const editPath = `/admin/announcements/${item.id}/edit`;
+
+  return (
+    <tr className="border-b border-ink/5 last:border-0 hover:bg-paper/60">
+      <td className="px-4 py-3">
+        {isDraft ? (
+          <Link href={editPath} className="font-medium text-ink hover:text-sky">
+            {item.title}
+          </Link>
+        ) : (
+          <Link
+            href={`/admin/announcements/${item.id}`}
+            className="font-medium text-ink hover:text-sky"
+          >
+            {item.title}
+          </Link>
+        )}
+        <div className="mt-0.5 line-clamp-1 text-xs text-ink/50">
+          {item.body}
+        </div>
+      </td>
+      <td className="px-4 py-3 text-xs">
+        {audienceLabel(item)}
+      </td>
+      <td className="px-4 py-3">
+        <StatusBadge status={priorityToBadge(item.priority)}>
+          {ANNOUNCEMENT_PRIORITY_LABELS[item.priority]}
+        </StatusBadge>
+      </td>
+      <td className="px-4 py-3">
+        <StatusBadge status={statusToBadge(item.status)}>
+          {ANNOUNCEMENT_STATUS_LABELS[item.status]}
+        </StatusBadge>
+      </td>
+      <td className="px-4 py-3 text-xs">
+        {formatDate(item.publishAt)}
+      </td>
+      <td className="px-4 py-3 text-xs">
+        {rate.pct != null ? (
+          <span aria-label={`${rate.pct} percent, ${rate.read} of ${rate.total}`}>
+            {rate.pct}%{' '}
+            <span className="text-ink/50">
+              ({rate.read}/{rate.total})
+            </span>
+          </span>
+        ) : (
+          '—'
+        )}
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex gap-3 text-xs">
+          {isDraft && (
+            <Link href={editPath} className="text-sky hover:underline">
+              Edit
+            </Link>
+          )}
+          <Link
+            href={`/admin/announcements/${item.id}`}
+            className="text-sky hover:underline"
+          >
+            View
+          </Link>
+          {canArchive && (
+            <button
+              type="button"
+              className="text-ink/50 hover:underline"
+              title="Archive (not implemented)"
+            >
+              Archive
+            </button>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function AnnouncementCardMobile({ item }: { item: AdminAnnouncement }) {
+  const rate = readRate(item);
+  return (
+    <div className="space-y-2">
+      <div className="flex items-start justify-between gap-3">
+        <Link
+          href={`/admin/announcements/${item.id}`}
+          className="font-medium text-ink hover:text-sky"
+        >
+          {item.title}
+        </Link>
+        <StatusBadge status={statusToBadge(item.status)}>
+          {ANNOUNCEMENT_STATUS_LABELS[item.status]}
+        </StatusBadge>
+      </div>
+      <div className="text-xs text-ink/60">{audienceLabel(item)}</div>
+      <div className="text-xs text-ink/60">
+        {formatDate(item.publishAt)}
+        {rate.pct != null && (
+          <>
+            {' · '}
+            {rate.pct}% read ({rate.read}/{rate.total})
+          </>
         )}
       </div>
-    </AdminLayout>
+    </div>
   );
 }
