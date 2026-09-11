@@ -11,6 +11,7 @@ export type MockRole =
   | 'CHAPTER_LEADER'
   | 'FINANCE_OFFICER'
   | 'ADMIN'
+  | 'COMPLIANCE_LEAD'
   | 'SUPER_ADMIN';
 
 export interface MockUser {
@@ -19,8 +20,10 @@ export interface MockUser {
   initials: string;
   email: string;
   role: MockRole;
-  /** For CHAPTER_LEADER scoping — matches Application.chapterCode */
+  /** For CHAPTER_LEADER scoping - matches Application.chapterCode */
   chapterCode?: string;
+  /** Optional capability flags on top of role, e.g. SAFEGUARDING_HANDLER */
+  capabilities?: string[];
   /** Human-readable label for the role switcher */
   label: string;
 }
@@ -32,7 +35,8 @@ export const mockUsers: MockUser[] = [
     initials: 'SA',
     email: 'solomon@eaglegeneration.org',
     role: 'SUPER_ADMIN',
-    label: 'Solomon — SUPER_ADMIN',
+    capabilities: ['SAFEGUARDING_HANDLER'],
+    label: 'Solomon - SUPER_ADMIN',
   },
   {
     id: 'user-admin-miriam',
@@ -40,7 +44,7 @@ export const mockUsers: MockUser[] = [
     initials: 'MK',
     email: 'miriam@eaglegeneration.org',
     role: 'FINANCE_OFFICER',
-    label: 'Miriam — Finance Officer',
+    label: 'Miriam - Finance Officer',
   },
   {
     id: 'user-esther',
@@ -49,7 +53,7 @@ export const mockUsers: MockUser[] = [
     email: 'esther@eaglegeneration.org',
     role: 'CHAPTER_LEADER',
     chapterCode: 'KU',
-    label: 'Esther — Chapter Leader (KU)',
+    label: 'Esther - Chapter Leader (KU)',
   },
   {
     id: 'user-daniel',
@@ -58,7 +62,7 @@ export const mockUsers: MockUser[] = [
     email: 'daniel@eaglegeneration.org',
     role: 'CHAPTER_LEADER',
     chapterCode: 'UON',
-    label: 'Daniel — Chapter Leader (UON)',
+    label: 'Daniel - Chapter Leader (UON)',
   },
   {
     id: 'user-faith',
@@ -67,7 +71,16 @@ export const mockUsers: MockUser[] = [
     email: 'faith@eaglegeneration.org',
     role: 'CHAPTER_LEADER',
     chapterCode: 'Strathmore',
-    label: 'Faith — Chapter Leader (Strathmore)',
+    label: 'Faith - Chapter Leader (Strathmore)',
+  },
+  {
+    id: 'user-compliance-james',
+    name: 'James O.',
+    initials: 'JO',
+    email: 'compliance@eaglegeneration.org',
+    role: 'COMPLIANCE_LEAD',
+    capabilities: ['SAFEGUARDING_HANDLER'],
+    label: 'James - Compliance Lead',
   },
 ];
 
