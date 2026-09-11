@@ -1,72 +1,80 @@
-'use client';
 "use client";
 
-import { AdminLayout } from "@/components/layout/adminLayout";
-import { Card } from "@/components/card";
-import { Button } from "@/components/button";
+import { getRoles, canViewSystemSettings } from "@/lib/mock/system-settings";
 
-// Mock role data (based on project charter's 8 user roles)
-const roles = [
-  { name: "Super Admin", permissions: ["All permissions"], description: "Full system access" },
-  { name: "Admin", permissions: ["Manage users", "Manage chapters", "Manage announcements", "View reports"], description: "Platform administration" },
-  { name: "Chapter Leader", permissions: ["Manage chapter members", "Post announcements", "View chapter reports"], description: "Leads a chapter" },
-  { name: "Mentor", permissions: ["View mentees", "Provide feedback", "Access learning resources"], description: "Guides members" },
-  { name: "Eagle", permissions: ["View dashboard", "Access learning", "Participate in events"], description: "Full member" },
-  { name: "Rising", permissions: ["View dashboard", "Access basic learning", "View directory"], description: "Developing member" },
-  { name: "Nestling", permissions: ["View limited dashboard", "Access onboarding content"], description: "New member" },
-  { name: "Applicant", permissions: ["View application status", "Edit own application"], description: "Has applied, not yet approved" },
+const CAPABILITIES: { capability: string; values: Record<string, string> }[] = [
+  { capability: "View public content", values: { GUEST: "Y", MEMBER: "Y", MENTOR: "Y", CIRCLE_LEADER: "Y", CHAPTER_LEADER: "Y", FINANCE_OFFICER: "Y", ADMIN: "Y", SUPER_ADMIN: "Y" } },
+  { capability: "Submit application", values: { GUEST: "Y" } },
+  { capability: "View own profile", values: { MEMBER: "S", MENTOR: "S", CIRCLE_LEADER: "S", CHAPTER_LEADER: "S", FINANCE_OFFICER: "S", ADMIN: "S", SUPER_ADMIN: "S" } },
+  { capability: "Review applications", values: { ADMIN: "Y", SUPER_ADMIN: "Y" } },
+  { capability: "Approve or reject application", values: { ADMIN: "Y", SUPER_ADMIN: "Y" } },
+  { capability: "Suspend member", values: { ADMIN: "Y", SUPER_ADMIN: "Y" } },
+  { capability: "Create chapter event", values: { CHAPTER_LEADER: "C", ADMIN: "Y", SUPER_ADMIN: "Y" } },
+  { capability: "Enrol in course", values: { MEMBER: "S", MENTOR: "S", CIRCLE_LEADER: "S", CHAPTER_LEADER: "S", FINANCE_OFFICER: "S", ADMIN: "S", SUPER_ADMIN: "S" } },
+  { capability: "Create or edit course", values: { MENTOR: "A", ADMIN: "Y", SUPER_ADMIN: "Y" } },
+  { capability: "Grade assignment", values: { MENTOR: "A", ADMIN: "Y", SUPER_ADMIN: "Y" } },
+  { capability: "Post to feed", values: { MEMBER: "Y", MENTOR: "Y", CIRCLE_LEADER: "Y", CHAPTER_LEADER: "Y", FINANCE_OFFICER: "Y", ADMIN: "Y", SUPER_ADMIN: "Y" } },
+  { capability: "Issue refund", values: { FINANCE_OFFICER: "Y*", ADMIN: "Y*", SUPER_ADMIN: "Y*" } },
+  { capability: "Approve withdrawal", values: { FINANCE_OFFICER: "Y*", SUPER_ADMIN: "Y*" } },
+  { capability: "View AML alert queue", values: { ADMIN: "Y", SUPER_ADMIN: "Y" } },
 ];
 
 export default function RolesPage() {
-  return (
-    <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="font-display text-2xl font-semibold tracking-tight text-ink-900">
-              Roles & Permissions
-            </h1>
-            <p className="mt-1 text-sm text-ink-500">
-              Manage user roles and their permissions.
-            </p>
-          </div>
-          <Button variant="primary" onClick={() => alert("Add role form coming soon")}>
-            ➕ Add Role
-          </Button>
-        </div>
+  const canView = canViewSystemSettings();
+  const roles = getRoles();
 
+  if (!canView) {
+    return <div className="p-6"><div className="rounded-lg border border-ink/10 bg-paper p-6 text-sm text-ink/70">Access denied.</div></div>;
+  }
+
+  return (
+    <div className="space-y-6 p-6">
+      <header>
+        <h1 className="text-2xl font-semibold text-ink">Roles and permissions</h1>
+        <p className="mt-1 text-sm text-ink/60">
+          Read-only. Role assignment happens in Members (ADM-034).
+        </p>
+      </header>
+
+      <section className="rounded-lg border border-ink/10 bg-paper p-5">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink/60">Roles</h2>
+        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-sm">
+          {roles.map((r) => (
+            <li key={r.code} className="rounded-md border border-ink/10 p-3">
+              <div className="font-semibold text-ink">{r.name}</div>
+              <div className="mt-1 text-xs text-ink/50"><code>{r.code}</code></div>
+              <div className="mt-1 text-xs text-ink/60">{r.description}</div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="rounded-lg border border-ink/10 bg-paper p-5">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink/60">Capability matrix</h2>
+        <p className="mb-3 text-xs text-ink/60">Y full · S self only · C own chapter only · A assigned only · blank none · Y* four-eyes required</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-ink-100 bg-ink-50">
+            <thead className="bg-ink/5 text-left text-xs uppercase tracking-wide text-ink/60">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-ink-500">Role</th>
-                <th className="px-4 py-3 text-left font-medium text-ink-500">Description</th>
-                <th className="px-4 py-3 text-left font-medium text-ink-500">Permissions</th>
-                <th className="px-4 py-3 text-right font-medium text-ink-500">Actions</th>
+                <th className="px-3 py-2">Capability</th>
+                {roles.map((r) => (
+                  <th key={r.code} className="px-3 py-2">{r.code}</th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink-50">
-              {roles.map((role) => (
-                <tr key={role.name} className="hover:bg-ink-50/50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-ink-900">{role.name}</td>
-                  <td className="px-4 py-3 text-ink-600">{role.description}</td>
-                  <td className="px-4 py-3 text-ink-600">
-                    <ul className="list-disc list-inside">
-                      {role.permissions.map((perm, idx) => (
-                        <li key={idx} className="text-xs">{perm}</li>
-                      ))}
-                    </ul>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button onClick={() => alert("Edit role: " + role.name)} className="text-sky-600 hover:underline mr-2">Edit</button>
-                    <button onClick={() => alert("Delete role: " + role.name)} className="text-clay-600 hover:underline">Delete</button>
-                  </td>
+            <tbody className="divide-y divide-ink/5">
+              {CAPABILITIES.map((c) => (
+                <tr key={c.capability}>
+                  <td className="px-3 py-2">{c.capability}</td>
+                  {roles.map((r) => (
+                    <td key={r.code} className="px-3 py-2 text-ink/70">{c.values[r.code] ?? ""}</td>
+                  ))}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </div>
-    </AdminLayout>
+      </section>
+    </div>
   );
 }
