@@ -316,6 +316,10 @@ export const seedContributions: Contribution[] = [
   { id: "ct-13", createdAt: days(-10), memberId: "m-6", memberNumber: "TEG-26-STRATH-0027", circleId: "sc-5", circleName: "Women of Purpose SACCO", amountMinor: 1200000, currency: "KES", method: "MPESA", status: "PAID", ledgerPairId: "lp-ct-13" },
   { id: "ct-14", createdAt: days(-12), memberId: "m-2", memberNumber: "TEG-26-UON-0031", circleId: "sc-6", circleName: "Eldoret Founders", amountMinor: 800000, currency: "KES", method: "MPESA", status: "LATE", ledgerPairId: "lp-ct-14" },
   { id: "ct-15", createdAt: days(-14), memberId: "m-3", memberNumber: "TEG-26-STRATH-0027", circleId: "sc-1", circleName: "Alpha Investors", amountMinor: 1000000, currency: "KES", method: "MPESA", status: "PAID", ledgerPairId: "lp-ct-15" },
+    { id: "ct-16", createdAt: days(-2), memberId: "user-solomon", memberNumber: "TEG-26-KU-0001", circleId: "sc-1", circleName: "Alpha Investors", amountMinor: 1000000, currency: "KES", method: "MPESA", status: "PAID", ledgerPairId: "lp-ct-16" },
+    { id: "ct-17", createdAt: days(-9), memberId: "user-solomon", memberNumber: "TEG-26-KU-0001", circleId: "sc-1", circleName: "Alpha Investors", amountMinor: 1000000, currency: "KES", method: "MPESA", status: "PAID", ledgerPairId: "lp-ct-17" },
+    { id: "ct-18", createdAt: days(-1), memberId: "user-solomon", memberNumber: "TEG-26-KU-0001", circleId: "sc-3", circleName: "Kisumu Traders Circle", amountMinor: 500000, currency: "KES", method: "MPESA", status: "PAID", ledgerPairId: "lp-ct-18" },
+    { id: "ct-19", createdAt: hours(-2), memberId: "user-solomon", memberNumber: "TEG-26-KU-0001", circleId: "sc-2", circleName: "Community Growth", amountMinor: 750000, currency: "KES", method: "MPESA", status: "PENDING", ledgerPairId: "lp-ct-19" }
 ];
 
 export const seedPayouts: Payout[] = [
@@ -767,4 +771,78 @@ export const RETURN_STATUS_LABELS: Record<SaccoReturnStatus, string> = {
   ACCEPTED: "Accepted",
   REJECTED: "Rejected",
   OVERDUE: "Overdue",
+};
+
+// ---------- Circle memberships ----------
+// Added for the member-scoped savings view. Maps a platform user to the
+// circles they belong to. In production this table is the canonical source
+// for "which circles am I in".
+
+export type MembershipRole = "LEADER" | "MEMBER";
+
+export interface CircleMembership {
+  id: string;
+  circleId: string;
+  userId: string;
+  memberNumber: string;
+  joinedAt: string;
+  role: MembershipRole;
+}
+
+export const seedMemberships: CircleMembership[] = [
+  { id: "cm-1", circleId: "sc-1", userId: "user-solomon", memberNumber: "TEG-26-KU-0001", joinedAt: days(-120), role: "MEMBER" },
+  { id: "cm-2", circleId: "sc-2", userId: "user-solomon", memberNumber: "TEG-26-KU-0001", joinedAt: days(-90), role: "MEMBER" },
+  { id: "cm-3", circleId: "sc-3", userId: "user-solomon", memberNumber: "TEG-26-KU-0001", joinedAt: days(-60), role: "MEMBER" },
+  { id: "cm-4", circleId: "sc-1", userId: "user-admin-miriam", memberNumber: "TEG-26-STRATH-0027", joinedAt: days(-150), role: "MEMBER" },
+  { id: "cm-5", circleId: "sc-5", userId: "user-admin-miriam", memberNumber: "TEG-26-STRATH-0027", joinedAt: days(-100), role: "MEMBER" },
+  { id: "cm-6", circleId: "sc-3", userId: "user-esther", memberNumber: "TEG-26-KSM-0045", joinedAt: days(-80), role: "MEMBER" },
+  { id: "cm-7", circleId: "sc-5", userId: "user-compliance-james", memberNumber: "TEG-26-KU-0088", joinedAt: days(-50), role: "MEMBER" },
+];
+
+export function getMyMemberships(): CircleMembership[] {
+  const me = getCurrentUser();
+  return seedMemberships.filter((m) => m.userId === me.id);
+}
+
+export function getMyMemberNumber(): string | null {
+  const me = getCurrentUser();
+  return seedMemberships.find((m) => m.userId === me.id)?.memberNumber ?? null;
+}
+
+export function getMyCircles(): SavingsCircle[] {
+  const me = getCurrentUser();
+  const ids = seedMemberships.filter((m) => m.userId === me.id).map((m) => m.circleId);
+  return seedCircles.filter((c) => ids.includes(c.id));
+}
+
+export function getMyContributions(): Contribution[] {
+  const mn = getMyMemberNumber();
+  if (!mn) return [];
+  return seedContributions
+    .filter((c) => c.memberNumber === mn)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export function getMyPendingContributions(): Contribution[] {
+  return getMyContributions().filter((c) => c.status === "PENDING" || c.status === "LATE");
+}
+
+export function getMyPayouts(): Payout[] {
+  const mn = getMyMemberNumber();
+  if (!mn) return [];
+  return seedPayouts
+    .filter((p) => p.recipientMemberNumber === mn)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export function getUpcomingPayoutsForMyCircles(): Payout[] {
+  const ids = getMyCircles().map((c) => c.id);
+  return seedPayouts
+    .filter((p) => ids.includes(p.circleId) && (p.status === "PENDING" || p.status === "APPROVED"))
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+}
+
+export const MEMBERSHIP_ROLE_LABELS: Record<MembershipRole, string> = {
+  LEADER: "Leader",
+  MEMBER: "Member",
 };
