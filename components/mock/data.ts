@@ -16,6 +16,7 @@ export type MockRole =
   | 'CREDIT_OFFICER'
   | 'CREDIT_ANALYST'
   | 'CREDIT_MANAGER'
+  | 'INSTRUCTOR'
   | 'SUPER_ADMIN';
 
 export interface MockUser {
