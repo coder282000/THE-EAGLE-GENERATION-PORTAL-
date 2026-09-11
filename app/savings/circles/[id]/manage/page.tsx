@@ -15,7 +15,7 @@ export default function CircleManagementPage() {
   const [loading, setLoading] = useState(false);
 
   if (!circle) {
-    return <div className="text-center py-12 text-gray-500">Circle not found.</div>;
+    return <div className="text-center py-12 text-ink/50">Circle not found.</div>;
   }
 
   const handleSave = async (e: React.FormEvent) => {
@@ -56,7 +56,7 @@ export default function CircleManagementPage() {
             <h4 className="font-medium text-ink">Members</h4>
             <ul className="mt-2 space-y-1 text-sm">
               {circle.memberIds.map((memberId) => (
-                <li key={memberId} className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded">
+                <li key={memberId} className="flex justify-between items-center bg-paper px-3 py-2 rounded">
                   <span>Member {memberId}</span>
                   {memberId === circle.leaderId && (
                     <span className="text-xs bg-clay/20 text-clay px-2 py-0.5 rounded">Leader</span>

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { MemberLayout } from "@/components/layout/memberLayout";
 import { Button } from "@/components/button";
 import { Card } from "@/components/card";
 import { getDepositById } from "@/components/mock/data";
@@ -15,7 +14,7 @@ export default function DepositAddressPage() {
 
   if (!deposit) {
     return (
-      <MemberLayout>
+      
         <div className="container-portal py-12">
           <Card>
             <div className="p-8 text-center">
@@ -29,7 +28,7 @@ export default function DepositAddressPage() {
             </div>
           </Card>
         </div>
-      </MemberLayout>
+      
     );
   }
 
@@ -47,7 +46,7 @@ export default function DepositAddressPage() {
   const progress = Math.min(100, (deposit.confirmations / deposit.requiredConfirmations) * 100);
 
   return (
-    <MemberLayout>
+    
       <div className="container-portal py-8">
         <nav aria-label="Breadcrumb" className="mb-6 text-sm text-ink/60">
           <ol className="flex flex-wrap items-center gap-2">
@@ -176,7 +175,7 @@ export default function DepositAddressPage() {
           </Card>
         </div>
       </div>
-    </MemberLayout>
+    
   );
 }
 

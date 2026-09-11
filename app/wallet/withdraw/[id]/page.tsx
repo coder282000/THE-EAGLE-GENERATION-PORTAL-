@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { MemberLayout } from "@/components/layout/memberLayout";
 import { Button } from "@/components/button";
 import { Card } from "@/components/card";
 import { seedWithdrawals, type Withdrawal } from "@/components/mock/data";
@@ -27,7 +26,7 @@ export default function WithdrawalDetailPage() {
 
   if (!loaded) {
     return (
-      <MemberLayout>
+      
         <div className="container-portal py-12">
           <Card>
             <div className="p-8">
@@ -36,13 +35,13 @@ export default function WithdrawalDetailPage() {
             </div>
           </Card>
         </div>
-      </MemberLayout>
+      
     );
   }
 
   if (!withdrawal) {
     return (
-      <MemberLayout>
+      
         <div className="container-portal py-12">
           <Card>
             <div className="p-8 text-center">
@@ -56,14 +55,14 @@ export default function WithdrawalDetailPage() {
             </div>
           </Card>
         </div>
-      </MemberLayout>
+      
     );
   }
 
   const fmt = (minor: number) => (minor / 100).toFixed(2);
 
   return (
-    <MemberLayout>
+    
       <div className="container-portal py-8">
         <nav aria-label="Breadcrumb" className="mb-6 text-sm text-ink/60">
           <ol className="flex flex-wrap items-center gap-2">
@@ -141,7 +140,7 @@ export default function WithdrawalDetailPage() {
           </div>
         </div>
       </div>
-    </MemberLayout>
+    
   );
 }
 

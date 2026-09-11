@@ -41,7 +41,7 @@ export default function CircleDetailPage() {
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   if (!circle) {
-    return <div className="text-center py-12 text-gray-500">Circle not found.</div>;
+    return <div className="text-center py-12 text-ink/50">Circle not found.</div>;
   }
 
   const isMember = circle.memberIds.includes('1');
@@ -53,13 +53,13 @@ export default function CircleDetailPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-bold text-ink">{circle.name}</h1>
-          <p className="text-gray-600 mt-1">{circle.description}</p>
+          <p className="text-ink/60 mt-1">{circle.description}</p>
           <div className="flex gap-2 mt-2">
-            <span className="text-sm bg-gray-100 px-2 py-1 rounded-full capitalize">{circle.type}</span>
+            <span className="text-sm bg-ink/5 px-2 py-1 rounded-full capitalize">{circle.type}</span>
             <span className={`text-sm px-2 py-1 rounded-full ${
               circle.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' :
               circle.status === 'PAUSED' ? 'bg-amber-100 text-amber-800' :
-              'bg-gray-100 text-gray-800'
+              'bg-ink/5 text-ink/80'
             }`}>
               {circle.status}
             </span>
@@ -82,19 +82,19 @@ export default function CircleDetailPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-3">
-          <p className="text-sm text-gray-500">Total Balance</p>
+          <p className="text-sm text-ink/50">Total Balance</p>
           <p className="text-xl font-bold">{formatCurrency(circle.totalBalance, circle.currency)}</p>
         </Card>
         <Card className="p-3">
-          <p className="text-sm text-gray-500">Members</p>
+          <p className="text-sm text-ink/50">Members</p>
           <p className="text-xl font-bold">{circle.memberCount}</p>
         </Card>
         <Card className="p-3">
-          <p className="text-sm text-gray-500">Contributions</p>
+          <p className="text-sm text-ink/50">Contributions</p>
           <p className="text-xl font-bold">{circle.contributionCount}</p>
         </Card>
         <Card className="p-3">
-          <p className="text-sm text-gray-500">Next Payout</p>
+          <p className="text-sm text-ink/50">Next Payout</p>
           <p className="text-xl font-bold">
             {circle.nextPayoutDate ? new Date(circle.nextPayoutDate).toLocaleDateString() : '—'}
           </p>
@@ -106,7 +106,7 @@ export default function CircleDetailPage() {
         <h3 className="font-semibold text-ink mb-3">Members ({members.length})</h3>
         <div className="flex flex-wrap gap-3">
           {members.map((member) => (
-            <div key={member.id} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-full">
+            <div key={member.id} className="flex items-center gap-2 bg-paper px-3 py-2 rounded-full">
               {/* Replaced Avatar with inline initials */}
               <div className="w-6 h-6 rounded-full bg-sky-200 flex items-center justify-center text-xs font-medium text-sky-700">
                 {member.firstName[0]}
@@ -135,7 +135,7 @@ export default function CircleDetailPage() {
                 <p className="text-sm">
                   Payout to {mockMembers.find((m) => m.id === p.memberId)?.firstName}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-ink/50">
                   {formatCurrency(p.amount, p.currency)} • Scheduled {new Date(p.scheduledDate).toLocaleDateString()}
                 </p>
               </div>
